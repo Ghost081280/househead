@@ -1,7 +1,7 @@
 {
-  "name": "House Head Survival",
-  "short_name": "HouseHead",
-  "description": "Survive as long as you can while avoiding the terrifying House Heads! A thrilling survival game.",
+  "name": "House Head Chase",
+  "short_name": "HouseChase",
+  "description": "Survive as long as you can while avoiding the terrifying House Heads! A thrilling survival game with power-ups and increasing difficulty.",
   "version": "1.0.0",
   "start_url": "/",
   "scope": "/",
@@ -81,7 +81,7 @@
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "House Head Survival gameplay on desktop"
+      "label": "House Head Chase gameplay on desktop"
     },
     {
       "src": "screenshots/mobile.png", 
