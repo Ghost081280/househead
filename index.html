@@ -54,34 +54,28 @@
         <!-- Flashlight Indicator -->
         <div id="flashlightIndicator" class="hidden">
             <div class="flashlight-icon">🔦</div>
-            <div class="flashlight-text">FLASHLIGHT ON</div>
+            <div class="flashlight-text">LIGHT ON</div>
         </div>
         
-        <!-- Double Tap Hint -->
-        <div id="doubleTapHint" class="hint">
-            📱 Double tap to toggle flashlight
+        <!-- Mobile Controls Hint -->
+        <div id="controlsHint" class="hint">
+            📱 Drag blue dot • Double tap for flashlight
         </div>
     </div>
     
     <!-- Start Screen -->
     <div id="startScreen">
-        <h1>🏠 HOUSE HEAD SURVIVAL 🏠</h1>
+        <h1>🏠 HOUSE HEAD SURVIVAL</h1>
         <div id="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
-            <br>
             <p>🔵 <strong>Blue Dot Hero</strong> - That's you!</p>
-            <p>📱 <strong>Touch & Drag:</strong> Move blue dot</p>
-            <p>💡 <strong>Double Tap:</strong> Toggle flashlight</p>
-            <p>🏠 <strong>House Heads:</strong> Avoid at all costs!</p>
-            <br>
-            <p>⚠️ <strong>WARNING:</strong></p>
-            <p>🔦 Flashlight reveals enemies but exposes your location</p>
-            <p>🏠 Houses grow legs and hunt you down</p>
-            <p>💔 Touching House Heads = DAMAGE</p>
-            <p>🎯 Survive as long as possible!</p>
+            <p>📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
+            <p>🏠 <strong>House Heads spawn and hunt you down!</strong></p>
+            <p>⚠️ <strong>Flashlight reveals enemies but exposes you</strong></p>
+            <p>💔 <strong>Avoid contact or take damage!</strong></p>
         </div>
         <div class="button-container">
-            <button class="btn" onclick="startGame()">🎮 START SURVIVAL</button>
+            <button class="btn" onclick="startGame()">🎮 START GAME</button>
             <button class="btn" onclick="showHighScores()">🏆 HIGH SCORES</button>
             <button class="btn" onclick="showHelp()">❓ HOW TO PLAY</button>
         </div>
@@ -89,16 +83,15 @@
     
     <!-- Game Over Screen -->
     <div id="gameOver" class="hidden">
-        <h2>💀 SURVIVAL FAILED! 💀</h2>
+        <h2>💀 GAME OVER!</h2>
         <p>🏠 The House Heads got you!</p>
-        <p>🏆 Final Score: <span id="finalScore">0</span></p>
-        <p>⏰ Time Survived: <span id="finalTime">0</span> seconds</p>
-        <p>📊 Level Reached: <span id="finalLevel">1</span></p>
-        <p>🏠 House Heads Survived: <span id="totalEnemies">0</span></p>
+        <p>🏆 Score: <span id="finalScore">0</span></p>
+        <p>⏰ Time: <span id="finalTime">0</span>s</p>
+        <p>📊 Level: <span id="finalLevel">1</span></p>
         <div class="button-container">
-            <button class="btn" onclick="restartGame()">🔄 TRY AGAIN</button>
+            <button class="btn" onclick="restartGame()">🔄 PLAY AGAIN</button>
             <button class="btn" onclick="shareScore()">📤 SHARE SCORE</button>
-            <button class="btn" onclick="showStartScreen()">🏠 MAIN MENU</button>
+            <button class="btn" onclick="showStartScreen()">🏠 MENU</button>
         </div>
     </div>
     
@@ -106,12 +99,11 @@
     <div id="highScoresModal" class="modal hidden">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🏆 HIGH SCORES 🏆</h2>
+                <h2>🏆 HIGH SCORES</h2>
                 <button class="close-btn" onclick="closeHighScores()">×</button>
             </div>
             <div id="highScoresList"></div>
             <div class="modal-footer">
-                <button class="btn" onclick="clearHighScores()">🗑️ Clear Scores</button>
                 <button class="btn" onclick="closeHighScores()">Close</button>
             </div>
         </div>
@@ -132,14 +124,14 @@
                 <div class="help-section">
                     <h3>🎮 CONTROLS</h3>
                     <p><strong>Mobile:</strong> Touch and drag the blue dot to move</p>
-                    <p><strong>Desktop:</strong> Move mouse to control blue dot</p>
+                    <p><strong>Desktop:</strong> Click and drag with mouse</p>
                     <p><strong>Flashlight:</strong> Double tap/click to toggle</p>
                 </div>
                 <div class="help-section">
                     <h3>🏠 ENEMIES</h3>
-                    <p><strong>Small Houses:</strong> Fast but weak</p>
-                    <p><strong>Big Houses:</strong> Slow but deadly</p>
-                    <p>Houses spawn, then grow legs and hunt you!</p>
+                    <p><strong>Small Houses:</strong> Fast but less damage</p>
+                    <p><strong>Big Houses:</strong> Slow but more damage</p>
+                    <p>Houses spawn → grow legs → hunt you down!</p>
                 </div>
                 <div class="help-section">
                     <h3>💡 STRATEGY</h3>
