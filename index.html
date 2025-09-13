@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>House Head Chase - Escape the Horror</title>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Nosifer&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap');
         
         * {
             margin: 0;
@@ -14,155 +14,357 @@
         }
         
         body {
-            background: linear-gradient(135deg, #0c0c0c 0%, #1a1a2e 50%, #16213e 100%);
-            font-family: 'Arial', sans-serif;
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            font-family: 'Exo 2', sans-serif;
             overflow: hidden;
             cursor: none;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
         }
         
         #gameCanvas {
-            display: block;
-            margin: 0 auto;
-            border: 2px solid #333;
-            background: linear-gradient(180deg, #001122 0%, #000 100%);
-        }
-        
-        #ui {
-            position: absolute;
-            top: 20px;
-            left: 20px;
-            color: #ff4444;
-            font-size: 18px;
-            font-weight: bold;
-            text-shadow: 2px 2px 4px #000;
-            z-index: 10;
-        }
-        
-        #gameOver, #startScreen {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0, 0, 0, 0.9);
-            color: #ff4444;
-            padding: 40px;
-            border-radius: 15px;
-            text-align: center;
             border: 3px solid #ff4444;
-            box-shadow: 0 0 30px rgba(255, 68, 68, 0.5);
-            z-index: 100;
-        }
-        
-        #startScreen h1 {
-            font-family: 'Creepster', cursive;
-            font-size: 48px;
-            margin-bottom: 20px;
-            text-shadow: 3px 3px 6px #000;
-            animation: glow 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes glow {
-            from { text-shadow: 0 0 20px #ff4444; }
-            to { text-shadow: 0 0 30px #ff6666, 0 0 40px #ff4444; }
-        }
-        
-        .btn {
-            background: linear-gradient(45deg, #ff4444, #cc2222);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
             border-radius: 8px;
-            margin: 10px;
-            transition: all 0.3s;
-            font-weight: bold;
+            background: linear-gradient(180deg, #001122 0%, #000 100%);
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
         }
         
-        .btn:hover {
-            background: linear-gradient(45deg, #ff6666, #ff4444);
+        /* Modern HUD Design */
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 80px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 30px;
+            z-index: 100;
+            backdrop-filter: blur(5px);
+        }
+        
+        .hud-section {
+            display: flex;
+            align-items: center;
+            gap: 25px;
+        }
+        
+        .stat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 80px;
+        }
+        
+        .stat-label {
+            font-size: 11px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 4px;
+            font-weight: 300;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 18px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        #healthBar {
+            width: 120px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #healthFill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
+            transition: width 0.3s ease;
+            border-radius: 3px;
+        }
+        
+        #ammoContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #ammoDisplay {
+            display: flex;
+            gap: 3px;
+            margin-top: 5px;
+        }
+        
+        .ammo-bullet {
+            width: 6px;
+            height: 12px;
+            background: linear-gradient(180deg, #ffdd44 0%, #ff8844 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(255, 221, 68, 0.5);
+        }
+        
+        .ammo-bullet.empty {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+        
+        /* Audio Button */
+        #audioToggle {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            color: #ff4444;
+            padding: 12px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 20px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        
+        #audioToggle:hover {
+            background: rgba(255, 68, 68, 0.4);
+            border-color: #ff4444;
             transform: scale(1.1);
-            box-shadow: 0 0 20px rgba(255, 68, 68, 0.8);
+            box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
         }
         
-        #instructions {
-            margin: 20px 0;
-            font-size: 16px;
-            line-height: 1.6;
-            max-width: 600px;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-        
+        /* Professional Crosshair */
         #crosshair {
             position: absolute;
-            width: 20px;
-            height: 20px;
-            border: 2px solid #ff4444;
-            border-radius: 50%;
+            width: 30px;
+            height: 30px;
             pointer-events: none;
             z-index: 50;
             transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-line {
+            position: absolute;
+            background: #ff4444;
             box-shadow: 0 0 10px rgba(255, 68, 68, 0.8);
         }
         
-        #crosshair::before, #crosshair::after {
-            content: '';
-            position: absolute;
-            background: #ff4444;
-        }
-        
-        #crosshair::before {
-            width: 2px;
-            height: 8px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        #crosshair::after {
-            width: 8px;
+        .crosshair-h {
+            width: 20px;
             height: 2px;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
         }
         
-        #audioToggle {
+        .crosshair-v {
+            width: 2px;
+            height: 20px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-dot {
+            width: 4px;
+            height: 4px;
+            background: #ff4444;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 8px rgba(255, 68, 68, 1);
+        }
+        
+        /* Screens */
+        #gameOver, #startScreen {
             position: absolute;
-            top: 20px;
-            right: 20px;
-            background: rgba(255, 68, 68, 0.8);
-            border: none;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.95) 100%);
+            color: #ff4444;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            border: 3px solid #ff4444;
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.5);
+            z-index: 200;
+            backdrop-filter: blur(10px);
+            max-width: 90vw;
+        }
+        
+        #startScreen h1 {
+            font-family: 'Creepster', cursive;
+            font-size: 56px;
+            margin-bottom: 30px;
+            text-shadow: 0 0 20px #ff4444;
+            animation: titleGlow 3s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { 
+                text-shadow: 0 0 20px #ff4444, 0 0 30px #ff4444; 
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 0 0 30px #ff6666, 0 0 40px #ff4444, 0 0 50px #ff4444; 
+                transform: scale(1.02);
+            }
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff4444, #cc2222);
             color: white;
-            padding: 10px;
-            border-radius: 5px;
+            border: none;
+            padding: 18px 40px;
+            font-size: 20px;
             cursor: pointer;
+            border-radius: 12px;
+            margin: 15px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff6666, #ff4444);
+            transform: scale(1.1) translateY(-2px);
+            box-shadow: 0 10px 30px rgba(255, 68, 68, 0.8);
+        }
+        
+        #instructions {
+            margin: 30px 0;
             font-size: 16px;
+            line-height: 1.8;
+            max-width: 700px;
+            color: #ccc;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        /* Muzzle Flash Effect */
+        .muzzle-flash {
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            background: radial-gradient(circle, #ffff88 0%, #ff8844 50%, transparent 100%);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 30;
+            animation: muzzleFlash 0.1s ease-out;
+        }
+        
+        @keyframes muzzleFlash {
+            0% { transform: scale(0); opacity: 1; }
+            100% { transform: scale(3); opacity: 0; }
+        }
+        
+        /* Damage Indicator */
+        .damage-indicator {
+            position: absolute;
+            color: #ff4444;
+            font-weight: bold;
+            font-size: 20px;
+            pointer-events: none;
+            z-index: 40;
+            animation: damageFloat 1s ease-out forwards;
+        }
+        
+        @keyframes damageFloat {
+            0% { transform: translateY(0); opacity: 1; }
+            100% { transform: translateY(-50px); opacity: 0; }
+        }
+        
+        /* Loading Animation */
+        @keyframes pulse {
+            0%, 100% { opacity: 0.7; }
+            50% { opacity: 1; }
+        }
+        
+        .loading {
+            animation: pulse 1s infinite;
         }
     </style>
 </head>
 <body>
-    <canvas id="gameCanvas" width="1200" height="800"></canvas>
-    <div id="crosshair"></div>
-    
-    <div id="ui">
-        <div>Health: <span id="health">100</span>%</div>
-        <div>Score: <span id="score">0</span></div>
-        <div>Time: <span id="timer">0</span>s</div>
-        <div>House Heads: <span id="enemyCount">0</span></div>
+    <div id="gameContainer">
+        <canvas id="gameCanvas" width="1400" height="900"></canvas>
+        
+        <!-- Modern HUD -->
+        <div id="hud">
+            <div class="hud-section">
+                <div class="stat-container">
+                    <div class="stat-label">Health</div>
+                    <div id="healthBar">
+                        <div id="healthFill"></div>
+                    </div>
+                    <div class="stat-value"><span id="health">100</span>%</div>
+                </div>
+                
+                <div class="stat-container">
+                    <div class="stat-label">Score</div>
+                    <div class="stat-value" id="score">0</div>
+                </div>
+                
+                <div class="stat-container">
+                    <div class="stat-label">Time</div>
+                    <div class="stat-value"><span id="timer">0</span>s</div>
+                </div>
+                
+                <div class="stat-container">
+                    <div class="stat-label">Enemies</div>
+                    <div class="stat-value" id="enemyCount">0</div>
+                </div>
+            </div>
+            
+            <div class="hud-section">
+                <div id="ammoContainer">
+                    <div class="stat-label">Ammo</div>
+                    <div id="ammoDisplay"></div>
+                    <div class="stat-value"><span id="ammoCount">30</span>/30</div>
+                </div>
+                
+                <button id="audioToggle">🔊</button>
+            </div>
+        </div>
+        
+        <!-- Professional Crosshair -->
+        <div id="crosshair">
+            <div class="crosshair-line crosshair-h"></div>
+            <div class="crosshair-line crosshair-v"></div>
+            <div class="crosshair-line crosshair-dot"></div>
+        </div>
     </div>
-    
-    <button id="audioToggle">🔊 Sound</button>
     
     <div id="startScreen">
         <h1>HOUSE HEAD CHASE</h1>
         <div id="instructions">
             <p><strong>THE HOUSE HEADS ARE COMING...</strong></p>
             <p>🏠 Spider-like creatures with houses for heads hunt in the darkness</p>
-            <p>🔦 Use your flashlight to spot them (Right-click or Space)</p>
+            <p>🔦 Use your flashlight to spot them (Right-click or F)</p>
+            <p>🔫 Shoot them with SPACE or Left-click</p>
             <p>🏃 Move with WASD or Arrow Keys</p>
             <p>⚡ Run faster with Shift</p>
             <p>💀 They make furniture sounds when near - LISTEN CAREFULLY!</p>
@@ -177,19 +379,25 @@
         <p>A House Head caught you!</p>
         <p>Final Score: <span id="finalScore">0</span></p>
         <p>Time Survived: <span id="finalTime">0</span> seconds</p>
+        <p>House Heads Eliminated: <span id="finalKills">0</span></p>
         <button class="btn" onclick="restartGame()">PLAY AGAIN</button>
         <button class="btn" onclick="showStartScreen()">MAIN MENU</button>
     </div>
 
     <script>
-        // Game state
+        // Enhanced Game State
         let gameState = {
             running: false,
-            player: { x: 600, y: 400, size: 15, health: 100, speed: 3 },
+            player: { 
+                x: 700, y: 450, size: 20, health: 100, speed: 4, 
+                angle: 0, weapon: { ammo: 30, maxAmmo: 30, reloadTime: 0 }
+            },
             enemies: [],
+            bullets: [],
             particles: [],
             flashlight: { on: false, intensity: 0 },
             score: 0,
+            kills: 0,
             startTime: 0,
             keys: {},
             mousePos: { x: 0, y: 0 },
@@ -197,14 +405,16 @@
             audioEnabled: true,
             cameraShake: 0,
             lastSpawn: 0,
-            difficulty: 1
+            difficulty: 1,
+            muzzleFlashes: [],
+            damageIndicators: []
         };
         
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // Audio context for spooky sounds
+        // Audio context for enhanced sounds
         let audioContext;
         
         function initAudio() {
@@ -220,13 +430,12 @@
         function createAmbientSound() {
             if (!audioContext || !gameState.audioEnabled) return;
             
-            // Create low frequency ambient drone
             const oscillator = audioContext.createOscillator();
             const gainNode = audioContext.createGain();
             
             oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(40, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
+            oscillator.frequency.setValueAtTime(35, audioContext.currentTime);
+            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
             
             oscillator.connect(gainNode);
             gainNode.connect(audioContext.destination);
@@ -245,20 +454,36 @@
             gainNode.connect(audioContext.destination);
             
             switch(type) {
-                case 'footstep':
+                case 'gunshot':
                     oscillator.type = 'square';
-                    oscillator.frequency.setValueAtTime(100, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 0.1);
+                    break;
+                case 'hit':
+                    oscillator.type = 'sawtooth';
+                    oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    break;
+                case 'footstep':
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(80, audioContext.currentTime);
                     gainNode.gain.setValueAtTime(0.1, audioContext.currentTime);
                     break;
                 case 'furniture':
                     oscillator.type = 'sawtooth';
                     oscillator.frequency.setValueAtTime(frequency, audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.25, audioContext.currentTime);
                     break;
                 case 'damage':
                     oscillator.type = 'square';
-                    oscillator.frequency.setValueAtTime(150, audioContext.currentTime);
-                    gainNode.gain.setValueAtTime(0.5, audioContext.currentTime);
+                    oscillator.frequency.setValueAtTime(120, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.4, audioContext.currentTime);
+                    break;
+                case 'reload':
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                    gainNode.gain.setValueAtTime(0.15, audioContext.currentTime);
                     break;
             }
             
@@ -266,111 +491,223 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
         
-        // House Head enemy class
+        // Bullet class
+        class Bullet {
+            constructor(x, y, angle, speed = 8) {
+                this.x = x;
+                this.y = y;
+                this.angle = angle;
+                this.speed = speed;
+                this.life = 100;
+                this.size = 3;
+            }
+            
+            update() {
+                this.x += Math.cos(this.angle) * this.speed;
+                this.y += Math.sin(this.angle) * this.speed;
+                this.life--;
+                
+                // Check collision with enemies
+                gameState.enemies.forEach((enemy, index) => {
+                    const dx = this.x - enemy.x;
+                    const dy = this.y - enemy.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance < enemy.size) {
+                        // Hit enemy
+                        enemy.health--;
+                        this.life = 0;
+                        playSound('hit');
+                        
+                        // Create hit particles
+                        for (let i = 0; i < 8; i++) {
+                            gameState.particles.push({
+                                x: enemy.x,
+                                y: enemy.y,
+                                vx: (Math.random() - 0.5) * 6,
+                                vy: (Math.random() - 0.5) * 6,
+                                life: 20,
+                                color: '#ff8844',
+                                size: 2 + Math.random() * 3
+                            });
+                        }
+                        
+                        // Damage indicator
+                        createDamageIndicator(enemy.x, enemy.y, '-1');
+                        
+                        if (enemy.health <= 0) {
+                            gameState.enemies.splice(index, 1);
+                            gameState.score += 50;
+                            gameState.kills++;
+                            
+                            // Death explosion
+                            for (let i = 0; i < 15; i++) {
+                                gameState.particles.push({
+                                    x: enemy.x,
+                                    y: enemy.y,
+                                    vx: (Math.random() - 0.5) * 10,
+                                    vy: (Math.random() - 0.5) * 10,
+                                    life: 40,
+                                    color: i % 2 ? '#ff4444' : '#ffaa44',
+                                    size: 3 + Math.random() * 4
+                                });
+                            }
+                        }
+                    }
+                });
+                
+                return this.life > 0 && this.x > 0 && this.x < canvas.width && this.y > 0 && this.y < canvas.height;
+            }
+            
+            draw() {
+                ctx.fillStyle = '#ffdd44';
+                ctx.shadowColor = '#ffdd44';
+                ctx.shadowBlur = 5;
+                ctx.beginPath();
+                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
+                ctx.fill();
+                ctx.shadowBlur = 0;
+                
+                // Bullet trail
+                ctx.strokeStyle = 'rgba(255, 221, 68, 0.5)';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(this.x, this.y);
+                ctx.lineTo(this.x - Math.cos(this.angle) * 10, this.y - Math.sin(this.angle) * 10);
+                ctx.stroke();
+            }
+        }
+        
+        // Enhanced House Head enemy class
         class HouseHead {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
-                this.size = 40 + Math.random() * 20;
-                this.speed = 0.8 + Math.random() * 0.4;
+                this.size = 35 + Math.random() * 25;
+                this.speed = 0.6 + Math.random() * 0.5;
                 this.angle = Math.random() * Math.PI * 2;
-                this.health = 3;
+                this.health = 2 + Math.floor(Math.random() * 2);
+                this.maxHealth = this.health;
                 this.lastSound = 0;
                 this.soundCooldown = 2000 + Math.random() * 3000;
                 this.legs = [];
-                this.attackRange = 60;
+                this.attackRange = 50;
                 this.windowGlow = Math.random() * 0.5 + 0.5;
-                this.houseStyle = Math.floor(Math.random() * 3);
+                this.houseStyle = Math.floor(Math.random() * 4);
                 this.rotateSpeed = 0.02 + Math.random() * 0.02;
+                this.bodyRotation = 0;
+                this.lastAttack = 0;
                 
                 // Initialize spider legs
                 for (let i = 0; i < 8; i++) {
                     this.legs.push({
                         angle: (i / 8) * Math.PI * 2,
-                        length: this.size * 0.8,
-                        offset: Math.random() * 0.5
+                        length: this.size * 0.9,
+                        offset: Math.random() * 0.5,
+                        bendAngle: Math.random() * 0.5
                     });
                 }
             }
             
             update() {
-                // AI behavior - hunt the player
+                // AI behavior - sophisticated hunting
                 const dx = gameState.player.x - this.x;
                 const dy = gameState.player.y - this.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (distance > 50) {
+                if (distance > 40) {
                     this.angle = Math.atan2(dy, dx);
                     this.x += Math.cos(this.angle) * this.speed;
                     this.y += Math.sin(this.angle) * this.speed;
+                    this.bodyRotation += this.rotateSpeed;
                 }
                 
-                // Animate legs
-                this.legs.forEach(leg => {
-                    leg.offset += 0.1;
+                // Animate legs with more realistic movement
+                this.legs.forEach((leg, i) => {
+                    leg.offset += 0.08 + (this.speed * 0.1);
+                    leg.bendAngle = Math.sin(leg.offset * 2) * 0.3;
                 });
                 
                 // Make furniture sounds when close to player
-                if (distance < 200 && Date.now() - this.lastSound > this.soundCooldown) {
+                if (distance < 250 && Date.now() - this.lastSound > this.soundCooldown) {
                     this.makeSound();
                     this.lastSound = Date.now();
-                    this.soundCooldown = 1000 + Math.random() * 2000;
+                    this.soundCooldown = 1500 + Math.random() * 2500;
                 }
                 
                 // Attack player if close enough
-                if (distance < this.attackRange) {
+                if (distance < this.attackRange && Date.now() - this.lastAttack > 800) {
                     this.attack();
+                    this.lastAttack = Date.now();
                 }
                 
                 // Window glow animation
-                this.windowGlow += Math.sin(Date.now() * 0.005) * 0.1;
+                this.windowGlow = 0.5 + Math.sin(Date.now() * 0.003 + this.x * 0.01) * 0.3;
             }
             
             makeSound() {
-                const furnitureSounds = [220, 440, 330, 550, 660];
+                const furnitureSounds = [180, 220, 280, 340, 440, 520];
                 const frequency = furnitureSounds[Math.floor(Math.random() * furnitureSounds.length)];
-                playSound('furniture', frequency, 0.3);
+                playSound('furniture', frequency, 0.4);
             }
             
             attack() {
-                const damage = 2 + Math.random() * 3;
+                const damage = 3 + Math.random() * 4;
                 gameState.player.health -= damage;
-                gameState.cameraShake = 10;
+                gameState.cameraShake = 15;
                 playSound('damage');
                 
                 // Create damage particles
-                for (let i = 0; i < 5; i++) {
+                for (let i = 0; i < 8; i++) {
                     gameState.particles.push({
                         x: gameState.player.x,
                         y: gameState.player.y,
-                        vx: (Math.random() - 0.5) * 4,
-                        vy: (Math.random() - 0.5) * 4,
-                        life: 30,
-                        color: '#ff4444'
+                        vx: (Math.random() - 0.5) * 6,
+                        vy: (Math.random() - 0.5) * 6,
+                        life: 35,
+                        color: '#ff4444',
+                        size: 3 + Math.random() * 2
                     });
                 }
+                
+                createDamageIndicator(gameState.player.x, gameState.player.y, '-' + Math.floor(damage));
             }
             
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Draw spider legs
+                // Draw spider legs with better animation
                 ctx.strokeStyle = '#2a2a2a';
-                ctx.lineWidth = 4;
-                this.legs.forEach(leg => {
-                    const legX = Math.cos(leg.angle + leg.offset) * leg.length;
-                    const legY = Math.sin(leg.angle + leg.offset) * leg.length;
+                ctx.lineWidth = 5;
+                this.legs.forEach((leg, i) => {
+                    const baseAngle = leg.angle + this.bodyRotation;
+                    const midX = Math.cos(baseAngle + leg.bendAngle) * leg.length * 0.6;
+                    const midY = Math.sin(baseAngle + leg.bendAngle) * leg.length * 0.6;
+                    const endX = Math.cos(baseAngle + leg.offset) * leg.length;
+                    const endY = Math.sin(baseAngle + leg.offset) * leg.length;
                     
                     ctx.beginPath();
                     ctx.moveTo(0, 0);
-                    ctx.lineTo(legX * 0.7, legY * 0.7);
-                    ctx.lineTo(legX, legY);
+                    ctx.lineTo(midX, midY);
+                    ctx.lineTo(endX, endY);
                     ctx.stroke();
+                    
+                    // Leg joints
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.arc(midX, midY, 3, 0, Math.PI * 2);
+                    ctx.fill();
                 });
                 
-                // Draw house head
+                // Draw house head with rotation
+                ctx.rotate(this.bodyRotation * 0.3);
                 this.drawHouse();
+                
+                // Health bar
+                if (this.health < this.maxHealth) {
+                    this.drawHealthBar();
+                }
                 
                 ctx.restore();
             }
@@ -378,58 +715,227 @@
             drawHouse() {
                 const size = this.size;
                 
-                // House body
-                ctx.fillStyle = '#3a2a1a';
+                // House shadow
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+                ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size * 0.8);
+                
+                // House body with texture
+                const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
+                gradient.addColorStop(0, '#4a3a2a');
+                gradient.addColorStop(0.5, '#3a2a1a');
+                gradient.addColorStop(1, '#2a1a0a');
+                ctx.fillStyle = gradient;
                 ctx.fillRect(-size/2, -size/2, size, size * 0.8);
                 
-                // Roof
-                ctx.fillStyle = '#2a1a0a';
+                // Roof with better shading
+                const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
+                roofGradient.addColorStop(0, '#3a2a1a');
+                roofGradient.addColorStop(1, '#2a1a0a');
+                ctx.fillStyle = roofGradient;
                 ctx.beginPath();
-                ctx.moveTo(-size/2 - 5, -size/2);
-                ctx.lineTo(0, -size);
-                ctx.lineTo(size/2 + 5, -size/2);
+                ctx.moveTo(-size/2 - 8, -size/2);
+                ctx.lineTo(0, -size - 5);
+                ctx.lineTo(size/2 + 8, -size/2);
+                ctx.closePath();
                 ctx.fill();
                 
-                // Windows (glowing eyes)
+                // Roof outline
+                ctx.strokeStyle = '#1a0a00';
+                ctx.lineWidth = 2;
+                ctx.stroke();
+                
+                // Windows (glowing eyes) with better effects
                 const glowIntensity = this.windowGlow;
-                ctx.fillStyle = `rgba(255, 255, 0, ${glowIntensity})`;
-                ctx.fillRect(-size/3, -size/3, size/6, size/6);
-                ctx.fillRect(size/6, -size/3, size/6, size/6);
+                const eyeSize = size / 7;
                 
-                // Window glow effect
-                ctx.shadowColor = '#ffff00';
-                ctx.shadowBlur = 20;
-                ctx.fillStyle = `rgba(255, 255, 0, ${glowIntensity * 0.5})`;
-                ctx.fillRect(-size/3, -size/3, size/6, size/6);
-                ctx.fillRect(size/6, -size/3, size/6, size/6);
+                // Window glow
+                ctx.shadowColor = '#ffff88';
+                ctx.shadowBlur = 15;
+                ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity})`;
+                ctx.fillRect(-size/3, -size/3, eyeSize, eyeSize);
+                ctx.fillRect(size/6, -size/3, eyeSize, eyeSize);
+                
+                // Window frames
                 ctx.shadowBlur = 0;
+                ctx.strokeStyle = '#666';
+                ctx.lineWidth = 1;
+                ctx.strokeRect(-size/3, -size/3, eyeSize, eyeSize);
+                ctx.strokeRect(size/6, -size/3, eyeSize, eyeSize);
                 
-                // Door (mouth)
+                // Door (mouth) with depth
                 ctx.fillStyle = '#000';
                 ctx.fillRect(-size/8, size/6, size/4, size/3);
+                ctx.strokeStyle = '#333';
+                ctx.strokeRect(-size/8, size/6, size/4, size/3);
                 
-                // House details based on style
+                // House details
+                this.drawHouseDetails(size);
+            }
+            
+            drawHouseDetails(size) {
                 ctx.strokeStyle = '#555';
                 ctx.lineWidth = 1;
-                if (this.houseStyle === 0) {
-                    // Brick pattern
-                    for (let i = 0; i < 4; i++) {
-                        ctx.beginPath();
-                        ctx.moveTo(-size/2, -size/2 + i * size/5);
-                        ctx.lineTo(size/2, -size/2 + i * size/5);
-                        ctx.stroke();
-                    }
+                
+                switch(this.houseStyle) {
+                    case 0: // Brick pattern
+                        for (let i = 0; i < 5; i++) {
+                            for (let j = 0; j < 8; j++) {
+                                const offsetX = (i % 2) * size/16;
+                                ctx.strokeRect(-size/2 + j * size/8 + offsetX, -size/2 + i * size/8, size/8, size/8);
+                            }
+                        }
+                        break;
+                    case 1: // Wood panels
+                        for (let i = 0; i < 6; i++) {
+                            ctx.beginPath();
+                            ctx.moveTo(-size/2, -size/2 + i * size/7);
+                            ctx.lineTo(size/2, -size/2 + i * size/7);
+                            ctx.stroke();
+                        }
+                        break;
+                    case 2: // Stone texture
+                        for (let i = 0; i < 3; i++) {
+                            for (let j = 0; j < 3; j++) {
+                                ctx.strokeRect(-size/2 + j * size/3, -size/2 + i * size/4, size/3, size/4);
+                            }
+                        }
+                        break;
                 }
+            }
+            
+            drawHealthBar() {
+                const barWidth = this.size;
+                const barHeight = 4;
+                const healthPercent = this.health / this.maxHealth;
+                
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
+                ctx.fillRect(-barWidth/2, -this.size - 15, barWidth, barHeight);
+                
+                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
+                ctx.fillRect(-barWidth/2, -this.size - 15, barWidth * healthPercent, barHeight);
             }
         }
         
-        // Particle system
+        // Enhanced Player Character
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(gameState.player.x, gameState.player.y);
+            ctx.rotate(gameState.player.angle);
+            
+            // Player body (survivor)
+            ctx.fillStyle = '#2244aa';
+            ctx.beginPath();
+            ctx.arc(0, 0, gameState.player.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Player outline
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Weapon
+            ctx.fillStyle = '#444';
+            ctx.fillRect(gameState.player.size - 5, -3, 20, 6);
+            ctx.fillStyle = '#666';
+            ctx.fillRect(gameState.player.size + 10, -2, 8, 4);
+            
+            // Player direction indicator
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(gameState.player.size - 8, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.restore();
+        }
+        
+        // Weapon system
+        function shoot() {
+            if (gameState.player.weapon.ammo <= 0 || gameState.player.weapon.reloadTime > 0) return;
+            
+            gameState.player.weapon.ammo--;
+            
+            const bullet = new Bullet(
+                gameState.player.x,
+                gameState.player.y,
+                gameState.player.angle,
+                12
+            );
+            
+            gameState.bullets.push(bullet);
+            
+            // Muzzle flash
+            createMuzzleFlash(
+                gameState.player.x + Math.cos(gameState.player.angle) * 25,
+                gameState.player.y + Math.sin(gameState.player.angle) * 25
+            );
+            
+            playSound('gunshot');
+            gameState.cameraShake = 5;
+            
+            // Auto-reload when empty
+            if (gameState.player.weapon.ammo === 0) {
+                reload();
+            }
+            
+            updateAmmoDisplay();
+        }
+        
+        function reload() {
+            gameState.player.weapon.reloadTime = 60; // frames
+            playSound('reload', 200, 0.5);
+        }
+        
+        function createMuzzleFlash(x, y) {
+            const flash = document.createElement('div');
+            flash.className = 'muzzle-flash';
+            flash.style.left = x + 'px';
+            flash.style.top = y + 'px';
+            document.body.appendChild(flash);
+            
+            setTimeout(() => {
+                document.body.removeChild(flash);
+            }, 100);
+        }
+        
+        function createDamageIndicator(x, y, text) {
+            const indicator = document.createElement('div');
+            indicator.className = 'damage-indicator';
+            indicator.textContent = text;
+            indicator.style.left = x + 'px';
+            indicator.style.top = y + 'px';
+            document.body.appendChild(indicator);
+            
+            setTimeout(() => {
+                document.body.removeChild(indicator);
+            }, 1000);
+        }
+        
+        function updateAmmoDisplay() {
+            const ammoDisplay = document.getElementById('ammoDisplay');
+            ammoDisplay.innerHTML = '';
+            
+            for (let i = 0; i < gameState.player.weapon.maxAmmo; i++) {
+                const bullet = document.createElement('div');
+                bullet.className = 'ammo-bullet';
+                if (i >= gameState.player.weapon.ammo) {
+                    bullet.classList.add('empty');
+                }
+                ammoDisplay.appendChild(bullet);
+            }
+            
+            document.getElementById('ammoCount').textContent = 
+                `${gameState.player.weapon.ammo}/${gameState.player.weapon.maxAmmo}`;
+        }
+        
+        // Enhanced particle system
         function updateParticles() {
             gameState.particles = gameState.particles.filter(particle => {
                 particle.x += particle.vx;
                 particle.y += particle.vy;
                 particle.life--;
                 particle.vy += 0.1; // gravity
+                particle.vx *= 0.98; // air resistance
+                particle.vy *= 0.98;
                 return particle.life > 0;
             });
         }
@@ -437,31 +943,34 @@
         function drawParticles() {
             gameState.particles.forEach(particle => {
                 ctx.fillStyle = particle.color;
-                ctx.globalAlpha = particle.life / 30;
-                ctx.fillRect(particle.x - 2, particle.y - 2, 4, 4);
+                ctx.globalAlpha = particle.life / 40;
+                ctx.beginPath();
+                ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);
+                ctx.fill();
             });
             ctx.globalAlpha = 1;
         }
         
-        // Spawn enemies
+        // Enhanced spawn system
         function spawnEnemy() {
-            if (Date.now() - gameState.lastSpawn < 3000 / gameState.difficulty) return;
+            if (Date.now() - gameState.lastSpawn < 2500 / gameState.difficulty) return;
             
             let x, y;
             const side = Math.floor(Math.random() * 4);
+            const margin = 100;
             
             switch(side) {
-                case 0: x = -50; y = Math.random() * canvas.height; break;
-                case 1: x = canvas.width + 50; y = Math.random() * canvas.height; break;
-                case 2: x = Math.random() * canvas.width; y = -50; break;
-                case 3: x = Math.random() * canvas.width; y = canvas.height + 50; break;
+                case 0: x = -margin; y = Math.random() * canvas.height; break;
+                case 1: x = canvas.width + margin; y = Math.random() * canvas.height; break;
+                case 2: x = Math.random() * canvas.width; y = -margin; break;
+                case 3: x = Math.random() * canvas.width; y = canvas.height + margin; break;
             }
             
             gameState.enemies.push(new HouseHead(x, y));
             gameState.lastSpawn = Date.now();
         }
         
-        // Game loop
+        // Enhanced game loop
         function gameLoop() {
             if (!gameState.running) return;
             
@@ -471,8 +980,20 @@
         }
         
         function update() {
-            // Update player movement
+            // Update player
             updatePlayer();
+            
+            // Update weapon reload
+            if (gameState.player.weapon.reloadTime > 0) {
+                gameState.player.weapon.reloadTime--;
+                if (gameState.player.weapon.reloadTime === 0) {
+                    gameState.player.weapon.ammo = gameState.player.weapon.maxAmmo;
+                    updateAmmoDisplay();
+                }
+            }
+            
+            // Update bullets
+            gameState.bullets = gameState.bullets.filter(bullet => bullet.update());
             
             // Update enemies
             gameState.enemies.forEach(enemy => enemy.update());
@@ -485,9 +1006,9 @@
             
             // Update flashlight
             if (gameState.flashlight.on) {
-                gameState.flashlight.intensity = Math.min(1, gameState.flashlight.intensity + 0.1);
+                gameState.flashlight.intensity = Math.min(1, gameState.flashlight.intensity + 0.15);
             } else {
-                gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - 0.1);
+                gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - 0.15);
             }
             
             // Update camera shake
@@ -496,10 +1017,10 @@
             }
             
             // Increase difficulty over time
-            gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 30000;
+            gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 25000;
             
             // Update score
-            gameState.score = Math.floor((Date.now() - gameState.startTime) / 100);
+            gameState.score += Math.floor((Date.now() - gameState.startTime) / 200);
             
             // Check game over
             if (gameState.player.health <= 0) {
@@ -511,28 +1032,38 @@
         }
         
         function updatePlayer() {
-            const speed = gameState.keys['Shift'] ? gameState.player.speed * 2 : gameState.player.speed;
+            const speed = gameState.keys['shift'] ? gameState.player.speed * 1.8 : gameState.player.speed;
             
-            if (gameState.keys['w'] || gameState.keys['ArrowUp']) {
+            let moving = false;
+            if (gameState.keys['w'] || gameState.keys['arrowup']) {
                 gameState.player.y -= speed;
-                if (Math.random() < 0.1) playSound('footstep');
+                moving = true;
             }
-            if (gameState.keys['s'] || gameState.keys['ArrowDown']) {
+            if (gameState.keys['s'] || gameState.keys['arrowdown']) {
                 gameState.player.y += speed;
-                if (Math.random() < 0.1) playSound('footstep');
+                moving = true;
             }
-            if (gameState.keys['a'] || gameState.keys['ArrowLeft']) {
+            if (gameState.keys['a'] || gameState.keys['arrowleft']) {
                 gameState.player.x -= speed;
-                if (Math.random() < 0.1) playSound('footstep');
+                moving = true;
             }
-            if (gameState.keys['d'] || gameState.keys['ArrowRight']) {
+            if (gameState.keys['d'] || gameState.keys['arrowright']) {
                 gameState.player.x += speed;
-                if (Math.random() < 0.1) playSound('footstep');
+                moving = true;
             }
+            
+            if (moving && Math.random() < 0.08) {
+                playSound('footstep');
+            }
+            
+            // Update player angle to face mouse
+            const dx = gameState.mousePos.x - gameState.player.x;
+            const dy = gameState.mousePos.y - gameState.player.y;
+            gameState.player.angle = Math.atan2(dy, dx);
             
             // Keep player in bounds
             gameState.player.x = Math.max(gameState.player.size, Math.min(canvas.width - gameState.player.size, gameState.player.x));
-            gameState.player.y = Math.max(gameState.player.size, Math.min(canvas.height - gameState.player.size, gameState.player.y));
+            gameState.player.y = Math.max(gameState.player.size + 80, Math.min(canvas.height - gameState.player.size, gameState.player.y));
         }
         
         function draw() {
@@ -545,25 +1076,32 @@
                 );
             }
             
-            // Clear canvas with dark background
-            ctx.fillStyle = '#000011';
+            // Clear canvas with enhanced background
+            const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
+            gradient.addColorStop(0, '#001122');
+            gradient.addColorStop(1, '#000000');
+            ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
             
-            // Draw environment (stars)
+            // Draw enhanced environment
             drawStars();
+            drawFog();
             
             // Draw flashlight effect
             if (gameState.flashlight.intensity > 0) {
                 drawFlashlight();
             }
             
-            // Draw enemies (only visible in flashlight or when very close)
+            // Draw bullets
+            gameState.bullets.forEach(bullet => bullet.draw());
+            
+            // Draw enemies (visibility system)
             gameState.enemies.forEach(enemy => {
                 const dx = enemy.x - gameState.player.x;
                 const dy = enemy.y - gameState.player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                if (gameState.flashlight.intensity > 0.5 || distance < 100) {
+                if (gameState.flashlight.intensity > 0.3 || distance < 80) {
                     enemy.draw();
                 }
             });
@@ -579,53 +1117,61 @@
         
         function drawStars() {
             ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 50; i++) {
+            for (let i = 0; i < 100; i++) {
                 const x = (i * 23.7) % canvas.width;
                 const y = (i * 37.3) % canvas.height;
+                const brightness = Math.sin(Date.now() * 0.001 + i) * 0.5 + 0.5;
+                ctx.globalAlpha = brightness * 0.8;
                 ctx.fillRect(x, y, 1, 1);
             }
+            ctx.globalAlpha = 1;
+        }
+        
+        function drawFog() {
+            const fog = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 200, canvas.width/2, canvas.height/2, 600);
+            fog.addColorStop(0, 'rgba(20, 20, 40, 0)');
+            fog.addColorStop(1, 'rgba(20, 20, 40, 0.3)');
+            ctx.fillStyle = fog;
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         function drawFlashlight() {
             const gradient = ctx.createRadialGradient(
                 gameState.player.x, gameState.player.y, 0,
-                gameState.player.x, gameState.player.y, 150
+                gameState.player.x, gameState.player.y, 200
             );
-            gradient.addColorStop(0, `rgba(255, 255, 200, ${gameState.flashlight.intensity * 0.3})`);
-            gradient.addColorStop(0.5, `rgba(255, 255, 150, ${gameState.flashlight.intensity * 0.15})`);
+            gradient.addColorStop(0, `rgba(255, 255, 200, ${gameState.flashlight.intensity * 0.4})`);
+            gradient.addColorStop(0.3, `rgba(255, 255, 150, ${gameState.flashlight.intensity * 0.2})`);
             gradient.addColorStop(1, 'rgba(255, 255, 100, 0)');
             
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
-        function drawPlayer() {
-            ctx.fillStyle = '#4444ff';
-            ctx.beginPath();
-            ctx.arc(gameState.player.x, gameState.player.y, gameState.player.size, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Health indicator
-            ctx.strokeStyle = gameState.player.health > 50 ? '#44ff44' : '#ff4444';
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.arc(gameState.player.x, gameState.player.y, gameState.player.size + 5, 0, Math.PI * 2);
-            ctx.stroke();
-        }
-        
         function updateUI() {
-            document.getElementById('health').textContent = Math.max(0, Math.floor(gameState.player.health));
+            const health = Math.max(0, Math.floor(gameState.player.health));
+            document.getElementById('health').textContent = health;
+            document.getElementById('healthFill').style.width = health + '%';
             document.getElementById('score').textContent = gameState.score;
             document.getElementById('timer').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
             document.getElementById('enemyCount').textContent = gameState.enemies.length;
         }
         
-        // Event listeners
+        // Enhanced event listeners
         document.addEventListener('keydown', (e) => {
             gameState.keys[e.key.toLowerCase()] = true;
+            
             if (e.key === ' ') {
                 e.preventDefault();
+                shoot();
+            }
+            if (e.key.toLowerCase() === 'f') {
                 gameState.flashlight.on = !gameState.flashlight.on;
+            }
+            if (e.key.toLowerCase() === 'r') {
+                if (gameState.player.weapon.ammo < gameState.player.weapon.maxAmmo) {
+                    reload();
+                }
             }
         });
         
@@ -634,6 +1180,9 @@
         });
         
         document.addEventListener('mousedown', (e) => {
+            if (e.button === 0) { // Left click
+                shoot();
+            }
             if (e.button === 2) { // Right click
                 gameState.flashlight.on = true;
             }
@@ -662,7 +1211,7 @@
         document.getElementById('audioToggle').addEventListener('click', () => {
             gameState.audioEnabled = !gameState.audioEnabled;
             const btn = document.getElementById('audioToggle');
-            btn.textContent = gameState.audioEnabled ? '🔊 Sound' : '🔇 Muted';
+            btn.textContent = gameState.audioEnabled ? '🔊' : '🔇';
             
             if (gameState.audioEnabled && !audioContext) {
                 initAudio();
@@ -673,15 +1222,22 @@
         function startGame() {
             gameState.running = true;
             gameState.startTime = Date.now();
-            gameState.player = { x: 600, y: 400, size: 15, health: 100, speed: 3 };
+            gameState.player = { 
+                x: 700, y: 450, size: 20, health: 100, speed: 4, angle: 0,
+                weapon: { ammo: 30, maxAmmo: 30, reloadTime: 0 }
+            };
             gameState.enemies = [];
+            gameState.bullets = [];
             gameState.particles = [];
             gameState.score = 0;
+            gameState.kills = 0;
             gameState.difficulty = 1;
             gameState.lastSpawn = 0;
             
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('gameOver').classList.add('hidden');
+            
+            updateAmmoDisplay();
             
             if (!audioContext) initAudio();
             
@@ -692,6 +1248,7 @@
             gameState.running = false;
             document.getElementById('finalScore').textContent = gameState.score;
             document.getElementById('finalTime').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
+            document.getElementById('finalKills').textContent = gameState.kills;
             document.getElementById('gameOver').classList.remove('hidden');
             
             // Stop ambient sound
@@ -711,13 +1268,14 @@
         }
         
         function showHighScores() {
-            alert('High Scores feature coming soon!\n\nCurrent Score: ' + gameState.score);
+            alert(`High Scores feature coming soon!\n\nCurrent Score: ${gameState.score}\nKills: ${gameState.kills}`);
         }
         
         // Initialize the game
         window.onload = () => {
-            console.log('House Head Chase Game Loaded!');
-            console.log('Use WASD to move, Shift to run, Space or Right-click for flashlight');
+            console.log('🎮 House Head Chase - NEXT LEVEL Edition Loaded!');
+            console.log('Controls: WASD/Arrows = Move, Space/Click = Shoot, F/Right-click = Flashlight, R = Reload');
+            updateAmmoDisplay();
         };
     </script>
 </body>
