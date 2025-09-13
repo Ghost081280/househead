@@ -524,6 +524,11 @@ body {
     to { box-shadow: 0 0 15px currentColor; }
 }
 
+/* Ensure no buttons appear outside modals */
+.btn:not(.modal-content .btn):not(.button-container .btn):not(.install-buttons .btn):not(#audioToggle) {
+    display: none !important;
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;
