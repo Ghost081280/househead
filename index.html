@@ -3,1543 +3,191 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 House Head Chase - Ultimate Edition</title>
-    <link rel="stylesheet" href="styles.css?v=4.0">
-    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
-    <meta http-equiv="Pragma" content="no-cache">
-    <meta http-equiv="Expires" content="0">
-    <!-- PWA Meta -->
+    <title>🏠 House Head Survival</title>
+    
+    <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#ff4444">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="House Head Survival">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
+    <!-- Game Container -->
     <div id="gameContainer">
-        <canvas id="gameCanvas" width="1400" height="900"></canvas>
+        <canvas id="gameCanvas"></canvas>
         
-        <!-- ENHANCED HUD WITH LEVELS & POWER-UPS -->
+        <!-- HUD -->
         <div id="hud">
-            <div class="hud-section">
-                <div class="stat-container">
-                    <div class="stat-label">Health</div>
-                    <div id="healthBar">
-                        <div id="healthFill"></div>
-                    </div>
-                    <div class="stat-value"><span id="health">100</span>%</div>
+            <div class="stat-container">
+                <div class="stat-label">Health</div>
+                <div id="healthBar">
+                    <div id="healthFill"></div>
                 </div>
-                
-                <div class="stat-container">
-                    <div class="stat-label">Score</div>
-                    <div class="stat-value" id="score">0</div>
-                </div>
-                
-                <div class="stat-container">
-                    <div class="stat-label">Time</div>
-                    <div class="stat-value"><span id="timer">0</span>s</div>
-                </div>
-                
-                <div id="levelContainer">
-                    <div class="stat-label">Level</div>
-                    <div id="levelDisplay">1</div>
-                </div>
+                <div class="stat-value"><span id="health">100</span>%</div>
             </div>
             
-            <div class="hud-section">
-                <div id="ammoContainer">
-                    <div class="stat-label">Ammo</div>
-                    <div id="ammoDisplay"></div>
-                    <div class="stat-value"><span id="ammoCount">30</span>/30</div>
-                </div>
-                
-                <div id="powerupContainer">
-                    <!-- Power-ups will be added here dynamically -->
-                </div>
-                
-                <button id="audioToggle">🔊</button>
+            <div class="stat-container">
+                <div class="stat-label">Score</div>
+                <div class="stat-value" id="score">0</div>
             </div>
+            
+            <div class="stat-container">
+                <div class="stat-label">Time</div>
+                <div class="stat-value"><span id="timer">0</span>s</div>
+            </div>
+            
+            <div class="stat-container">
+                <div class="stat-label">Level</div>
+                <div class="stat-value" id="level">1</div>
+            </div>
+            
+            <button id="audioToggle">🔊</button>
         </div>
         
-        <!-- MOBILE TOUCH CONTROLS -->
-        <div id="mobileControls">
-            <div id="mobileJoystick" class="mobile-control-area">
-                <div class="joystick-base">
-                    <div class="joystick-knob" id="joystickKnob"></div>
-                </div>
-            </div>
-            <div id="mobileActions" class="mobile-control-area">
-                <div class="mobile-button" id="mobileShoot">🔫<br>SHOOT</div>
-                <div class="mobile-button" id="mobileFlashlight">🔦<br>LIGHT</div>
-            </div>
+        <!-- Flashlight Indicator -->
+        <div id="flashlightIndicator" class="hidden">
+            <div class="flashlight-icon">🔦</div>
+            <div class="flashlight-text">FLASHLIGHT ON</div>
         </div>
         
-        <!-- Professional Crosshair -->
-        <div id="crosshair">
-            <div class="crosshair-line crosshair-h"></div>
-            <div class="crosshair-line crosshair-v"></div>
-            <div class="crosshair-line crosshair-dot"></div>
-        </div>
-        
-        <!-- ENHANCED TUTORIAL SYSTEM -->
-        <div id="tutorialOverlay" class="hidden">
-            <div id="tutorialBox">
-                <div id="tutorialTitle">🎮 TUTORIAL</div>
-                <div id="tutorialText">Welcome to House Head Chase!</div>
-                <div id="tutorialProgress">
-                    <div id="tutorialProgressBar"></div>
-                </div>
-                <button id="tutorialSkip">Skip Tutorial</button>
-            </div>
-        </div>
-        
-        <!-- HIGH SCORES MODAL -->
-        <div id="highScoresModal" class="hidden">
-            <div id="highScoresBox">
-                <div id="highScoresTitle">🏆 HIGH SCORES 🏆</div>
-                <div id="highScoresList"></div>
-                <div style="margin-top: 15px;">
-                    <button class="btn" onclick="closeHighScores()">CLOSE</button>
-                    <button id="clearScoresBtn" onclick="clearHighScores()">Clear Scores</button>
-                </div>
-            </div>
-        </div>
-        
-        <!-- SOCIAL SHARING MODAL -->
-        <div id="shareModal" class="hidden">
-            <div id="shareBox">
-                <div id="shareTitle">🎮 SHARE YOUR SCORE! 🎮</div>
-                <div id="shareText">I just scored <span id="shareScore">0</span> points in House Head Chase!</div>
-                <div class="share-buttons">
-                    <button class="share-btn share-twitter" onclick="shareTwitter()">Twitter</button>
-                    <button class="share-btn share-facebook" onclick="shareFacebook()">Facebook</button>
-                    <button class="share-btn share-copy" onclick="copyScore()">Copy Link</button>
-                </div>
-                <button class="btn" onclick="closeShare()" style="margin-top: 15px;">CLOSE</button>
-            </div>
+        <!-- Double Tap Hint -->
+        <div id="doubleTapHint" class="hint">
+            📱 Double tap to toggle flashlight
         </div>
     </div>
     
+    <!-- Start Screen -->
     <div id="startScreen">
-        <h1>🏠 HOUSE HEAD CHASE 🏠</h1>
+        <h1>🏠 HOUSE HEAD SURVIVAL 🏠</h1>
         <div id="instructions">
-            <p><strong>🎮 ULTIMATE EDITION FEATURES! 🎮</strong></p>
-            <p>🔵 Play as brave blue dot hero!</p>
-            <p>🏃 Move: WASD or Arrow Keys</p>
-            <p>🔫 Shoot: SPACE or Click</p>
-            <p>🔦 Flashlight: F or Right-click</p>
-            <p>💨 Run Fast: Hold SHIFT</p>
+            <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
             <br>
-            <p>🆕 <strong>NEW FEATURES:</strong></p>
-            <p>⚡ Power-ups: Speed, Shield, Rapid Fire!</p>
-            <p>📊 Multiple levels with increasing difficulty!</p>
-            <p>🏆 Persistent high scores!</p>
-            <p>📱 Mobile touch controls!</p>
-            <p>🔊 Enhanced sound effects!</p>
-            <p>📤 Social sharing!</p>
+            <p>🔵 <strong>Blue Dot Hero</strong> - That's you!</p>
+            <p>📱 <strong>Touch & Drag:</strong> Move blue dot</p>
+            <p>💡 <strong>Double Tap:</strong> Toggle flashlight</p>
+            <p>🏠 <strong>House Heads:</strong> Avoid at all costs!</p>
+            <br>
+            <p>⚠️ <strong>WARNING:</strong></p>
+            <p>🔦 Flashlight reveals enemies but exposes your location</p>
+            <p>🏠 Houses grow legs and hunt you down</p>
+            <p>💔 Touching House Heads = DAMAGE</p>
+            <p>🎯 Survive as long as possible!</p>
         </div>
         <div class="button-container">
-            <button class="btn" onclick="startGame()">🎮 START GAME</button>
+            <button class="btn" onclick="startGame()">🎮 START SURVIVAL</button>
             <button class="btn" onclick="showHighScores()">🏆 HIGH SCORES</button>
-            <button class="btn" onclick="showTutorial()">📚 TUTORIAL</button>
+            <button class="btn" onclick="showHelp()">❓ HOW TO PLAY</button>
         </div>
     </div>
     
+    <!-- Game Over Screen -->
     <div id="gameOver" class="hidden">
-        <h2>🎮 GAME OVER! 🎮</h2>
-        <p>😱 A House Head caught the blue dot!</p>
+        <h2>💀 SURVIVAL FAILED! 💀</h2>
+        <p>🏠 The House Heads got you!</p>
         <p>🏆 Final Score: <span id="finalScore">0</span></p>
         <p>⏰ Time Survived: <span id="finalTime">0</span> seconds</p>
-        <p>🎯 House Heads Defeated: <span id="finalKills">0</span></p>
         <p>📊 Level Reached: <span id="finalLevel">1</span></p>
+        <p>🏠 House Heads Survived: <span id="totalEnemies">0</span></p>
         <div class="button-container">
-            <button class="btn" onclick="restartGame()">🔄 PLAY AGAIN</button>
+            <button class="btn" onclick="restartGame()">🔄 TRY AGAIN</button>
             <button class="btn" onclick="shareScore()">📤 SHARE SCORE</button>
             <button class="btn" onclick="showStartScreen()">🏠 MAIN MENU</button>
         </div>
     </div>
-
-    <script>
-        console.log('🏠 House Head Chase - ULTIMATE FEATURE PACK!');
-        console.log('🆕 NEW: High Scores, Power-ups, Levels, Mobile Controls, Social Sharing!');
-        
-        // ENHANCED GAME STATE WITH ALL NEW FEATURES
-        let gameState = {
-            running: false,
-            player: { 
-                x: 700, y: 450, size: 20, health: 100, maxHealth: 100, speed: 4, 
-                angle: 0, weapon: { ammo: 30, maxAmmo: 30, reloadTime: 0 }
-            },
-            enemies: [],
-            bullets: [],
-            particles: [],
-            groundHoles: [],
-            powerups: [],
-            activePowerups: [],
-            flashlight: { on: false, intensity: 0 },
-            score: 0,
-            kills: 0,
-            level: 1,
-            startTime: 0,
-            lastScoreUpdate: 0,
-            lastPowerupSpawn: 0,
-            keys: {},
-            mousePos: { x: 0, y: 0 },
-            sounds: {},
-            audioEnabled: true,
-            cameraShake: 0,
-            lastSpawn: 0,
-            difficulty: 1,
-            mobile: {
-                joystick: { active: false, startX: 0, startY: 0, currentX: 0, currentY: 0 }
-            },
-            tutorial: {
-                active: false,
-                step: 0,
-                completed: localStorage.getItem('houseHeadTutorialCompleted') === 'true',
-                stepStartTime: 0,
-                skipRequested: false
-            }
-        };
-        
-        // HIGH SCORE PERSISTENCE
-        const HIGH_SCORES_KEY = 'houseHeadHighScores';
-        const MAX_HIGH_SCORES = 10;
-        
-        function getHighScores() {
-            try {
-                return JSON.parse(localStorage.getItem(HIGH_SCORES_KEY)) || [];
-            } catch {
-                return [];
-            }
-        }
-        
-        function saveHighScore(score, level, kills, time) {
-            const highScores = getHighScores();
-            const newScore = {
-                score: score,
-                level: level,
-                kills: kills,
-                time: time,
-                date: new Date().toLocaleDateString()
-            };
-            
-            highScores.push(newScore);
-            highScores.sort((a, b) => b.score - a.score);
-            highScores.splice(MAX_HIGH_SCORES);
-            
-            localStorage.setItem(HIGH_SCORES_KEY, JSON.stringify(highScores));
-            console.log('💾 High score saved!', newScore);
-        }
-        
-        function clearHighScores() {
-            localStorage.removeItem(HIGH_SCORES_KEY);
-            displayHighScores();
-            console.log('🗑️ High scores cleared!');
-        }
-        
-        function displayHighScores() {
-            const highScores = getHighScores();
-            const list = document.getElementById('highScoresList');
-            
-            if (highScores.length === 0) {
-                list.innerHTML = '<p style="text-align: center; color: #ccc;">No high scores yet!</p>';
-                return;
-            }
-            
-            list.innerHTML = highScores.map((score, index) => 
-                `<div class="high-score-item">
-                    <span class="high-score-rank">#${index + 1}</span>
-                    <span>${score.score} pts (Lvl ${score.level})</span>
-                    <span class="high-score-score">${score.date}</span>
-                </div>`
-            ).join('');
-        }
-        
-        // POWER-UP SYSTEM
-        const POWERUP_TYPES = {
-            SPEED: { emoji: '⚡', color: '#44ff44', duration: 10000, name: 'Speed Boost' },
-            SHIELD: { emoji: '🛡️', color: '#4488ff', duration: 15000, name: 'Shield' },
-            RAPID: { emoji: '🔥', color: '#ff4444', duration: 8000, name: 'Rapid Fire' },
-            MULTI: { emoji: '💥', color: '#ff8844', duration: 12000, name: 'Multi Shot' }
-        };
-        
-        class PowerUp {
-            constructor(x, y, type) {
-                this.x = x;
-                this.y = y;
-                this.type = type;
-                this.size = 20;
-                this.life = 300; // 5 seconds at 60fps
-                this.collected = false;
-                this.bobOffset = Math.random() * Math.PI * 2;
-            }
-            
-            update() {
-                this.life--;
-                this.bobOffset += 0.1;
-                
-                // Check collection
-                const dx = this.x - gameState.player.x;
-                const dy = this.y - gameState.player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (distance < this.size + gameState.player.size && !this.collected) {
-                    this.collect();
-                }
-                
-                return this.life > 0 && !this.collected;
-            }
-            
-            collect() {
-                this.collected = true;
-                const powerupData = POWERUP_TYPES[this.type];
-                
-                // Add to active powerups
-                gameState.activePowerups.push({
-                    type: this.type,
-                    timeLeft: powerupData.duration,
-                    maxTime: powerupData.duration
-                });
-                
-                // Apply immediate effects
-                switch(this.type) {
-                    case 'SPEED':
-                        gameState.player.speed = 6;
-                        break;
-                    case 'SHIELD':
-                        gameState.player.maxHealth = 150;
-                        gameState.player.health = Math.min(150, gameState.player.health + 50);
-                        break;
-                    case 'RAPID':
-                        gameState.player.weapon.maxAmmo = 60;
-                        gameState.player.weapon.ammo = 60;
-                        break;
-                    case 'MULTI':
-                        // Multi-shot handled in shoot function
-                        break;
-                }
-                
-                // Play collection sound
-                playSound('powerup', 440, 0.3);
-                console.log(`⚡ Power-up collected: ${powerupData.name}`);
-                updatePowerupDisplay();
-                updateAmmoDisplay();
-            }
-            
-            draw() {
-                const powerupData = POWERUP_TYPES[this.type];
-                const bobY = Math.sin(this.bobOffset) * 5;
-                
-                // Glow effect
-                ctx.fillStyle = powerupData.color;
-                ctx.shadowColor = powerupData.color;
-                ctx.shadowBlur = 15;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y + bobY, this.size + 5, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-                
-                // Main circle
-                ctx.fillStyle = powerupData.color;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y + bobY, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                
-                // Border
-                ctx.strokeStyle = '#ffffff';
-                ctx.lineWidth = 2;
-                ctx.stroke();
-                
-                // Emoji
-                ctx.fillStyle = '#000';
-                ctx.font = '16px Arial';
-                ctx.textAlign = 'center';
-                ctx.fillText(powerupData.emoji, this.x, this.y + bobY + 5);
-            }
-        }
-        
-        function spawnPowerup() {
-            if (Date.now() - gameState.lastPowerupSpawn < 20000) return; // Every 20 seconds
-            
-            const types = Object.keys(POWERUP_TYPES);
-            const type = types[Math.floor(Math.random() * types.length)];
-            
-            const x = 100 + Math.random() * (canvas.width - 200);
-            const y = 150 + Math.random() * (canvas.height - 300);
-            
-            gameState.powerups.push(new PowerUp(x, y, type));
-            gameState.lastPowerupSpawn = Date.now();
-        }
-        
-        function updatePowerups() {
-            // Update powerup pickups
-            gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
-            
-            // Update active powerups
-            gameState.activePowerups = gameState.activePowerups.filter(powerup => {
-                powerup.timeLeft -= 16.67; // Assume 60fps
-                
-                if (powerup.timeLeft <= 0) {
-                    // Remove powerup effects
-                    switch(powerup.type) {
-                        case 'SPEED':
-                            gameState.player.speed = 4;
-                            break;
-                        case 'SHIELD':
-                            gameState.player.maxHealth = 100;
-                            gameState.player.health = Math.min(100, gameState.player.health);
-                            break;
-                        case 'RAPID':
-                            gameState.player.weapon.maxAmmo = 30;
-                            gameState.player.weapon.ammo = Math.min(30, gameState.player.weapon.ammo);
-                            break;
-                    }
-                    console.log(`⏰ Power-up expired: ${POWERUP_TYPES[powerup.type].name}`);
-                    updatePowerupDisplay();
-                    updateAmmoDisplay();
-                    return false;
-                }
-                return true;
-            });
-        }
-        
-        function updatePowerupDisplay() {
-            const container = document.getElementById('powerupContainer');
-            container.innerHTML = '';
-            
-            gameState.activePowerups.forEach(powerup => {
-                const powerupData = POWERUP_TYPES[powerup.type];
-                const icon = document.createElement('div');
-                icon.className = `powerup-icon powerup-${powerup.type.toLowerCase()}`;
-                icon.textContent = powerupData.emoji;
-                icon.title = `${powerupData.name}: ${Math.ceil(powerup.timeLeft / 1000)}s`;
-                container.appendChild(icon);
-            });
-        }
-        
-        // LEVEL SYSTEM
-        function updateLevel() {
-            const newLevel = Math.floor(gameState.score / 100) + 1;
-            if (newLevel > gameState.level) {
-                gameState.level = newLevel;
-                document.getElementById('levelDisplay').textContent = gameState.level;
-                
-                // Show level complete animation
-                showLevelComplete();
-                
-                // Increase difficulty
-                gameState.difficulty = 1 + (gameState.level - 1) * 0.3;
-                console.log(`🎊 Level up! Now level ${gameState.level}`);
-            }
-        }
-        
-        function showLevelComplete() {
-            const levelDiv = document.createElement('div');
-            levelDiv.className = 'level-complete';
-            levelDiv.innerHTML = `
-                <h2>🎊 LEVEL ${gameState.level}! 🎊</h2>
-                <p>Difficulty Increased!</p>
-            `;
-            document.body.appendChild(levelDiv);
-            
-            setTimeout(() => {
-                document.body.removeChild(levelDiv);
-            }, 3000);
-        }
-        
-        // ENHANCED SOUND SYSTEM
-        const SOUND_LIBRARY = {
-            'gunshot': { type: 'square', freq: 150, gain: 0.3, duration: 0.1 },
-            'hit': { type: 'sawtooth', freq: 300, gain: 0.2, duration: 0.1 },
-            'popup': { type: 'triangle', freq: 180, gain: 0.2, duration: 0.3 },
-            'powerup': { type: 'sine', freq: 440, gain: 0.3, duration: 0.3 },
-            'levelup': { type: 'triangle', freq: 523, gain: 0.4, duration: 0.5 },
-            'damage': { type: 'square', freq: 120, gain: 0.4, duration: 0.2 },
-            'reload': { type: 'triangle', freq: 200, gain: 0.15, duration: 0.4 }
-        };
-        
-        // MOBILE TOUCH CONTROLS
-        function initMobileControls() {
-            const joystickArea = document.getElementById('mobileJoystick');
-            const knob = document.getElementById('joystickKnob');
-            const shootBtn = document.getElementById('mobileShoot');
-            const flashBtn = document.getElementById('mobileFlashlight');
-            
-            // Joystick controls
-            joystickArea.addEventListener('touchstart', handleJoystickStart, { passive: false });
-            joystickArea.addEventListener('touchmove', handleJoystickMove, { passive: false });
-            joystickArea.addEventListener('touchend', handleJoystickEnd, { passive: false });
-            
-            // Action buttons
-            shootBtn.addEventListener('touchstart', () => shoot(), { passive: true });
-            flashBtn.addEventListener('touchstart', () => {
-                gameState.flashlight.on = !gameState.flashlight.on;
-            }, { passive: true });
-            
-            // Detect mobile
-            if (/Android|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
-                document.getElementById('mobileControls').style.display = 'block';
-                console.log('📱 Mobile controls activated!');
-            }
-        }
-        
-        function handleJoystickStart(e) {
-            e.preventDefault();
-            const rect = e.target.getBoundingClientRect();
-            const touch = e.touches[0];
-            gameState.mobile.joystick.active = true;
-            gameState.mobile.joystick.startX = touch.clientX - rect.left;
-            gameState.mobile.joystick.startY = touch.clientY - rect.top;
-        }
-        
-        function handleJoystickMove(e) {
-            if (!gameState.mobile.joystick.active) return;
-            e.preventDefault();
-            
-            const rect = e.target.getBoundingClientRect();
-            const touch = e.touches[0];
-            const deltaX = touch.clientX - rect.left - gameState.mobile.joystick.startX;
-            const deltaY = touch.clientY - rect.top - gameState.mobile.joystick.startY;
-            
-            // Convert to movement
-            const maxDistance = 40;
-            const distance = Math.min(Math.sqrt(deltaX * deltaX + deltaY * deltaY), maxDistance);
-            const angle = Math.atan2(deltaY, deltaX);
-            
-            const moveX = Math.cos(angle) * (distance / maxDistance) * gameState.player.speed;
-            const moveY = Math.sin(angle) * (distance / maxDistance) * gameState.player.speed;
-            
-            gameState.player.x += moveX;
-            gameState.player.y += moveY;
-            
-            // Update knob position
-            const knob = document.getElementById('joystickKnob');
-            const knobX = Math.cos(angle) * Math.min(distance, maxDistance);
-            const knobY = Math.sin(angle) * Math.min(distance, maxDistance);
-            knob.style.transform = `translate(-50%, -50%) translate(${knobX}px, ${knobY}px)`;
-        }
-        
-        function handleJoystickEnd(e) {
-            e.preventDefault();
-            gameState.mobile.joystick.active = false;
-            
-            // Reset knob position
-            const knob = document.getElementById('joystickKnob');
-            knob.style.transform = 'translate(-50%, -50%)';
-        }
-        
-        // Canvas setup
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // ENHANCED TUTORIAL STEPS
-        const tutorialSteps = [
-            {
-                title: "Welcome Blue Dot Hero! 🔵",
-                text: "Use WASD or Arrow Keys to move around. Try moving now!",
-                duration: 6000,
-                action: "move"
-            },
-            {
-                title: "Turn on your Flashlight! 🔦",
-                text: "Press F or Right-click to see in the dark. Try it!",
-                duration: 6000,
-                action: "flashlight"
-            },
-            {
-                title: "Shoot the House Heads! 🔫",
-                text: "Press SPACE or Left-click to shoot. Try shooting!",
-                duration: 6000,
-                action: "shoot"
-            },
-            {
-                title: "Collect Power-ups! ⚡",
-                text: "Look for glowing orbs that give you special abilities!",
-                duration: 4000,
-                action: "powerup"
-            },
-            {
-                title: "Level Up System! 📊",
-                text: "Every 100 points = new level with harder enemies!",
-                duration: 4000,
-                action: "level"
-            },
-            {
-                title: "You're Ready! 🎮",
-                text: "Survive, collect power-ups, and beat your high score!",
-                duration: 3000,
-                action: "complete"
-            }
-        ];
-        
-        function startTutorial() {
-            console.log('🎓 Starting enhanced tutorial...');
-            gameState.tutorial.active = true;
-            gameState.tutorial.step = 0;
-            gameState.tutorial.stepStartTime = Date.now();
-            showTutorialStep();
-        }
-        
-        function showTutorial() {
-            if (!gameState.running) {
-                startTutorial();
-            }
-        }
-        
-        function showTutorialStep() {
-            if (gameState.tutorial.step >= tutorialSteps.length) {
-                completeTutorial();
-                return;
-            }
-            
-            const step = tutorialSteps[gameState.tutorial.step];
-            const overlay = document.getElementById('tutorialOverlay');
-            const title = document.getElementById('tutorialTitle');
-            const text = document.getElementById('tutorialText');
-            const progressBar = document.getElementById('tutorialProgressBar');
-            
-            title.textContent = step.title;
-            text.textContent = step.text;
-            
-            // Update progress bar
-            const progress = ((gameState.tutorial.step + 1) / tutorialSteps.length) * 100;
-            progressBar.style.width = progress + '%';
-            
-            overlay.classList.remove('hidden');
-            console.log(`📚 Tutorial Step ${gameState.tutorial.step + 1}: ${step.title}`);
-            
-            // Auto-advance after duration
-            setTimeout(() => {
-                if (gameState.tutorial.active && !gameState.tutorial.skipRequested) {
-                    nextTutorialStep();
-                }
-            }, step.duration);
-        }
-        
-        function nextTutorialStep() {
-            gameState.tutorial.step++;
-            gameState.tutorial.stepStartTime = Date.now();
-            showTutorialStep();
-        }
-        
-        function completeTutorial() {
-            console.log('✅ Tutorial completed!');
-            gameState.tutorial.active = false;
-            gameState.tutorial.completed = true;
-            localStorage.setItem('houseHeadTutorialCompleted', 'true');
-            document.getElementById('tutorialOverlay').classList.add('hidden');
-        }
-        
-        function skipTutorial() {
-            console.log('⏭️ Tutorial skipped');
-            gameState.tutorial.skipRequested = true;
-            completeTutorial();
-        }
-        
-        function updateTutorial() {
-            const step = tutorialSteps[gameState.tutorial.step];
-            if (!step) return;
-            
-            // Check if player completed the tutorial action
-            switch(step.action) {
-                case "move":
-                    if (gameState.keys['w'] || gameState.keys['s'] || gameState.keys['a'] || gameState.keys['d'] ||
-                        gameState.keys['arrowup'] || gameState.keys['arrowdown'] || gameState.keys['arrowleft'] || gameState.keys['arrowright']) {
-                        console.log('✅ Player moved!');
-                        nextTutorialStep();
-                    }
-                    break;
-                case "flashlight":
-                    if (gameState.flashlight.on) {
-                        console.log('✅ Flashlight turned on!');
-                        nextTutorialStep();
-                    }
-                    break;
-                case "shoot":
-                    if (gameState.bullets.length > 0) {
-                        console.log('✅ Player shot!');
-                        nextTutorialStep();
-                    }
-                    break;
-            }
-        }
-        
-        // Audio context
-        let audioContext;
-        
-        function initAudio() {
-            try {
-                audioContext = new (window.AudioContext || window.webkitAudioContext)();
-                createAmbientSound();
-            } catch (e) {
-                console.log('Audio not supported');
-                gameState.audioEnabled = false;
-            }
-        }
-        
-        function createAmbientSound() {
-            if (!audioContext || !gameState.audioEnabled) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.type = 'sawtooth';
-            oscillator.frequency.setValueAtTime(35, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(0.05, audioContext.currentTime);
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            oscillator.start();
-            
-            gameState.sounds.ambient = { oscillator, gainNode };
-        }
-        
-        function playSound(type, frequency = 220, duration = 0.1) {
-            if (!audioContext || !gameState.audioEnabled) return;
-            
-            const soundData = SOUND_LIBRARY[type];
-            if (!soundData) return;
-            
-            const oscillator = audioContext.createOscillator();
-            const gainNode = audioContext.createGain();
-            
-            oscillator.connect(gainNode);
-            gainNode.connect(audioContext.destination);
-            
-            oscillator.type = soundData.type;
-            oscillator.frequency.setValueAtTime(frequency || soundData.freq, audioContext.currentTime);
-            gainNode.gain.setValueAtTime(soundData.gain, audioContext.currentTime);
-            
-            if (type === 'levelup') {
-                // Special level up sound
-                oscillator.frequency.exponentialRampToValueAtTime(
-                    soundData.freq * 2, 
-                    audioContext.currentTime + soundData.duration
-                );
-            }
-            
-            oscillator.start();
-            oscillator.stop(audioContext.currentTime + (duration || soundData.duration));
-        }
-        
-        // BLUE DOT PLAYER WITH POWER-UP EFFECTS
-        function drawPlayer() {
-            ctx.save();
-            ctx.translate(gameState.player.x, gameState.player.y);
-            ctx.rotate(gameState.player.angle);
-            
-            // Shield effect
-            const hasShield = gameState.activePowerups.some(p => p.type === 'SHIELD');
-            if (hasShield) {
-                ctx.strokeStyle = '#4488ff';
-                ctx.lineWidth = 3;
-                ctx.setLineDash([5, 5]);
-                ctx.beginPath();
-                ctx.arc(0, 0, gameState.player.size + 10, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.setLineDash([]);
-            }
-            
-            // Speed effect
-            const hasSpeed = gameState.activePowerups.some(p => p.type === 'SPEED');
-            if (hasSpeed) {
-                ctx.strokeStyle = '#44ff44';
-                ctx.lineWidth = 2;
-                for (let i = 0; i < 3; i++) {
-                    ctx.beginPath();
-                    ctx.arc(0, 0, gameState.player.size + 5 + i * 3, 0, Math.PI * 2);
-                    ctx.stroke();
-                }
-            }
-            
-            // BLUE DOT BODY
-            ctx.fillStyle = '#4488ff';
-            ctx.beginPath();
-            ctx.arc(0, 0, gameState.player.size, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // White outline
-            ctx.strokeStyle = '#ffffff';
-            ctx.lineWidth = 2;
-            ctx.stroke();
-            
-            // Weapon
-            ctx.fillStyle = '#444';
-            ctx.fillRect(gameState.player.size - 5, -3, 18, 6);
-            ctx.fillStyle = '#666';
-            ctx.fillRect(gameState.player.size + 8, -2, 6, 4);
-            
-            // Rapid fire effect
-            const hasRapid = gameState.activePowerups.some(p => p.type === 'RAPID');
-            if (hasRapid) {
-                ctx.fillStyle = '#ff4444';
-                ctx.fillRect(gameState.player.size + 8, -3, 8, 6);
-            }
-            
-            // Direction indicator
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(gameState.player.size - 6, 0, 3, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Blue glow effect
-            ctx.shadowColor = '#4488ff';
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = 'rgba(68, 136, 255, 0.3)';
-            ctx.beginPath();
-            ctx.arc(0, 0, gameState.player.size + 5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.shadowBlur = 0;
-            
-            ctx.restore();
-        }
-        
-        // Ground Hole class
-        class GroundHole {
-            constructor(x, y) {
-                this.x = x;
-                this.y = y;
-                this.size = 0;
-                this.maxSize = 35;
-                this.life = 120;
-                this.growing = true;
-            }
-            
-            update() {
-                if (this.growing && this.size < this.maxSize) {
-                    this.size += 1.5;
-                } else {
-                    this.growing = false;
-                    this.life--;
-                }
-                return this.life > 0;
-            }
-            
-            draw() {
-                ctx.fillStyle = `rgba(0, 0, 0, ${Math.min(this.life / 120, 0.8)})`;
-                ctx.beginPath();
-                ctx.ellipse(this.x, this.y, this.size, this.size * 0.4, 0, 0, Math.PI * 2);
-                ctx.fill();
-                
-                ctx.strokeStyle = `rgba(60, 40, 30, ${Math.min(this.life / 120, 0.6)})`;
-                ctx.lineWidth = 2;
-                ctx.stroke();
-            }
-        }
-        
-        // Enhanced Bullet class
-        class Bullet {
-            constructor(x, y, angle, speed = 10) {
-                this.x = x;
-                this.y = y;
-                this.angle = angle;
-                this.speed = speed;
-                this.life = 120;
-                this.size = 3;
-            }
-            
-            update() {
-                this.x += Math.cos(this.angle) * this.speed;
-                this.y += Math.sin(this.angle) * this.speed;
-                this.life--;
-                
-                // Check collision with enemies
-                gameState.enemies.forEach((enemy, index) => {
-                    const dx = this.x - enemy.x;
-                    const dy = this.y - enemy.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance < enemy.size) {
-                        enemy.health--;
-                        this.life = 0;
-                        playSound('hit');
-                        
-                        if (enemy.health <= 0) {
-                            gameState.enemies.splice(index, 1);
-                            gameState.score += 10;
-                            gameState.kills++;
-                        }
-                    }
-                });
-                
-                return this.life > 0 && this.x > 0 && this.x < canvas.width && this.y > 0 && this.y < canvas.height;
-            }
-            
-            draw() {
-                ctx.fillStyle = '#ffdd44';
-                ctx.shadowColor = '#ffdd44';
-                ctx.shadowBlur = 4;
-                ctx.beginPath();
-                ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.shadowBlur = 0;
-            }
-        }
-        
-        // House Head class with level scaling
-        class HouseHead {
-            constructor(x, y) {
-                this.startX = x;
-                this.startY = y;
-                this.x = x;
-                this.y = y;
-                this.size = 30 + Math.random() * 20 + (gameState.level - 1) * 2;
-                this.speed = 0.8 + Math.random() * 0.6 + (gameState.level - 1) * 0.1;
-                this.angle = Math.random() * Math.PI * 2;
-                this.health = 2 + Math.floor(Math.random() * 2) + Math.floor((gameState.level - 1) / 2);
-                this.maxHealth = this.health;
-                this.lastSound = 0;
-                this.soundCooldown = 2000 + Math.random() * 3000;
-                this.legs = [];
-                this.attackRange = 45;
-                this.windowGlow = Math.random() * 0.5 + 0.5;
-                this.bodyRotation = 0;
-                this.lastAttack = 0;
-                
-                this.popupPhase = 'emerging';
-                this.popupProgress = 0;
-                this.emergeDuration = 50;
-                
-                gameState.groundHoles.push(new GroundHole(x, y));
-                playSound('popup');
-                
-                for (let i = 0; i < 8; i++) {
-                    this.legs.push({
-                        angle: (i / 8) * Math.PI * 2,
-                        length: this.size * 0.9,
-                        offset: Math.random() * 0.5,
-                        bendAngle: Math.random() * 0.5
-                    });
-                }
-            }
-            
-            update() {
-                this.updatePopupAnimation();
-                
-                if (this.popupPhase === 'active' || this.popupPhase === 'free_roam') {
-                    const dx = gameState.player.x - this.x;
-                    const dy = gameState.player.y - this.y;
-                    const distance = Math.sqrt(dx * dx + dy * dy);
-                    
-                    if (distance > 35) {
-                        this.angle = Math.atan2(dy, dx);
-                        this.x += Math.cos(this.angle) * this.speed;
-                        this.y += Math.sin(this.angle) * this.speed;
-                        this.bodyRotation += 0.03;
-                    }
-                    
-                    this.x = Math.max(this.size, Math.min(canvas.width - this.size, this.x));
-                    this.y = Math.max(this.size + 80, Math.min(canvas.height - this.size, this.y));
-                    
-                    if (distance < 200 && Date.now() - this.lastSound > this.soundCooldown) {
-                        this.makeSound();
-                        this.lastSound = Date.now();
-                        this.soundCooldown = 1500 + Math.random() * 2000;
-                    }
-                    
-                    // TUTORIAL PROTECTION: No damage during tutorial!
-                    if (!gameState.tutorial.active && distance < this.attackRange && Date.now() - this.lastAttack > 1000) {
-                        this.attack();
-                        this.lastAttack = Date.now();
-                    }
-                }
-                
-                this.legs.forEach(leg => {
-                    leg.offset += 0.1;
-                    leg.bendAngle = Math.sin(leg.offset * 2) * 0.3;
-                });
-                
-                this.windowGlow = 0.5 + Math.sin(Date.now() * 0.004 + this.x * 0.01) * 0.3;
-                
-                return true;
-            }
-            
-            updatePopupAnimation() {
-                switch(this.popupPhase) {
-                    case 'emerging':
-                        this.popupProgress++;
-                        const emergePercent = Math.min(this.popupProgress / this.emergeDuration, 1);
-                        this.y = this.startY - (60 * emergePercent);
-                        
-                        if (this.popupProgress >= this.emergeDuration) {
-                            this.popupPhase = 'active';
-                            this.popupProgress = 0;
-                        }
-                        break;
-                        
-                    case 'active':
-                        this.popupProgress++;
-                        if (this.popupProgress >= 200) {
-                            this.popupPhase = 'free_roam';
-                            this.popupProgress = 0;
-                        }
-                        break;
-                }
-            }
-            
-            makeSound() {
-                const furnitureSounds = [180, 220, 280, 340, 440];
-                const frequency = furnitureSounds[Math.floor(Math.random() * furnitureSounds.length)];
-                playSound('furniture', frequency, 0.3);
-            }
-            
-            attack() {
-                console.log('💥 House Head attacks!');
-                const damage = 5 + (gameState.level - 1);
-                
-                // Shield protection
-                const hasShield = gameState.activePowerups.some(p => p.type === 'SHIELD');
-                const finalDamage = hasShield ? Math.ceil(damage / 2) : damage;
-                
-                gameState.player.health -= finalDamage;
-                gameState.cameraShake = 8;
-                playSound('damage');
-                
-                console.log(`💔 Player took ${finalDamage} damage ${hasShield ? '(shield active)' : ''}`);
-            }
-            
-            draw() {
-                ctx.save();
-                ctx.translate(this.x, this.y);
-                
-                this.drawLegs();
-                ctx.rotate(this.bodyRotation * 0.2);
-                this.drawHouse();
-                
-                ctx.restore();
-            }
-            
-            drawLegs() {
-                ctx.strokeStyle = '#2a2a2a';
-                ctx.lineWidth = 4;
-                
-                this.legs.forEach(leg => {
-                    const baseAngle = leg.angle + this.bodyRotation;
-                    const midX = Math.cos(baseAngle + leg.bendAngle) * leg.length * 0.6;
-                    const midY = Math.sin(baseAngle + leg.bendAngle) * leg.length * 0.6;
-                    const endX = Math.cos(baseAngle + leg.offset) * leg.length;
-                    const endY = Math.sin(baseAngle + leg.offset) * leg.length;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(midX, midY);
-                    ctx.lineTo(endX, endY);
-                    ctx.stroke();
-                    
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath();
-                    ctx.arc(midX, midY, 2, 0, Math.PI * 2);
-                    ctx.fill();
-                });
-            }
-            
-            drawHouse() {
-                const size = this.size;
-                
-                // House body
-                const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
-                gradient.addColorStop(0, '#4a3a2a');
-                gradient.addColorStop(0.5, '#3a2a1a');
-                gradient.addColorStop(1, '#2a1a0a');
-                ctx.fillStyle = gradient;
-                ctx.fillRect(-size/2, -size/2, size, size * 0.8);
-                
-                // Roof
-                const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
-                roofGradient.addColorStop(0, '#3a2a1a');
-                roofGradient.addColorStop(1, '#2a1a0a');
-                ctx.fillStyle = roofGradient;
-                ctx.beginPath();
-                ctx.moveTo(-size/2 - 6, -size/2);
-                ctx.lineTo(0, -size - 4);
-                ctx.lineTo(size/2 + 6, -size/2);
-                ctx.closePath();
-                ctx.fill();
-                
-                // Glowing windows (eyes)
-                const glowIntensity = this.windowGlow;
-                const eyeSize = size / 8;
-                
-                ctx.shadowColor = '#ffff88';
-                ctx.shadowBlur = 12;
-                ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity})`;
-                ctx.fillRect(-size/3, -size/3, eyeSize, eyeSize);
-                ctx.fillRect(size/6, -size/3, eyeSize, eyeSize);
-                
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = '#666';
-                ctx.lineWidth = 1;
-                ctx.strokeRect(-size/3, -size/3, eyeSize, eyeSize);
-                ctx.strokeRect(size/6, -size/3, eyeSize, eyeSize);
-                
-                // Door (mouth)
-                ctx.fillStyle = '#000';
-                ctx.fillRect(-size/8, size/6, size/4, size/3);
-                ctx.strokeStyle = '#333';
-                ctx.strokeRect(-size/8, size/6, size/4, size/3);
-            }
-        }
-        
-        // Enhanced weapon system with power-ups
-        function shoot() {
-            if (gameState.player.weapon.ammo <= 0 || gameState.player.weapon.reloadTime > 0) return;
-            
-            gameState.player.weapon.ammo--;
-            
-            // Multi-shot power-up
-            const hasMulti = gameState.activePowerups.some(p => p.type === 'MULTI');
-            const bulletCount = hasMulti ? 3 : 1;
-            const spreadAngle = hasMulti ? 0.3 : 0;
-            
-            for (let i = 0; i < bulletCount; i++) {
-                const angle = gameState.player.angle + (i - (bulletCount - 1) / 2) * spreadAngle;
-                const bullet = new Bullet(
-                    gameState.player.x,
-                    gameState.player.y,
-                    angle,
-                    12
-                );
-                gameState.bullets.push(bullet);
-            }
-            
-            playSound('gunshot');
-            gameState.cameraShake = 4;
-            
-            if (gameState.player.weapon.ammo === 0) {
-                reload();
-            }
-            
-            updateAmmoDisplay();
-        }
-        
-        function reload() {
-            const hasRapid = gameState.activePowerups.some(p => p.type === 'RAPID');
-            gameState.player.weapon.reloadTime = hasRapid ? 25 : 50; // Faster reload with rapid fire
-            playSound('reload', 200, 0.4);
-        }
-        
-        function updateAmmoDisplay() {
-            const ammoDisplay = document.getElementById('ammoDisplay');
-            ammoDisplay.innerHTML = '';
-            
-            for (let i = 0; i < gameState.player.weapon.maxAmmo; i++) {
-                const bullet = document.createElement('div');
-                bullet.className = 'ammo-bullet';
-                if (i >= gameState.player.weapon.ammo) {
-                    bullet.classList.add('empty');
-                }
-                ammoDisplay.appendChild(bullet);
-            }
-            
-            document.getElementById('ammoCount').textContent = 
-                `${gameState.player.weapon.ammo}/${gameState.player.weapon.maxAmmo}`;
-        }
-        
-        // Spawn system
-        function spawnEnemy() {
-            const spawnDelay = Math.max(2000, 3500 - (gameState.level - 1) * 200) / gameState.difficulty;
-            if (Date.now() - gameState.lastSpawn < spawnDelay) return;
-            
-            const x = 80 + Math.random() * (canvas.width - 160);
-            const y = canvas.height - 60;
-            
-            gameState.enemies.push(new HouseHead(x, y));
-            gameState.lastSpawn = Date.now();
-        }
-        
-        // SOCIAL SHARING SYSTEM
-        function shareScore() {
-            document.getElementById('shareScore').textContent = gameState.score;
-            document.getElementById('shareModal').classList.remove('hidden');
-        }
-        
-        function shareTwitter() {
-            const text = `I just scored ${gameState.score} points in House Head Chase! 🏠🎮 Can you beat my score?`;
-            const url = window.location.href;
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
-        }
-        
-        function shareFacebook() {
-            const url = window.location.href;
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}`, '_blank');
-        }
-        
-        function copyScore() {
-            const text = `I just scored ${gameState.score} points in House Head Chase! Play at: ${window.location.href}`;
-            navigator.clipboard.writeText(text).then(() => {
-                alert('Score copied to clipboard!');
-            }).catch(() => {
-                // Fallback for older browsers
-                const textArea = document.createElement('textarea');
-                textArea.value = text;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
-                document.body.removeChild(textArea);
-                alert('Score copied to clipboard!');
-            });
-        }
-        
-        function closeShare() {
-            document.getElementById('shareModal').classList.add('hidden');
-        }
-        
-        // Game loop
-        function gameLoop() {
-            if (!gameState.running) return;
-            
-            update();
-            draw();
-            requestAnimationFrame(gameLoop);
-        }
-        
-        function update() {
-            // Handle tutorial
-            if (gameState.tutorial.active) {
-                updateTutorial();
-            }
-            
-            updatePlayer();
-            
-            // Weapon reload
-            if (gameState.player.weapon.reloadTime > 0) {
-                gameState.player.weapon.reloadTime--;
-                if (gameState.player.weapon.reloadTime === 0) {
-                    gameState.player.weapon.ammo = gameState.player.weapon.maxAmmo;
-                    updateAmmoDisplay();
-                }
-            }
-            
-            // Update game objects
-            gameState.bullets = gameState.bullets.filter(bullet => bullet.update());
-            gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
-            gameState.groundHoles = gameState.groundHoles.filter(hole => hole.update());
-            
-            // Update power-ups
-            updatePowerups();
-            gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
-            
-            // Only spawn enemies and power-ups after tutorial
-            if (!gameState.tutorial.active) {
-                spawnEnemy();
-                spawnPowerup();
-            }
-            
-            // Flashlight
-            if (gameState.flashlight.on) {
-                gameState.flashlight.intensity = Math.min(1, gameState.flashlight.intensity + 0.15);
-            } else {
-                gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - 0.15);
-            }
-            
-            // Camera shake
-            if (gameState.cameraShake > 0) {
-                gameState.cameraShake--;
-            }
-            
-            // SLOW SCORE SYSTEM - Only update every 2 seconds!
-            if (!gameState.tutorial.active && Date.now() - gameState.lastScoreUpdate > 2000) {
-                gameState.score += 1; // Only 1 point every 2 seconds!
-                gameState.lastScoreUpdate = Date.now();
-                updateLevel(); // Check for level up
-            }
-            
-            if (gameState.player.health <= 0) {
-                endGame();
-            }
-            
-            updateUI();
-        }
-        
-        function updatePlayer() {
-            const speed = gameState.keys['shift'] ? gameState.player.speed * 1.8 : gameState.player.speed;
-            
-            let moving = false;
-            if (gameState.keys['w'] || gameState.keys['arrowup']) {
-                gameState.player.y -= speed;
-                moving = true;
-            }
-            if (gameState.keys['s'] || gameState.keys['arrowdown']) {
-                gameState.player.y += speed;
-                moving = true;
-            }
-            if (gameState.keys['a'] || gameState.keys['arrowleft']) {
-                gameState.player.x -= speed;
-                moving = true;
-            }
-            if (gameState.keys['d'] || gameState.keys['arrowright']) {
-                gameState.player.x += speed;
-                moving = true;
-            }
-            
-            // Face mouse direction
-            const dx = gameState.mousePos.x - gameState.player.x;
-            const dy = gameState.mousePos.y - gameState.player.y;
-            gameState.player.angle = Math.atan2(dy, dx);
-            
-            // Stay in bounds
-            gameState.player.x = Math.max(gameState.player.size, Math.min(canvas.width - gameState.player.size, gameState.player.x));
-            gameState.player.y = Math.max(gameState.player.size + 90, Math.min(canvas.height - gameState.player.size, gameState.player.y));
-        }
-        
-        function draw() {
-            // Camera shake ONLY affects canvas content
-            ctx.save();
-            if (gameState.cameraShake > 0) {
-                ctx.translate(
-                    (Math.random() - 0.5) * gameState.cameraShake,
-                    (Math.random() - 0.5) * gameState.cameraShake
-                );
-            }
-            
-            // Background
-            const gradient = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 0, canvas.width/2, canvas.height/2, canvas.width);
-            gradient.addColorStop(0, '#001122');
-            gradient.addColorStop(1, '#000000');
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            drawGround();
-            gameState.groundHoles.forEach(hole => hole.draw());
-            drawStars();
-            
-            if (gameState.flashlight.intensity > 0) {
-                drawFlashlight();
-            }
-            
-            // Draw power-ups
-            gameState.powerups.forEach(powerup => powerup.draw());
-            
-            gameState.bullets.forEach(bullet => bullet.draw());
-            
-            // Draw enemies with visibility
-            gameState.enemies.forEach(enemy => {
-                const dx = enemy.x - gameState.player.x;
-                const dy = enemy.y - gameState.player.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
-                
-                if (gameState.flashlight.intensity > 0.3 || distance < 70) {
-                    enemy.draw();
-                }
-            });
-            
-            drawPlayer();
-            
-            ctx.restore();
-        }
-        
-        function drawGround() {
-            const groundGradient = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
-            groundGradient.addColorStop(0, '#2a3a2a');
-            groundGradient.addColorStop(1, '#1a2a1a');
-            ctx.fillStyle = groundGradient;
-            ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-        }
-        
-        function drawStars() {
-            ctx.fillStyle = '#ffffff';
-            for (let i = 0; i < 80; i++) {
-                const x = (i * 23.7) % canvas.width;
-                const y = (i * 37.3) % (canvas.height - 80);
-                const brightness = Math.sin(Date.now() * 0.001 + i) * 0.5 + 0.5;
-                ctx.globalAlpha = brightness * 0.7;
-                ctx.fillRect(x, y, 1, 1);
-            }
-            ctx.globalAlpha = 1;
-        }
-        
-        function drawFlashlight() {
-            const gradient = ctx.createRadialGradient(
-                gameState.player.x, gameState.player.y, 0,
-                gameState.player.x, gameState.player.y, 180
-            );
-            gradient.addColorStop(0, `rgba(255, 255, 200, ${gameState.flashlight.intensity * 0.4})`);
-            gradient.addColorStop(0.3, `rgba(255, 255, 150, ${gameState.flashlight.intensity * 0.2})`);
-            gradient.addColorStop(1, 'rgba(255, 255, 100, 0)');
-            
-            ctx.fillStyle = gradient;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-        }
-        
-        function updateUI() {
-            const health = Math.max(0, Math.floor(gameState.player.health));
-            document.getElementById('health').textContent = health;
-            document.getElementById('healthFill').style.width = (health / gameState.player.maxHealth * 100) + '%';
-            document.getElementById('score').textContent = gameState.score;
-            document.getElementById('timer').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
-            document.getElementById('levelDisplay').textContent = gameState.level;
-        }
-        
-        // Event listeners
-        document.addEventListener('keydown', (e) => {
-            gameState.keys[e.key.toLowerCase()] = true;
-            
-            if (e.key === ' ') {
-                e.preventDefault();
-                shoot();
-            }
-            if (e.key.toLowerCase() === 'f') {
-                gameState.flashlight.on = !gameState.flashlight.on;
-            }
-            if (e.key.toLowerCase() === 'r') {
-                if (gameState.player.weapon.ammo < gameState.player.weapon.maxAmmo) {
-                    reload();
-                }
-            }
-        });
-        
-        document.addEventListener('keyup', (e) => {
-            gameState.keys[e.key.toLowerCase()] = false;
-        });
-        
-        document.addEventListener('mousedown', (e) => {
-            if (e.button === 0) {
-                shoot();
-            }
-            if (e.button === 2) {
-                gameState.flashlight.on = true;
-            }
-        });
-        
-        document.addEventListener('mouseup', (e) => {
-            if (e.button === 2) {
-                gameState.flashlight.on = false;
-            }
-        });
-        
-        document.addEventListener('contextmenu', (e) => e.preventDefault());
-        
-        document.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            gameState.mousePos.x = e.clientX - rect.left;
-            gameState.mousePos.y = e.clientY - rect.top;
-            
-            const crosshair = document.getElementById('crosshair');
-            crosshair.style.left = e.clientX + 'px';
-            crosshair.style.top = e.clientY + 'px';
-        });
-        
-        document.getElementById('audioToggle').addEventListener('click', () => {
-            gameState.audioEnabled = !gameState.audioEnabled;
-            const btn = document.getElementById('audioToggle');
-            btn.textContent = gameState.audioEnabled ? '🔊' : '🔇';
-            
-            if (gameState.audioEnabled && !audioContext) {
-                initAudio();
-            }
-        });
-        
-        // Tutorial skip button
-        document.getElementById('tutorialSkip').addEventListener('click', skipTutorial);
-        
-        // High Scores functions
-        function showHighScores() {
-            displayHighScores();
-            document.getElementById('highScoresModal').classList.remove('hidden');
-        }
-        
-        function closeHighScores() {
-            document.getElementById('highScoresModal').classList.add('hidden');
-        }
-        
-        // Game functions
-        function startGame() {
-            console.log('🎮 Starting ULTIMATE game with all features...');
-            gameState.running = true;
-            gameState.startTime = Date.now();
-            gameState.lastScoreUpdate = Date.now();
-            gameState.lastPowerupSpawn = Date.now();
-            
-            // Reset player
-            gameState.player = { 
-                x: 700, y: 450, size: 20, health: 100, maxHealth: 100, speed: 4, angle: 0,
-                weapon: { ammo: 30, maxAmmo: 30, reloadTime: 0 }
-            };
-            
-            // Reset game state
-            gameState.enemies = [];
-            gameState.bullets = [];
-            gameState.particles = [];
-            gameState.groundHoles = [];
-            gameState.powerups = [];
-            gameState.activePowerups = [];
-            gameState.score = 0;
-            gameState.kills = 0;
-            gameState.level = 1;
-            gameState.difficulty = 1;
-            gameState.lastSpawn = 0;
-            
-            // Reset tutorial only if not completed
-            if (!gameState.tutorial.completed) {
-                gameState.tutorial = {
-                    active: false,
-                    step: 0,
-                    completed: false,
-                    stepStartTime: 0,
-                    skipRequested: false
-                };
-            }
-            
-            document.getElementById('startScreen').classList.add('hidden');
-            document.getElementById('gameOver').classList.add('hidden');
-            
-            updateAmmoDisplay();
-            updatePowerupDisplay();
-            
-            if (!audioContext) initAudio();
-            
-            // Start tutorial only if not completed
-            if (!gameState.tutorial.completed) {
-                setTimeout(() => {
-                    startTutorial();
-                }, 1000);
-            }
-            
-            gameLoop();
-        }
-        
-        function endGame() {
-            gameState.running = false;
-            
-            // Save high score
-            saveHighScore(gameState.score, gameState.level, gameState.kills, Math.floor((Date.now() - gameState.startTime) / 1000));
-            
-            // Update final stats
-            document.getElementById('finalScore').textContent = gameState.score;
-            document.getElementById('finalTime').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
-            document.getElementById('finalKills').textContent = gameState.kills;
-            document.getElementById('finalLevel').textContent = gameState.level;
-            document.getElementById('gameOver').classList.remove('hidden');
-            
-            if (gameState.sounds.ambient) {
-                gameState.sounds.ambient.gainNode.gain.setValueAtTime(0, audioContext.currentTime);
-                gameState.sounds.ambient.oscillator.stop();
-            }
-            
-            console.log('🎮 Game Over! Final stats saved.');
-        }
-        
-        function restartGame() {
-            startGame();
-        }
-        
-        function showStartScreen() {
-            document.body.classList.remove('modal-open'); // Ensure body scrolling is restored
-            document.getElementById('startScreen').classList.remove('hidden');
-            document.getElementById('gameOver').classList.add('hidden');
-        }
-        
-        // Initialize everything
-        window.onload = () => {
-            console.log('🏠 House Head Chase - ULTIMATE FEATURE PACK LOADED!');
-            console.log('🆕 Features: High Scores, Power-ups, Levels, Mobile Controls, Social Sharing!');
-            console.log('🔵 Blue dot hero ready!');
-            console.log('🎓 Tutorial system enhanced!');
-            console.log('📱 Mobile controls detected!');
-            
-            updateAmmoDisplay();
-            displayHighScores();
-            initMobileControls();
-        };
-    </script>
+    
+    <!-- High Scores Modal -->
+    <div id="highScoresModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>🏆 HIGH SCORES 🏆</h2>
+                <button class="close-btn" onclick="closeHighScores()">×</button>
+            </div>
+            <div id="highScoresList"></div>
+            <div class="modal-footer">
+                <button class="btn" onclick="clearHighScores()">🗑️ Clear Scores</button>
+                <button class="btn" onclick="closeHighScores()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>❓ HOW TO PLAY</h2>
+                <button class="close-btn" onclick="closeHelp()">×</button>
+            </div>
+            <div class="help-content">
+                <div class="help-section">
+                    <h3>🎯 OBJECTIVE</h3>
+                    <p>Survive as long as possible while avoiding House Heads!</p>
+                </div>
+                <div class="help-section">
+                    <h3>🎮 CONTROLS</h3>
+                    <p><strong>Mobile:</strong> Touch and drag the blue dot to move</p>
+                    <p><strong>Desktop:</strong> Move mouse to control blue dot</p>
+                    <p><strong>Flashlight:</strong> Double tap/click to toggle</p>
+                </div>
+                <div class="help-section">
+                    <h3>🏠 ENEMIES</h3>
+                    <p><strong>Small Houses:</strong> Fast but weak</p>
+                    <p><strong>Big Houses:</strong> Slow but deadly</p>
+                    <p>Houses spawn, then grow legs and hunt you!</p>
+                </div>
+                <div class="help-section">
+                    <h3>💡 STRATEGY</h3>
+                    <p>• Use flashlight to see hidden enemies</p>
+                    <p>• But flashlight reveals your location!</p>
+                    <p>• Stay away from spawning houses</p>
+                    <p>• Higher levels = more enemies</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeHelp()">Got It!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 SHARE YOUR SCORE</h2>
+                <button class="close-btn" onclick="closeShare()">×</button>
+            </div>
+            <div class="share-content">
+                <p>I survived <span id="shareScore">0</span> seconds in House Head Survival! 🏠💀</p>
+                <div class="share-buttons">
+                    <button class="share-btn twitter" onclick="shareTwitter()">🐦 Twitter</button>
+                    <button class="share-btn facebook" onclick="shareFacebook()">📘 Facebook</button>
+                    <button class="share-btn copy" onclick="copyScore()">📋 Copy Link</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn" onclick="closeShare()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Install Prompt -->
+    <div id="installPrompt" class="install-prompt hidden">
+        <div class="install-content">
+            <h3>📱 Install House Head Survival</h3>
+            <p>Add to your home screen for the best experience!</p>
+            <div class="install-buttons">
+                <button class="btn" onclick="installApp()">Install App</button>
+                <button class="btn-secondary" onclick="dismissInstall()">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="game.js"></script>
 </body>
 </html>
