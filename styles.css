@@ -141,6 +141,41 @@ body {
     box-shadow: 0 0 15px rgba(255, 68, 68, 0.6);
 }
 
+/* Power-up Indicators */
+#powerupIndicators {
+    position: fixed;
+    top: 70px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    z-index: 1100;
+}
+
+.powerup-indicator {
+    background: rgba(0, 0, 0, 0.8);
+    border: 2px solid;
+    border-radius: 20px;
+    padding: 6px 12px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    backdrop-filter: blur(10px);
+    animation: powerupPulse 1s ease-in-out infinite alternate;
+}
+
+.powerup-indicator.health { border-color: #44ff44; color: #44ff44; }
+.powerup-indicator.shield { border-color: #4488ff; color: #4488ff; }
+.powerup-indicator.speed { border-color: #ffaa44; color: #ffaa44; }
+
+@keyframes powerupPulse {
+    from { box-shadow: 0 0 5px currentColor; }
+    to { box-shadow: 0 0 15px currentColor; }
+}
+
 /* Flashlight Indicator */
 #flashlightIndicator {
     position: fixed;
@@ -214,18 +249,18 @@ body {
     font-size: 24px;
     margin-bottom: 15px;
     text-shadow: 0 0 12px var(--primary-color);
-    animation: titleGlow 2s ease-in-out infinite alternate;
+    animation: titleGlow 3s ease-in-out infinite alternate;
     line-height: 1.2;
 }
 
 @keyframes titleGlow {
     from { 
-        text-shadow: 0 0 12px var(--primary-color), 0 0 20px var(--primary-color); 
+        text-shadow: 0 0 8px var(--primary-color), 0 0 12px var(--primary-color); 
         transform: scale(1);
     }
     to { 
-        text-shadow: 0 0 20px #ff6666, 0 0 30px var(--primary-color), 0 0 40px var(--primary-color); 
-        transform: scale(1.01);
+        text-shadow: 0 0 12px #ff6666, 0 0 18px var(--primary-color), 0 0 22px var(--primary-color); 
+        transform: scale(1.005);
     }
 }
 
@@ -319,9 +354,11 @@ body {
     border-radius: 12px;
     max-width: 400px;
     width: 100%;
-    max-height: 80vh;
+    max-height: 85vh;
     overflow-y: auto;
     box-shadow: 0 0 40px rgba(255, 68, 68, 0.5);
+    display: flex;
+    flex-direction: column;
 }
 
 .modal-header {
@@ -330,6 +367,7 @@ body {
     align-items: center;
     padding: 15px 20px;
     border-bottom: 1px solid rgba(255, 68, 68, 0.3);
+    flex-shrink: 0;
 }
 
 .modal-header h2 {
@@ -360,12 +398,15 @@ body {
     gap: 12px;
     justify-content: center;
     border-top: 1px solid rgba(255, 68, 68, 0.3);
+    flex-shrink: 0;
 }
 
 /* High Scores */
 #highScoresList {
     padding: 15px 20px;
     color: var(--text-gray);
+    flex: 1;
+    overflow-y: auto;
 }
 
 .high-score-item {
@@ -388,10 +429,16 @@ body {
 .help-content {
     padding: 15px 20px;
     color: var(--text-gray);
+    flex: 1;
+    overflow-y: auto;
 }
 
 .help-section {
     margin-bottom: 15px;
+}
+
+.help-section:last-child {
+    margin-bottom: 0;
 }
 
 .help-section h3 {
@@ -412,6 +459,7 @@ body {
     padding: 15px 20px;
     color: var(--text-gray);
     text-align: center;
+    flex: 1;
 }
 
 .share-buttons {
@@ -489,132 +537,26 @@ body {
     justify-content: center;
 }
 
-/* Power-up Indicators */
-#powerupIndicators {
-    position: fixed;
-    top: 70px;
-    right: 20px;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    z-index: 1100;
-}
-
-.powerup-indicator {
-    background: rgba(0, 0, 0, 0.8);
-    border: 2px solid;
-    border-radius: 20px;
-    padding: 6px 12px;
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    font-weight: bold;
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    backdrop-filter: blur(10px);
-    animation: powerupPulse 1s ease-in-out infinite alternate;
-}
-
-.powerup-indicator.health { border-color: #44ff44; color: #44ff44; }
-.powerup-indicator.shield { border-color: #4488ff; color: #4488ff; }
-.powerup-indicator.speed { border-color: #ffaa44; color: #ffaa44; }
-
-@keyframes powerupPulse {
-    from { box-shadow: 0 0 5px currentColor; }
-    to { box-shadow: 0 0 15px currentColor; }
-}
-
-/* Ensure no buttons appear outside modals */
-.btn:not(.modal-content .btn):not(.button-container .btn):not(.install-buttons .btn):not(#audioToggle) {
-    display: none !important;
-}
-
-/* Game Footer Info Bar */
-#gameFooter {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
-    background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    padding: 8px 15px;
-    z-index: 1000;
-    backdrop-filter: blur(10px);
-    border-top: 1px solid rgba(255, 68, 68, 0.3);
-}
-
-.footer-section {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    min-width: 70px;
-}
-
-.footer-label {
-    font-size: 8px;
-    color: var(--text-dark);
-    text-transform: uppercase;
-    letter-spacing: 1px;
-    margin-bottom: 2px;
-    font-weight: 300;
-}
-
-.footer-value {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    font-weight: 700;
-    color: var(--text-light);
-    text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
-}
-
-.footer-powerup {
-    display: flex;
-    align-items: center;
-    gap: 4px;
-    background: rgba(255, 170, 68, 0.2);
-    border: 1px solid rgba(255, 170, 68, 0.5);
-    border-radius: 12px;
-    padding: 4px 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 10px;
-    font-weight: bold;
-    color: #ffaa44;
-    animation: powerupGlow 2s ease-in-out infinite alternate;
-}
-
-@keyframes powerupGlow {
-    from { box-shadow: 0 0 5px rgba(255, 170, 68, 0.3); }
-    to { box-shadow: 0 0 12px rgba(255, 170, 68, 0.6); }
-}
-
-#powerupIcon {
-    font-size: 12px;
-}
-
 /* Utility Classes */
 .hidden {
     display: none !important;
 }
 
-/* Utility Classes */
-.hidden {
-    display: none !important;
-}
+/* Desktop Styles */
 @media (min-width: 768px) {
     #hud {
-        height: 70px;
-        padding: 10px 20px;
+        height: 80px;
+        padding: 15px 20px;
+        top: 10px;
     }
     
     .stat-container {
-        min-width: 60px;
+        min-width: 70px;
     }
     
     .stat-value {
         font-size: 16px;
+        margin-top: 2px;
     }
     
     .stat-label {
@@ -631,6 +573,14 @@ body {
         height: 50px;
         font-size: 18px;
         padding: 12px;
+    }
+    
+    #powerupIndicators {
+        top: 100px;
+    }
+    
+    #flashlightIndicator {
+        top: 100px;
     }
     
     #startScreen, #gameOver {
@@ -655,6 +605,10 @@ body {
         padding: 14px 28px;
         font-size: 16px;
         min-width: 200px;
+    }
+    
+    .modal-content {
+        max-height: 75vh;
     }
     
     .share-buttons {
@@ -691,6 +645,7 @@ body {
     #hud {
         height: 50px;
         padding: 5px 15px;
+        top: 0;
     }
     
     .stat-value {
@@ -700,6 +655,14 @@ body {
     .stat-label {
         font-size: 8px;
         margin-bottom: 2px;
+    }
+    
+    #powerupIndicators {
+        top: 60px;
+    }
+    
+    #flashlightIndicator {
+        top: 60px;
     }
     
     #startScreen, #gameOver {
@@ -733,5 +696,9 @@ body {
     .hint {
         bottom: 10px;
         font-size: 10px;
+    }
+    
+    .modal-content {
+        max-height: 80vh;
     }
 }
