@@ -3,376 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House Head Chase - Ultimate Edition</title>
-    <!-- FORCE BROWSER REFRESH -->
+    <title>🏠 House Head Chase - Ultimate Edition</title>
+    <link rel="stylesheet" href="styles.css?v=3.0">
     <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
     <meta http-equiv="Pragma" content="no-cache">
     <meta http-equiv="Expires" content="0">
-    <style>
-        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap');
-        
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
-        
-        body {
-            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
-            font-family: 'Exo 2', sans-serif;
-            overflow: hidden;
-            cursor: none;
-            user-select: none;
-        }
-        
-        #gameContainer {
-            position: relative;
-            width: 100vw;
-            height: 100vh;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        
-        #gameCanvas {
-            border: 3px solid #ff4444;
-            border-radius: 8px;
-            background: linear-gradient(180deg, #001122 0%, #000 100%);
-            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
-        }
-        
-        /* ABSOLUTELY FIXED UI - ZERO SHAKE GUARANTEED */
-        #hud {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            height: 70px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 0 25px;
-            z-index: 1000;
-            backdrop-filter: blur(8px);
-            transform: translate3d(0, 0, 0);
-            backface-visibility: hidden;
-            perspective: 1000px;
-            will-change: transform;
-            pointer-events: none;
-        }
-        
-        #hud * {
-            pointer-events: auto;
-            transform: translate3d(0, 0, 0);
-        }
-        
-        .hud-section {
-            display: flex;
-            align-items: center;
-            gap: 20px;
-            transform: translate3d(0, 0, 0);
-        }
-        
-        .stat-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            min-width: 70px;
-            transform: translate3d(0, 0, 0);
-        }
-        
-        .stat-label {
-            font-size: 10px;
-            color: #888;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            margin-bottom: 3px;
-            font-weight: 300;
-        }
-        
-        .stat-value {
-            font-family: 'Orbitron', monospace;
-            font-size: 16px;
-            font-weight: 700;
-            color: #fff;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
-        }
-        
-        #healthBar {
-            width: 100px;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.2);
-            border-radius: 3px;
-            overflow: hidden;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-        }
-        
-        #healthFill {
-            height: 100%;
-            width: 100%;
-            background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
-            transition: width 0.3s ease;
-            border-radius: 2px;
-        }
-        
-        #ammoContainer {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        
-        #ammoDisplay {
-            display: flex;
-            gap: 2px;
-            margin-top: 4px;
-        }
-        
-        .ammo-bullet {
-            width: 5px;
-            height: 10px;
-            background: linear-gradient(180deg, #ffdd44 0%, #ff8844 100%);
-            border-radius: 2px;
-            box-shadow: 0 0 5px rgba(255, 221, 68, 0.5);
-        }
-        
-        .ammo-bullet.empty {
-            background: rgba(255, 255, 255, 0.2);
-            box-shadow: none;
-        }
-        
-        #audioToggle {
-            background: rgba(255, 68, 68, 0.2);
-            border: 2px solid rgba(255, 68, 68, 0.5);
-            color: #ff4444;
-            padding: 10px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 18px;
-            transition: all 0.3s ease;
-            backdrop-filter: blur(10px);
-            min-width: 45px;
-            height: 45px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transform: translate3d(0, 0, 0);
-        }
-        
-        #crosshair {
-            position: absolute;
-            width: 25px;
-            height: 25px;
-            pointer-events: none;
-            z-index: 50;
-            transform: translate(-50%, -50%);
-        }
-        
-        .crosshair-line {
-            position: absolute;
-            background: #ff4444;
-            box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
-        }
-        
-        .crosshair-h {
-            width: 16px;
-            height: 2px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .crosshair-v {
-            width: 2px;
-            height: 16px;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-        }
-        
-        .crosshair-dot {
-            width: 3px;
-            height: 3px;
-            background: #ff4444;
-            border-radius: 50%;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            box-shadow: 0 0 6px rgba(255, 68, 68, 1);
-        }
-        
-        /* TUTORIAL SYSTEM */
-        #tutorialOverlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            right: 0;
-            bottom: 0;
-            background: rgba(0, 0, 0, 0.8);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 3000;
-            backdrop-filter: blur(5px);
-        }
-        
-        #tutorialBox {
-            background: linear-gradient(135deg, rgba(68, 136, 255, 0.9) 0%, rgba(0, 100, 200, 0.9) 100%);
-            color: white;
-            padding: 25px;
-            border-radius: 15px;
-            text-align: center;
-            border: 3px solid #4488ff;
-            box-shadow: 0 0 30px rgba(68, 136, 255, 0.6);
-            max-width: 400px;
-            min-width: 300px;
-            animation: tutorialPulse 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes tutorialPulse {
-            from { 
-                box-shadow: 0 0 30px rgba(68, 136, 255, 0.6);
-                transform: scale(1);
-            }
-            to { 
-                box-shadow: 0 0 40px rgba(68, 136, 255, 0.8);
-                transform: scale(1.02);
-            }
-        }
-        
-        #tutorialTitle {
-            font-family: 'Orbitron', monospace;
-            font-size: 22px;
-            font-weight: bold;
-            margin-bottom: 15px;
-            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
-        }
-        
-        #tutorialText {
-            font-size: 16px;
-            line-height: 1.4;
-            margin-bottom: 20px;
-            color: #e6f3ff;
-        }
-        
-        #tutorialProgress {
-            width: 100%;
-            height: 6px;
-            background: rgba(255, 255, 255, 0.3);
-            border-radius: 3px;
-            margin-bottom: 15px;
-            overflow: hidden;
-        }
-        
-        #tutorialProgressBar {
-            height: 100%;
-            background: linear-gradient(90deg, #44ff44 0%, #88ff88 100%);
-            border-radius: 3px;
-            transition: width 0.5s ease;
-            box-shadow: 0 0 10px rgba(68, 255, 68, 0.5);
-            width: 0%;
-        }
-        
-        #tutorialSkip {
-            background: rgba(255, 255, 255, 0.2);
-            color: white;
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            padding: 8px 16px;
-            border-radius: 6px;
-            cursor: pointer;
-            font-size: 12px;
-            transition: all 0.3s ease;
-        }
-        
-        #tutorialSkip:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: scale(1.05);
-        }
-        
-        #gameOver, #startScreen {
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(135deg, rgba(0, 0, 0, 0.96) 0%, rgba(20, 0, 0, 0.96) 100%);
-            color: #ff4444;
-            padding: 25px;
-            border-radius: 12px;
-            text-align: center;
-            border: 2px solid #ff4444;
-            box-shadow: 0 0 40px rgba(255, 68, 68, 0.5);
-            z-index: 2000;
-            backdrop-filter: blur(10px);
-            max-width: 85vw;
-            max-height: 85vh;
-            overflow-y: auto;
-        }
-        
-        #startScreen h1 {
-            font-family: 'Creepster', cursive;
-            font-size: 36px;
-            margin-bottom: 15px;
-            text-shadow: 0 0 15px #ff4444;
-            animation: titleGlow 2s ease-in-out infinite alternate;
-        }
-        
-        @keyframes titleGlow {
-            from { 
-                text-shadow: 0 0 15px #ff4444, 0 0 25px #ff4444; 
-                transform: scale(1);
-            }
-            to { 
-                text-shadow: 0 0 25px #ff6666, 0 0 35px #ff4444, 0 0 45px #ff4444; 
-                transform: scale(1.01);
-            }
-        }
-        
-        .btn {
-            background: linear-gradient(45deg, #ff4444, #cc2222);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            font-size: 16px;
-            cursor: pointer;
-            border-radius: 8px;
-            margin: 8px;
-            transition: all 0.3s ease;
-            font-weight: bold;
-            font-family: 'Orbitron', monospace;
-            text-transform: uppercase;
-            letter-spacing: 1px;
-            display: inline-block;
-            min-width: 120px;
-        }
-        
-        .btn:hover {
-            background: linear-gradient(45deg, #ff6666, #ff4444);
-            transform: scale(1.05) translateY(-1px);
-            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
-        }
-        
-        #instructions {
-            margin: 15px 0;
-            font-size: 13px;
-            line-height: 1.5;
-            max-width: 450px;
-            color: #ccc;
-            margin-left: auto;
-            margin-right: auto;
-        }
-        
-        .button-container {
-            display: flex;
-            flex-direction: column;
-            gap: 8px;
-            align-items: center;
-            margin-top: 15px;
-        }
-        
-        .hidden {
-            display: none !important;
-        }
-    </style>
 </head>
 <body>
     <div id="gameContainer">
@@ -470,9 +105,12 @@
     </div>
 
     <script>
-        console.log('🔵 FORCING BLUE DOT REFRESH - NO MORE CACHE!');
+        console.log('🏠 House Head Chase - FIXED VERSION LOADED!');
+        console.log('🔵 Blue dot hero ready!');
+        console.log('🐌 Slow score system activated!');
+        console.log('🛡️ Tutorial protection enabled!');
         
-        // GAME STATE WITH TUTORIAL
+        // GAME STATE WITH TUTORIAL PROTECTION
         let gameState = {
             running: false,
             player: { 
@@ -487,6 +125,7 @@
             score: 0,
             kills: 0,
             startTime: 0,
+            lastScoreUpdate: 0, // For slow score updates
             keys: {},
             mousePos: { x: 0, y: 0 },
             sounds: {},
@@ -507,7 +146,7 @@
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
         
-        // TUTORIAL STEPS
+        // TUTORIAL STEPS - UPDATED FOR SAFETY
         const tutorialSteps = [
             {
                 title: "Welcome Blue Dot Hero! 🔵",
@@ -541,14 +180,14 @@
             },
             {
                 title: "You're Ready! 🎮",
-                text: "Survive as long as you can! Good luck, blue dot!",
+                text: "Tutorial complete! You're protected until you're ready!",
                 duration: 2000,
                 action: "complete"
             }
         ];
         
         function startTutorial() {
-            console.log('🎓 Starting tutorial...');
+            console.log('🎓 Starting tutorial with protection...');
             gameState.tutorial.active = true;
             gameState.tutorial.step = 0;
             gameState.tutorial.stepStartTime = Date.now();
@@ -592,7 +231,7 @@
         }
         
         function completeTutorial() {
-            console.log('✅ Tutorial completed!');
+            console.log('✅ Tutorial completed! Protection removed.');
             gameState.tutorial.active = false;
             gameState.tutorial.completed = true;
             document.getElementById('tutorialOverlay').classList.add('hidden');
@@ -715,7 +354,7 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
         
-        // BLUE DOT PLAYER - FORCED REFRESH!
+        // BLUE DOT PLAYER - CONFIRMED!
         function drawPlayer() {
             ctx.save();
             ctx.translate(gameState.player.x, gameState.player.y);
@@ -838,7 +477,7 @@
             }
         }
         
-        // House Head class
+        // House Head class WITH TUTORIAL PROTECTION
         class HouseHead {
             constructor(x, y) {
                 this.startX = x;
@@ -899,7 +538,8 @@
                         this.soundCooldown = 1500 + Math.random() * 2000;
                     }
                     
-                    if (distance < this.attackRange && Date.now() - this.lastAttack > 1000) {
+                    // TUTORIAL PROTECTION: No damage during tutorial!
+                    if (!gameState.tutorial.active && distance < this.attackRange && Date.now() - this.lastAttack > 1000) {
                         this.attack();
                         this.lastAttack = Date.now();
                     }
@@ -945,6 +585,7 @@
             }
             
             attack() {
+                console.log('💥 House Head attacks!');
                 const damage = 5;
                 gameState.player.health -= damage;
                 gameState.cameraShake = 8;
@@ -1138,10 +779,16 @@
                 gameState.cameraShake--;
             }
             
-            // Difficulty and scoring (only during actual gameplay)
+            // SLOW SCORE SYSTEM - Only update every 2 seconds!
+            if (!gameState.tutorial.active && Date.now() - gameState.lastScoreUpdate > 2000) {
+                gameState.score += 1; // Only 1 point every 2 seconds!
+                gameState.lastScoreUpdate = Date.now();
+                console.log(`📊 Score slowly increased to: ${gameState.score}`);
+            }
+            
+            // Difficulty (only during actual gameplay)
             if (!gameState.tutorial.active) {
                 gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 50000;
-                gameState.score += Math.floor((Date.now() - gameState.startTime) / 1500);
             }
             
             if (gameState.player.health <= 0) {
@@ -1335,9 +982,10 @@
         
         // Game functions
         function startGame() {
-            console.log('🎮 Starting game with tutorial...');
+            console.log('🎮 Starting game with tutorial protection...');
             gameState.running = true;
             gameState.startTime = Date.now();
+            gameState.lastScoreUpdate = Date.now(); // Initialize slow score system
             gameState.player = { 
                 x: 700, y: 450, size: 20, health: 100, speed: 4, angle: 0,
                 weapon: { ammo: 30, maxAmmo: 30, reloadTime: 0 }
@@ -1402,9 +1050,11 @@
         }
         
         window.onload = () => {
-            console.log('🔵 BLUE DOT HERO - CACHE FORCED REFRESH!');
-            console.log('🎓 Tutorial system active!');
-            console.log('🚀 Everything embedded - no external CSS!');
+            console.log('🏠 House Head Chase - ULTIMATE FIXED VERSION!');
+            console.log('🔵 Blue dot hero confirmed!');
+            console.log('🐌 Slow score system: 1 point every 2 seconds!');
+            console.log('🛡️ Tutorial protection: No damage during tutorial!');
+            console.log('📁 Two-file structure: index.html + styles.css!');
             updateAmmoDisplay();
         };
     </script>
