@@ -751,6 +751,75 @@ function updateUI() {
     document.getElementById('level').textContent = gameState.level;
 }
 
+function showPowerupMessage(message) {
+    // Add powerup message styling to CSS if not present
+    if (!document.querySelector('style[data-powerup-message]')) {
+        const style = document.createElement('style');
+        style.setAttribute('data-powerup-message', 'true');
+        style.textContent = `
+            .powerup-message {
+                position: fixed;
+                top: 50%;
+                left: 50%;
+                transform: translate(-50%, -50%);
+                color: #44ff44;
+                font-weight: bold;
+                font-size: 20px;
+                pointer-events: none;
+                z-index: 1500;
+                animation: powerupMessageFloat 1.5s ease-out forwards;
+                font-family: 'Orbitron', monospace;
+                text-shadow: 0 0 10px #44ff44;
+                background: rgba(0, 0, 0, 0.8);
+                padding: 8px 16px;
+                border-radius: 20px;
+                border: 2px solid #44ff44;
+            }
+            @keyframes powerupMessageFloat {
+                0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
+                20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
+                100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'powerup-message';
+    messageDiv.textContent = message;
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        if (document.body.contains(messageDiv)) {
+            document.body.removeChild(messageDiv);
+        }
+    }, 1500);
+}
+
+function updatePowerupIndicators() {
+    const container = document.getElementById('powerupIndicators');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    gameState.activePowerups.forEach(powerup => {
+        const indicator = document.createElement('div');
+        indicator.className = `powerup-indicator ${powerup.type.toLowerCase()}`;
+        
+        const timeLeft = Math.ceil(powerup.timeLeft / 1000);
+        const config = PowerupTypes[powerup.type];
+        
+        indicator.innerHTML = `
+            <span>${config.emoji}</span>
+            <span>${timeLeft}s</span>
+        `;
+        
+        container.appendChild(indicator);
+    });
+}
+
 function showDamageIndicator(damage) {
     // Add damage indicator styling to CSS if not present
     if (!document.querySelector('style[data-damage-indicator]')) {
