@@ -1175,7 +1175,7 @@ function resizeCanvas() {
 
 // Initialize everything
 window.addEventListener('load', () => {
-    console.log('🏠 House Head Survival - PWA Loaded!');
+    console.log('🏠 House Head Chase - PWA Loaded!');
     
     // Remove any stray buttons that might have been created
     const strayButtons = document.querySelectorAll('body > .btn, body > .modal-footer');
