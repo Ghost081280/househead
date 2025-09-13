@@ -9,7 +9,7 @@
 
 **A thrilling survival game where you dodge terrifying House Heads with legs!**
 
-[🎮 Play Now](https://ghost081280.github.io/househead/) • [📱 Install as App](#installation) • [🤝 Contribute](#contributing) • [🐛 Report Bug](andrew@ghost081280.com)
+[🎮 Play Now](https://ghost081280.github.io/househead/) • [📱 Install as App](#installation) • [🤝 Contribute](#contributing) • [🐛 Report Bug](https://ghost081280.github.io/househead/issues)
 
 </div>
 
