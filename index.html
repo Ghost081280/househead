@@ -1523,6 +1523,7 @@
         }
         
         function showStartScreen() {
+            document.body.classList.remove('modal-open'); // Ensure body scrolling is restored
             document.getElementById('startScreen').classList.remove('hidden');
             document.getElementById('gameOver').classList.add('hidden');
         }
