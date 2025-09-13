@@ -3,13 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 House Head Survival</title>
+    <title>🏠 House Head Chase</title>
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#ff4444">
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="House Head Survival">
+    <meta name="apple-mobile-web-app-title" content="House Head Chase">
     <link rel="manifest" href="manifest.json">
     
     <!-- Icons -->
@@ -30,9 +30,6 @@
                 <div id="healthBar">
                     <div id="healthFill"></div>
                 </div>
-            <div class="modal-footer">
-                <button class="btn" onclick="closeHelp()">Got It!</button>
-            </div>
                 <div class="stat-value"><span id="health">100</span>%</div>
             </div>
             
@@ -54,6 +51,9 @@
             <button id="audioToggle">🔊</button>
         </div>
         
+        <!-- Powerup Indicators -->
+        <div id="powerupIndicators"></div>
+        
         <!-- Flashlight Indicator -->
         <div id="flashlightIndicator" class="hidden">
             <div class="flashlight-icon">🔦</div>
@@ -68,7 +68,7 @@
     
     <!-- Start Screen -->
     <div id="startScreen">
-        <h1>🏠 HOUSE HEAD SURVIVAL</h1>
+        <h1>🏠 HOUSE HEAD CHASE</h1>
         <div id="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
             <p>🔵 <strong>Blue Dot Hero</strong> - That's you!</p>
@@ -138,10 +138,17 @@
                     <p>Houses spawn → grow legs → hunt you down!</p>
                 </div>
                 <div class="help-section">
+                    <h3>⚡ POWER-UPS</h3>
+                    <p><strong>Health:</strong> Restore your health</p>
+                    <p><strong>Shield:</strong> Temporary invincibility</p>
+                    <p><strong>Speed:</strong> Move faster temporarily</p>
+                </div>
+                <div class="help-section">
                     <h3>💡 STRATEGY</h3>
                     <p>• Use flashlight to see hidden enemies</p>
                     <p>• But flashlight reveals your location!</p>
                     <p>• Stay away from spawning houses</p>
+                    <p>• Collect power-ups to survive longer</p>
                     <p>• Higher levels = more enemies</p>
                 </div>
             </div>
@@ -159,7 +166,7 @@
                 <button class="close-btn" onclick="closeShare()">×</button>
             </div>
             <div class="share-content">
-                <p>I survived <span id="shareScore">0</span> seconds in House Head Survival! 🏠💀</p>
+                <p>I survived <span id="shareScore">0</span> seconds in House Head Chase! 🏠💀</p>
                 <div class="share-buttons">
                     <button class="share-btn twitter" onclick="shareTwitter()">🐦 Twitter</button>
                     <button class="share-btn facebook" onclick="shareFacebook()">📘 Facebook</button>
