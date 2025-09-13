@@ -57,12 +57,6 @@ class SoundSystem {
                 gainNode.gain.setValueAtTime(volume * 0.5, this.context.currentTime);
                 duration = 0.1;
                 break;
-            case 'ambient':
-                oscillator.type = 'sawtooth';
-                oscillator.frequency.setValueAtTime(40, this.context.currentTime);
-                gainNode.gain.setValueAtTime(0.05, this.context.currentTime);
-                duration = 30;
-                break;
         }
 
         oscillator.start();
@@ -103,20 +97,12 @@ const gameState = {
     score: 0,
     level: 1,
     startTime: 0,
-    lastLevelUp: 0,
     lastEnemySpawn: 0,
     lastScoreUpdate: 0,
     spawnRate: 3000,
     input: {
-        touch: { active: false, x: 0, y: 0 },
-        mouse: { x: 0, y: 0 },
         lastTap: 0,
         doubleTapDelay: 300
-    },
-    audio: {
-        enabled: true,
-        context: null,
-        sounds: {}
     },
     camera: {
         shake: 0,
@@ -131,8 +117,7 @@ const EnemyTypes = {
     SMALL: {
         name: 'Small House',
         size: 25,
-        speed: 1.5,
-        health: 1,
+        speed: 1.2,
         damage: 15,
         spawnWeight: 0.7,
         color: '#4a3a2a',
@@ -142,7 +127,6 @@ const EnemyTypes = {
         name: 'Big House',
         size: 40,
         speed: 0.8,
-        health: 1,
         damage: 25,
         spawnWeight: 0.3,
         color: '#3a2a1a',
@@ -159,7 +143,6 @@ class Enemy {
         this.config = EnemyTypes[type];
         this.size = this.config.size;
         this.speed = this.config.speed * (0.8 + Math.random() * 0.4);
-        this.health = this.config.health;
         this.damage = this.config.damage;
         this.color = this.config.color;
         
@@ -167,7 +150,6 @@ class Enemy {
         this.state = 'spawning';
         this.spawnTime = Date.now();
         this.activationTime = this.config.activationTime + (Math.random() * 1000);
-        this.animationFrame = 0;
         this.legs = [];
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
@@ -183,11 +165,10 @@ class Enemy {
             });
         }
         
-        console.log(`🏠 ${this.config.name} spawned at (${x}, ${y})`);
+        console.log(`🏠 ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
     }
 
     update() {
-        this.animationFrame++;
         const currentTime = Date.now();
         
         // Update state based on time
@@ -236,7 +217,7 @@ class Enemy {
         }
         
         // Check collision with player
-        if (distance < this.size + gameState.player.size - 10) {
+        if (distance < this.size + gameState.player.size - 5) {
             this.damagePlayer();
         }
     }
@@ -525,13 +506,16 @@ function spawnEnemy() {
     
     // Random spawn position (away from player)
     let x, y;
+    let attempts = 0;
     do {
         x = 50 + Math.random() * (gameState.canvas.width - 100);
         y = 100 + Math.random() * (gameState.canvas.height - 180);
         const distanceFromPlayer = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
-    } while (distanceFromPlayer < 150);
+        attempts++;
+        if (attempts > 10) break; // Prevent infinite loop
+    } while (Math.sqrt(Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)) < 150);
     
     const enemy = new Enemy(x, y, enemyType);
     gameState.enemies.push(enemy);
@@ -541,10 +525,12 @@ function spawnEnemy() {
     // Increase difficulty over time
     gameState.spawnRate = Math.max(1000, 3000 - (gameState.level - 1) * 200);
     
-    console.log(`👻 Enemy spawned: ${enemyType} at (${x}, ${y}). Total: ${gameState.enemies.length}`);
+    console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
 }
 
 function updateGame() {
+    if (!gameState.running) return;
+    
     const currentTime = Date.now();
     
     // Update flashlight intensity
@@ -592,6 +578,8 @@ function updateGame() {
 }
 
 function drawGame() {
+    if (!gameState.running) return;
+    
     const ctx = gameState.ctx;
     
     // Clear canvas
@@ -619,12 +607,12 @@ function drawGame() {
 }
 
 function gameLoop() {
-    if (!gameState.running) return;
-    
     updateGame();
     drawGame();
     
-    requestAnimationFrame(gameLoop);
+    if (gameState.running) {
+        requestAnimationFrame(gameLoop);
+    }
 }
 
 // Input Handling
@@ -650,8 +638,8 @@ function handleTouchStart(e) {
     e.preventDefault();
     const touch = e.touches[0];
     const rect = gameState.canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+    const x = (touch.clientX - rect.left) * (gameState.canvas.width / rect.width);
+    const y = (touch.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
     // Check if touching the player
     const dx = x - gameState.player.x;
@@ -677,8 +665,8 @@ function handleTouchMove(e) {
     
     const touch = e.touches[0];
     const rect = gameState.canvas.getBoundingClientRect();
-    const x = touch.clientX - rect.left;
-    const y = touch.clientY - rect.top;
+    const x = (touch.clientX - rect.left) * (gameState.canvas.width / rect.width);
+    const y = (touch.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
     // Move player
     gameState.player.x = x - gameState.player.dragOffset.x;
@@ -695,8 +683,8 @@ function handleTouchEnd(e) {
 
 function handleMouseDown(e) {
     const rect = gameState.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * (gameState.canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
     // Check if clicking on player
     const dx = x - gameState.player.x;
@@ -711,8 +699,8 @@ function handleMouseDown(e) {
 
 function handleMouseMove(e) {
     const rect = gameState.canvas.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
+    const x = (e.clientX - rect.left) * (gameState.canvas.width / rect.width);
+    const y = (e.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
     if (gameState.player.isDragging) {
         gameState.player.x = x - gameState.player.dragOffset.x;
@@ -778,6 +766,7 @@ function showDamageIndicator(damage) {
                 z-index: 1500;
                 animation: damageFloat 0.8s ease-out forwards;
                 font-family: 'Orbitron', monospace;
+                text-shadow: 0 0 8px #ff4444;
             }
             @keyframes damageFloat {
                 0% { transform: translateY(0); opacity: 1; }
@@ -793,8 +782,8 @@ function showDamageIndicator(damage) {
     
     // Convert canvas coordinates to screen coordinates
     const rect = gameState.canvas.getBoundingClientRect();
-    indicator.style.left = (rect.left + gameState.player.x) + 'px';
-    indicator.style.top = (rect.top + gameState.player.y) + 'px';
+    indicator.style.left = (rect.left + (gameState.player.x * rect.width / gameState.canvas.width)) + 'px';
+    indicator.style.top = (rect.top + (gameState.player.y * rect.height / gameState.canvas.height)) + 'px';
     
     document.body.appendChild(indicator);
     
@@ -826,6 +815,7 @@ function showLevelUpEffect() {
                 z-index: 2500;
                 animation: levelUpPulse 2s ease-out;
                 backdrop-filter: blur(10px);
+                border: 2px solid #ff4444;
             }
             @keyframes levelUpPulse {
                 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -883,23 +873,17 @@ function displayHighScores() {
     const list = document.getElementById('highScoresList');
     
     if (highScores.length === 0) {
-        list.innerHTML = '<p style="text-align: center; color: #ccc;">No high scores yet!</p>';
+        list.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No high scores yet!<br>Be the first to survive!</p>';
         return;
     }
     
     list.innerHTML = highScores.map((score, index) => 
         `<div class="high-score-item">
             <span class="high-score-rank">#${index + 1}</span>
-            <span>${score.score} pts (Lvl ${score.level})</span>
+            <span>${score.score}s (Lvl ${score.level})</span>
             <span class="high-score-date">${score.date}</span>
         </div>`
     ).join('');
-}
-
-function clearHighScores() {
-    localStorage.removeItem('houseHeadHighScores');
-    displayHighScores();
-    console.log('🗑️ High scores cleared!');
 }
 
 // Social Sharing
@@ -920,9 +904,9 @@ function shareFacebook() {
 }
 
 function copyScore() {
-    const text = `I just survived ${gameState.score} seconds in House Head Survival! Play at: ${window.location.href}`;
+    const text = `I just survived ${gameState.score} seconds in House Head Survival! 🏠💀 Play at: ${window.location.href}`;
     navigator.clipboard.writeText(text).then(() => {
-        alert('Score copied to clipboard!');
+        alert('Score copied to clipboard! 📋');
     }).catch(() => {
         const textArea = document.createElement('textarea');
         textArea.value = text;
@@ -930,7 +914,7 @@ function copyScore() {
         textArea.select();
         document.execCommand('copy');
         document.body.removeChild(textArea);
-        alert('Score copied to clipboard!');
+        alert('Score copied to clipboard! 📋');
     });
 }
 
@@ -1000,12 +984,15 @@ function startGame() {
     gameState.lastEnemySpawn = 0;
     gameState.flashlight.on = false;
     gameState.flashlight.intensity = 0;
+    gameState.camera.shake = 0;
+    gameState.camera.intensity = 0;
+    gameState.totalEnemiesSpawned = 0;
     
     // Initialize canvas
     gameState.canvas = document.getElementById('gameCanvas');
     gameState.ctx = gameState.canvas.getContext('2d');
     
-    // Set canvas size to fit screen
+    // Set canvas size to screen size
     resizeCanvas();
     
     // Position player in center
@@ -1016,11 +1003,25 @@ function startGame() {
     document.getElementById('startScreen').classList.add('hidden');
     document.getElementById('gameOver').classList.add('hidden');
     
+    // Show controls hint
+    setTimeout(() => {
+        const hint = document.getElementById('controlsHint');
+        if (hint) hint.style.display = 'block';
+    }, 1000);
+    
+    // Hide hint after 5 seconds
+    setTimeout(() => {
+        const hint = document.getElementById('controlsHint');
+        if (hint) hint.style.display = 'none';
+    }, 6000);
+    
     // Setup input handlers
     setupInputHandlers();
     
     // Start game loop
     gameLoop();
+    
+    console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
 }
 
 function endGame() {
@@ -1028,16 +1029,19 @@ function endGame() {
     
     // Save high score
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
-    saveHighScore(gameState.score, gameState.level, survivalTime);
+    saveHighScore(survivalTime, gameState.level, survivalTime);
     
     // Update final stats
-    document.getElementById('finalScore').textContent = gameState.score;
+    document.getElementById('finalScore').textContent = survivalTime;
     document.getElementById('finalTime').textContent = survivalTime;
     document.getElementById('finalLevel').textContent = gameState.level;
-    document.getElementById('totalEnemies').textContent = gameState.totalEnemiesSpawned;
     document.getElementById('gameOver').classList.remove('hidden');
     
-    console.log('🎮 Game Over! Final stats saved.');
+    // Hide controls hint
+    const hint = document.getElementById('controlsHint');
+    if (hint) hint.style.display = 'none';
+    
+    console.log('🎮 Game Over! Survival time:', survivalTime, 'seconds');
 }
 
 function restartGame() {
@@ -1048,6 +1052,10 @@ function showStartScreen() {
     document.getElementById('startScreen').classList.remove('hidden');
     document.getElementById('gameOver').classList.add('hidden');
     gameState.running = false;
+    
+    // Hide controls hint
+    const hint = document.getElementById('controlsHint');
+    if (hint) hint.style.display = 'none';
 }
 
 function showHighScores() {
@@ -1067,31 +1075,27 @@ function closeHelp() {
     document.getElementById('helpModal').classList.add('hidden');
 }
 
-// Responsive canvas sizing
+// Canvas Management
 function resizeCanvas() {
     const canvas = gameState.canvas;
-    const container = document.getElementById('gameContainer');
+    if (!canvas) return;
     
-    // Get container dimensions
-    const containerWidth = container.clientWidth;
-    const containerHeight = container.clientHeight;
+    // Set canvas to full window size
+    canvas.width = window.innerWidth;
+    canvas.height = window.innerHeight;
     
-    // Set canvas size to fill container while maintaining aspect ratio
-    const targetAspectRatio = 16 / 9;
-    let canvasWidth = containerWidth;
-    let canvasHeight = containerWidth / targetAspectRatio;
+    // Set CSS size to match
+    canvas.style.width = window.innerWidth + 'px';
+    canvas.style.height = window.innerHeight + 'px';
     
-    if (canvasHeight > containerHeight) {
-        canvasHeight = containerHeight;
-        canvasWidth = containerHeight * targetAspectRatio;
+    console.log(`📏 Canvas resized to ${canvas.width}x${canvas.height}`);
+    
+    // Reposition player if needed
+    if (gameState.running && gameState.player) {
+        gameState.player.x = Math.min(gameState.player.x, canvas.width - gameState.player.size);
+        gameState.player.y = Math.min(gameState.player.y, canvas.height - gameState.player.size - 80);
+        constrainPlayer();
     }
-    
-    canvas.width = canvasWidth;
-    canvas.height = canvasHeight;
-    canvas.style.width = canvasWidth + 'px';
-    canvas.style.height = canvasHeight + 'px';
-    
-    console.log(`📏 Canvas resized to ${canvasWidth}x${canvasHeight}`);
 }
 
 // Initialize everything
@@ -1116,15 +1120,20 @@ window.addEventListener('load', () => {
     
     // Setup window resize handler
     window.addEventListener('resize', () => {
-        if (gameState.canvas) {
-            resizeCanvas();
-            // Reposition player if outside bounds
-            constrainPlayer();
-        }
+        resizeCanvas();
+    });
+    
+    // Setup orientation change handler for mobile
+    window.addEventListener('orientationchange', () => {
+        setTimeout(resizeCanvas, 100);
     });
     
     // Initialize high scores display
     displayHighScores();
+    
+    // Hide controls hint initially
+    const hint = document.getElementById('controlsHint');
+    if (hint) hint.style.display = 'none';
     
     console.log('🎮 Game ready to play!');
 });
