@@ -1,7 +1,7 @@
-// House Head Survival - Service Worker
+// House Head Chase - Service Worker
 // Version 1.0.0
 
-const CACHE_NAME = 'house-head-survival-v1.0.0';
+const CACHE_NAME = 'house-head-chase-v1.0.0';
 const OFFLINE_URL = '/offline.html';
 
 // Files to cache for offline functionality
@@ -120,7 +120,7 @@ self.addEventListener('push', event => {
   console.log('📢 Push notification received');
   
   const options = {
-    body: event.data ? event.data.text() : 'New House Head Survival update available!',
+    body: event.data ? event.data.text() : 'New House Head Chase update available!',
     icon: '/icons/icon-192.png',
     badge: '/icons/icon-72.png',
     vibrate: [100, 50, 100],
@@ -143,7 +143,7 @@ self.addEventListener('push', event => {
   };
 
   event.waitUntil(
-    self.registration.showNotification('🏠 House Head Survival', options)
+    self.registration.showNotification('🏠 House Head Chase', options)
   );
 });
 
@@ -231,4 +231,4 @@ self.addEventListener('unhandledrejection', event => {
   event.preventDefault();
 });
 
-console.log('🏠 House Head Survival Service Worker loaded successfully!');
+console.log('🏠 House Head Chase Service Worker loaded successfully!');
