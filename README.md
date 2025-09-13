@@ -164,7 +164,6 @@ Looking to contribute? Try these beginner-friendly tasks:
 
 ### 💡 Advanced Features to Implement
 
-- [ ] Multiplayer mode
 - [ ] Level editor
 - [ ] Custom enemy AI patterns
 - [ ] Achievement system
