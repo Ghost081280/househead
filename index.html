@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>House Head Chase - Escape the Horror</title>
+    <title>House Head Chase - Ultimate Edition</title>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap');
         
@@ -37,20 +37,22 @@
             box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
         }
         
-        /* Modern HUD Design */
+        /* FIXED UI - NO MORE SHAKING! */
         #hud {
-            position: absolute;
+            position: fixed;
             top: 0;
             left: 0;
             right: 0;
             height: 80px;
-            background: linear-gradient(180deg, rgba(0,0,0,0.9) 0%, rgba(0,0,0,0.7) 70%, transparent 100%);
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
             display: flex;
             justify-content: space-between;
             align-items: center;
             padding: 0 30px;
             z-index: 100;
-            backdrop-filter: blur(5px);
+            backdrop-filter: blur(8px);
+            transform: translateZ(0); /* Force hardware acceleration */
+            will-change: auto; /* Prevent unnecessary repaints */
         }
         
         .hud-section {
@@ -64,6 +66,7 @@
             flex-direction: column;
             align-items: center;
             min-width: 80px;
+            transform: translateZ(0); /* Smooth rendering */
         }
         
         .stat-label {
@@ -201,22 +204,23 @@
             transform: translate(-50%, -50%);
             background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.95) 100%);
             color: #ff4444;
-            padding: 50px;
-            border-radius: 20px;
+            padding: 30px;
+            border-radius: 15px;
             text-align: center;
-            border: 3px solid #ff4444;
-            box-shadow: 0 0 50px rgba(255, 68, 68, 0.5);
+            border: 2px solid #ff4444;
+            box-shadow: 0 0 30px rgba(255, 68, 68, 0.4);
             z-index: 200;
-            backdrop-filter: blur(10px);
-            max-width: 90vw;
+            backdrop-filter: blur(8px);
+            max-width: 80vw;
+            max-height: 80vh;
         }
         
         #startScreen h1 {
             font-family: 'Creepster', cursive;
-            font-size: 56px;
-            margin-bottom: 30px;
-            text-shadow: 0 0 20px #ff4444;
-            animation: titleGlow 3s ease-in-out infinite alternate;
+            font-size: 42px;
+            margin-bottom: 20px;
+            text-shadow: 0 0 15px #ff4444;
+            animation: titleGlow 2s ease-in-out infinite alternate;
         }
         
         @keyframes titleGlow {
@@ -253,10 +257,10 @@
         }
         
         #instructions {
-            margin: 30px 0;
-            font-size: 16px;
-            line-height: 1.8;
-            max-width: 700px;
+            margin: 20px 0;
+            font-size: 14px;
+            line-height: 1.6;
+            max-width: 500px;
             color: #ccc;
         }
         
@@ -297,14 +301,24 @@
             100% { transform: translateY(-50px); opacity: 0; }
         }
         
-        /* Loading Animation */
-        @keyframes pulse {
-            0%, 100% { opacity: 0.7; }
-            50% { opacity: 1; }
+        /* Pop-up animation for House Heads */
+        @keyframes popUp {
+            0% { 
+                transform: translateY(100px) scale(0.5);
+                opacity: 0;
+            }
+            50% {
+                transform: translateY(-10px) scale(1.1);
+                opacity: 1;
+            }
+            100% { 
+                transform: translateY(0) scale(1);
+                opacity: 1;
+            }
         }
         
-        .loading {
-            animation: pulse 1s infinite;
+        .house-head-popup {
+            animation: popUp 0.8s ease-out;
         }
     </style>
 </head>
@@ -312,7 +326,7 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" width="1400" height="900"></canvas>
         
-        <!-- Modern HUD -->
+        <!-- FIXED HUD - NO MORE SHAKING! -->
         <div id="hud">
             <div class="hud-section">
                 <div class="stat-container">
@@ -359,33 +373,35 @@
     </div>
     
     <div id="startScreen">
-        <h1>HOUSE HEAD CHASE</h1>
+        <h1>🏠 HOUSE HEAD CHASE 🏠</h1>
         <div id="instructions">
-            <p><strong>THE HOUSE HEADS ARE COMING...</strong></p>
-            <p>🏠 Spider-like creatures with houses for heads hunt in the darkness</p>
-            <p>🔦 Use your flashlight to spot them (Right-click or F)</p>
-            <p>🔫 Shoot them with SPACE or Left-click</p>
-            <p>🏃 Move with WASD or Arrow Keys</p>
-            <p>⚡ Run faster with Shift</p>
-            <p>💀 They make furniture sounds when near - LISTEN CAREFULLY!</p>
-            <p>🌙 They travel in herds at midnight... Survive as long as you can!</p>
+            <p><strong>🎮 HOUSE HEADS POP UP FROM THE GROUND! 🎮</strong></p>
+            <p>🏃 Move: WASD or Arrow Keys</p>
+            <p>🔫 Shoot: SPACE or Click</p>
+            <p>🔦 Flashlight: F or Right-click</p>
+            <p>💨 Run Fast: Hold SHIFT</p>
+            <br>
+            <p>🏠 Spooky house creatures pop up from underground!</p>
+            <p>👂 Listen for creepy sounds when they get close!</p>
+            <p>🎯 Shoot them before they catch you!</p>
+            <p>⏰ How long can you survive?</p>
         </div>
-        <button class="btn" onclick="startGame()">START GAME</button>
-        <button class="btn" onclick="showHighScores()">HIGH SCORES</button>
+        <button class="btn" onclick="startGame()">🎮 START GAME</button>
+        <button class="btn" onclick="showHighScores()">🏆 HIGH SCORES</button>
     </div>
     
     <div id="gameOver" class="hidden">
-        <h2>GAME OVER</h2>
-        <p>A House Head caught you!</p>
-        <p>Final Score: <span id="finalScore">0</span></p>
-        <p>Time Survived: <span id="finalTime">0</span> seconds</p>
-        <p>House Heads Eliminated: <span id="finalKills">0</span></p>
-        <button class="btn" onclick="restartGame()">PLAY AGAIN</button>
-        <button class="btn" onclick="showStartScreen()">MAIN MENU</button>
+        <h2>🎮 GAME OVER! 🎮</h2>
+        <p>😱 A House Head caught you!</p>
+        <p>🏆 Final Score: <span id="finalScore">0</span></p>
+        <p>⏰ Time Survived: <span id="finalTime">0</span> seconds</p>
+        <p>🎯 House Heads Defeated: <span id="finalKills">0</span></p>
+        <button class="btn" onclick="restartGame()">🔄 PLAY AGAIN</button>
+        <button class="btn" onclick="showStartScreen()">🏠 MAIN MENU</button>
     </div>
 
     <script>
-        // Enhanced Game State
+        // Enhanced Game State for ULTIMATE EDITION
         let gameState = {
             running: false,
             player: { 
@@ -395,6 +411,7 @@
             enemies: [],
             bullets: [],
             particles: [],
+            groundHoles: [], // NEW: Track where holes appear
             flashlight: { on: false, intensity: 0 },
             score: 0,
             kills: 0,
@@ -465,6 +482,12 @@
                     oscillator.frequency.setValueAtTime(300, audioContext.currentTime);
                     gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
                     break;
+                case 'popup':
+                    oscillator.type = 'triangle';
+                    oscillator.frequency.setValueAtTime(200, audioContext.currentTime);
+                    oscillator.frequency.exponentialRampToValueAtTime(400, audioContext.currentTime + 0.2);
+                    gainNode.gain.setValueAtTime(0.2, audioContext.currentTime);
+                    break;
                 case 'footstep':
                     oscillator.type = 'triangle';
                     oscillator.frequency.setValueAtTime(80, audioContext.currentTime);
@@ -489,6 +512,41 @@
             
             oscillator.start();
             oscillator.stop(audioContext.currentTime + duration);
+        }
+        
+        // Ground Hole class for pop-up effect
+        class GroundHole {
+            constructor(x, y) {
+                this.x = x;
+                this.y = y;
+                this.size = 0;
+                this.maxSize = 40;
+                this.life = 100;
+                this.growing = true;
+            }
+            
+            update() {
+                if (this.growing && this.size < this.maxSize) {
+                    this.size += 2;
+                } else {
+                    this.growing = false;
+                    this.life--;
+                }
+                return this.life > 0;
+            }
+            
+            draw() {
+                // Draw hole in ground
+                ctx.fillStyle = `rgba(0, 0, 0, ${this.life / 100})`;
+                ctx.beginPath();
+                ctx.ellipse(this.x, this.y, this.size, this.size * 0.3, 0, 0, Math.PI * 2);
+                ctx.fill();
+                
+                // Dark border
+                ctx.strokeStyle = `rgba(50, 30, 20, ${this.life / 100})`;
+                ctx.lineWidth = 3;
+                ctx.stroke();
+            }
         }
         
         // Bullet class
@@ -537,7 +595,7 @@
                         
                         if (enemy.health <= 0) {
                             gameState.enemies.splice(index, 1);
-                            gameState.score += 50;
+                            gameState.score += 10; // Simple scoring
                             gameState.kills++;
                             
                             // Death explosion
@@ -578,11 +636,12 @@
             }
         }
         
-        // Enhanced House Head enemy class
+        // NEW: Enhanced House Head that pops up from ground!
         class HouseHead {
             constructor(x, y) {
                 this.x = x;
                 this.y = y;
+                this.groundY = y; // Original ground position
                 this.size = 35 + Math.random() * 25;
                 this.speed = 0.6 + Math.random() * 0.5;
                 this.angle = Math.random() * Math.PI * 2;
@@ -594,55 +653,107 @@
                 this.attackRange = 50;
                 this.windowGlow = Math.random() * 0.5 + 0.5;
                 this.houseStyle = Math.floor(Math.random() * 4);
-                this.rotateSpeed = 0.02 + Math.random() * 0.02;
                 this.bodyRotation = 0;
                 this.lastAttack = 0;
                 
-                // Initialize spider legs
+                // Pop-up animation states
+                this.popupPhase = 'emerging'; // emerging, active, sinking
+                this.popupProgress = 0;
+                this.maxPopupHeight = -80;
+                this.emergeDuration = 60; // frames
+                this.activeDuration = 300; // frames  
+                this.sinkDuration = 40; // frames
+                
+                // Create ground hole
+                gameState.groundHoles.push(new GroundHole(x, y));
+                playSound('popup');
+                
+                // Initialize LONG spider legs like the image!
                 for (let i = 0; i < 8; i++) {
                     this.legs.push({
                         angle: (i / 8) * Math.PI * 2,
-                        length: this.size * 0.9,
+                        length: this.size * 1.8, // MUCH LONGER LEGS!
                         offset: Math.random() * 0.5,
-                        bendAngle: Math.random() * 0.5
+                        bendAngle: Math.random() * 0.5,
+                        groundLength: this.size * 2.5 // How far they extend on ground
                     });
                 }
             }
             
             update() {
-                // AI behavior - sophisticated hunting
-                const dx = gameState.player.x - this.x;
-                const dy = gameState.player.y - this.y;
-                const distance = Math.sqrt(dx * dx + dy * dy);
+                // Handle pop-up animation phases
+                this.updatePopupAnimation();
                 
-                if (distance > 40) {
-                    this.angle = Math.atan2(dy, dx);
-                    this.x += Math.cos(this.angle) * this.speed;
-                    this.y += Math.sin(this.angle) * this.speed;
-                    this.bodyRotation += this.rotateSpeed;
+                if (this.popupPhase === 'active') {
+                    // AI behavior - hunt player
+                    const dx = gameState.player.x - this.x;
+                    const dy = gameState.player.y - this.y;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    if (distance > 40) {
+                        this.angle = Math.atan2(dy, dx);
+                        this.x += Math.cos(this.angle) * this.speed;
+                        this.y += Math.sin(this.angle) * this.speed;
+                        this.bodyRotation += 0.02;
+                    }
+                    
+                    // Make furniture sounds when close to player
+                    if (distance < 250 && Date.now() - this.lastSound > this.soundCooldown) {
+                        this.makeSound();
+                        this.lastSound = Date.now();
+                        this.soundCooldown = 1500 + Math.random() * 2500;
+                    }
+                    
+                    // Attack player if close enough
+                    if (distance < this.attackRange && Date.now() - this.lastAttack > 800) {
+                        this.attack();
+                        this.lastAttack = Date.now();
+                    }
                 }
                 
-                // Animate legs with more realistic movement
+                // Animate legs
                 this.legs.forEach((leg, i) => {
                     leg.offset += 0.08 + (this.speed * 0.1);
                     leg.bendAngle = Math.sin(leg.offset * 2) * 0.3;
                 });
                 
-                // Make furniture sounds when close to player
-                if (distance < 250 && Date.now() - this.lastSound > this.soundCooldown) {
-                    this.makeSound();
-                    this.lastSound = Date.now();
-                    this.soundCooldown = 1500 + Math.random() * 2500;
-                }
-                
-                // Attack player if close enough
-                if (distance < this.attackRange && Date.now() - this.lastAttack > 800) {
-                    this.attack();
-                    this.lastAttack = Date.now();
-                }
-                
                 // Window glow animation
                 this.windowGlow = 0.5 + Math.sin(Date.now() * 0.003 + this.x * 0.01) * 0.3;
+                
+                return this.popupPhase !== 'finished';
+            }
+            
+            updatePopupAnimation() {
+                switch(this.popupPhase) {
+                    case 'emerging':
+                        this.popupProgress++;
+                        const emergePercent = this.popupProgress / this.emergeDuration;
+                        this.y = this.groundY + (this.maxPopupHeight * emergePercent);
+                        
+                        if (this.popupProgress >= this.emergeDuration) {
+                            this.popupPhase = 'active';
+                            this.popupProgress = 0;
+                        }
+                        break;
+                        
+                    case 'active':
+                        this.popupProgress++;
+                        if (this.popupProgress >= this.activeDuration) {
+                            this.popupPhase = 'sinking';
+                            this.popupProgress = 0;
+                        }
+                        break;
+                        
+                    case 'sinking':
+                        this.popupProgress++;
+                        const sinkPercent = this.popupProgress / this.sinkDuration;
+                        this.y = this.groundY + this.maxPopupHeight + (Math.abs(this.maxPopupHeight) * sinkPercent);
+                        
+                        if (this.popupProgress >= this.sinkDuration) {
+                            this.popupPhase = 'finished';
+                        }
+                        break;
+                }
             }
             
             makeSound() {
@@ -652,9 +763,9 @@
             }
             
             attack() {
-                const damage = 3 + Math.random() * 4;
+                const damage = 5; // Simpler damage for kids
                 gameState.player.health -= damage;
-                gameState.cameraShake = 15;
+                gameState.cameraShake = 8;
                 playSound('damage');
                 
                 // Create damage particles
@@ -677,28 +788,8 @@
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Draw spider legs with better animation
-                ctx.strokeStyle = '#2a2a2a';
-                ctx.lineWidth = 5;
-                this.legs.forEach((leg, i) => {
-                    const baseAngle = leg.angle + this.bodyRotation;
-                    const midX = Math.cos(baseAngle + leg.bendAngle) * leg.length * 0.6;
-                    const midY = Math.sin(baseAngle + leg.bendAngle) * leg.length * 0.6;
-                    const endX = Math.cos(baseAngle + leg.offset) * leg.length;
-                    const endY = Math.sin(baseAngle + leg.offset) * leg.length;
-                    
-                    ctx.beginPath();
-                    ctx.moveTo(0, 0);
-                    ctx.lineTo(midX, midY);
-                    ctx.lineTo(endX, endY);
-                    ctx.stroke();
-                    
-                    // Leg joints
-                    ctx.fillStyle = '#333';
-                    ctx.beginPath();
-                    ctx.arc(midX, midY, 3, 0, Math.PI * 2);
-                    ctx.fill();
-                });
+                // Draw LONG spider legs extending to ground
+                this.drawLongLegs();
                 
                 // Draw house head with rotation
                 ctx.rotate(this.bodyRotation * 0.3);
@@ -710,6 +801,42 @@
                 }
                 
                 ctx.restore();
+            }
+            
+            drawLongLegs() {
+                ctx.strokeStyle = '#2a2a2a';
+                ctx.lineWidth = 6;
+                
+                this.legs.forEach((leg, i) => {
+                    const baseAngle = leg.angle + this.bodyRotation;
+                    
+                    // First segment - from body to mid point
+                    const midX = Math.cos(baseAngle + leg.bendAngle) * leg.length * 0.6;
+                    const midY = Math.sin(baseAngle + leg.bendAngle) * leg.length * 0.6;
+                    
+                    // Second segment - from mid point to ground
+                    const groundX = Math.cos(baseAngle + leg.offset) * leg.groundLength;
+                    const groundY = this.groundY - this.y; // Extend to ground level
+                    
+                    // Draw leg segments
+                    ctx.beginPath();
+                    ctx.moveTo(0, 0);
+                    ctx.lineTo(midX, midY);
+                    ctx.lineTo(groundX, groundY);
+                    ctx.stroke();
+                    
+                    // Leg joints
+                    ctx.fillStyle = '#333';
+                    ctx.beginPath();
+                    ctx.arc(midX, midY, 4, 0, Math.PI * 2);
+                    ctx.fill();
+                    
+                    // Ground contact point
+                    ctx.fillStyle = '#222';
+                    ctx.beginPath();
+                    ctx.arc(groundX, groundY, 6, 0, Math.PI * 2);
+                    ctx.fill();
+                });
             }
             
             drawHouse() {
@@ -951,26 +1078,19 @@
             ctx.globalAlpha = 1;
         }
         
-        // Enhanced spawn system
+        // Enhanced spawn system (slower for kids)
         function spawnEnemy() {
-            if (Date.now() - gameState.lastSpawn < 2500 / gameState.difficulty) return;
+            if (Date.now() - gameState.lastSpawn < 4000 / gameState.difficulty) return; // Slower spawning
             
-            let x, y;
-            const side = Math.floor(Math.random() * 4);
-            const margin = 100;
-            
-            switch(side) {
-                case 0: x = -margin; y = Math.random() * canvas.height; break;
-                case 1: x = canvas.width + margin; y = Math.random() * canvas.height; break;
-                case 2: x = Math.random() * canvas.width; y = -margin; break;
-                case 3: x = Math.random() * canvas.width; y = canvas.height + margin; break;
-            }
+            // Spawn at random ground positions
+            const x = 100 + Math.random() * (canvas.width - 200);
+            const y = canvas.height - 50; // Ground level
             
             gameState.enemies.push(new HouseHead(x, y));
             gameState.lastSpawn = Date.now();
         }
         
-        // Enhanced game loop
+        // Enhanced game loop with FIXED UI
         function gameLoop() {
             if (!gameState.running) return;
             
@@ -996,7 +1116,10 @@
             gameState.bullets = gameState.bullets.filter(bullet => bullet.update());
             
             // Update enemies
-            gameState.enemies.forEach(enemy => enemy.update());
+            gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
+            
+            // Update ground holes
+            gameState.groundHoles = gameState.groundHoles.filter(hole => hole.update());
             
             // Spawn new enemies
             spawnEnemy();
@@ -1011,23 +1134,23 @@
                 gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - 0.15);
             }
             
-            // Update camera shake
+            // Update camera shake (DOESN'T AFFECT UI ANYMORE!)
             if (gameState.cameraShake > 0) {
                 gameState.cameraShake--;
             }
             
-            // Increase difficulty over time
-            gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 25000;
+            // Increase difficulty over time (slower progression)
+            gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 60000; // Every minute increases difficulty
             
-            // Update score
-            gameState.score += Math.floor((Date.now() - gameState.startTime) / 200);
+            // Update score (MUCH slower for kids)
+            gameState.score += Math.floor((Date.now() - gameState.startTime) / 2000); // Every 2 seconds = 1 point
             
             // Check game over
             if (gameState.player.health <= 0) {
                 endGame();
             }
             
-            // Update UI
+            // Update UI (SMOOTH NOW!)
             updateUI();
         }
         
@@ -1067,7 +1190,7 @@
         }
         
         function draw() {
-            // Apply camera shake
+            // Apply camera shake ONLY to canvas content, NOT UI!
             ctx.save();
             if (gameState.cameraShake > 0) {
                 ctx.translate(
@@ -1082,6 +1205,12 @@
             gradient.addColorStop(1, '#000000');
             ctx.fillStyle = gradient;
             ctx.fillRect(0, 0, canvas.width, canvas.height);
+            
+            // Draw ground
+            drawGround();
+            
+            // Draw ground holes
+            gameState.groundHoles.forEach(hole => hole.draw());
             
             // Draw enhanced environment
             drawStars();
@@ -1115,11 +1244,30 @@
             ctx.restore();
         }
         
+        function drawGround() {
+            // Ground texture
+            const groundGradient = ctx.createLinearGradient(0, canvas.height - 100, 0, canvas.height);
+            groundGradient.addColorStop(0, '#2a3a2a');
+            groundGradient.addColorStop(1, '#1a2a1a');
+            ctx.fillStyle = groundGradient;
+            ctx.fillRect(0, canvas.height - 100, canvas.width, 100);
+            
+            // Ground details
+            ctx.strokeStyle = '#444';
+            ctx.lineWidth = 1;
+            for (let i = 0; i < canvas.width; i += 50) {
+                ctx.beginPath();
+                ctx.moveTo(i, canvas.height - 100);
+                ctx.lineTo(i + 25, canvas.height);
+                ctx.stroke();
+            }
+        }
+        
         function drawStars() {
             ctx.fillStyle = '#ffffff';
             for (let i = 0; i < 100; i++) {
                 const x = (i * 23.7) % canvas.width;
-                const y = (i * 37.3) % canvas.height;
+                const y = (i * 37.3) % (canvas.height - 100); // Above ground
                 const brightness = Math.sin(Date.now() * 0.001 + i) * 0.5 + 0.5;
                 ctx.globalAlpha = brightness * 0.8;
                 ctx.fillRect(x, y, 1, 1);
@@ -1229,6 +1377,7 @@
             gameState.enemies = [];
             gameState.bullets = [];
             gameState.particles = [];
+            gameState.groundHoles = [];
             gameState.score = 0;
             gameState.kills = 0;
             gameState.difficulty = 1;
@@ -1268,13 +1417,13 @@
         }
         
         function showHighScores() {
-            alert(`High Scores feature coming soon!\n\nCurrent Score: ${gameState.score}\nKills: ${gameState.kills}`);
+            alert(`🏆 HIGH SCORES 🏆\n\n🎮 Your Score: ${gameState.score}\n🎯 Monsters Defeated: ${gameState.kills}\n\n🚀 More features coming soon!`);
         }
         
         // Initialize the game
         window.onload = () => {
-            console.log('🎮 House Head Chase - Kid-Friendly Fun Edition! 🏠');
-            console.log('Super simple controls: WASD = Move, SPACE = Shoot, F = Flashlight!');
+            console.log('🎮 House Head Chase - ULTIMATE Pop-Up Edition! 🏠');
+            console.log('House Heads now pop up from the ground with LONG legs!');
             updateAmmoDisplay();
         };
     </script>
