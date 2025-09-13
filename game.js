@@ -73,7 +73,9 @@ class SoundSystem {
     toggle() {
         this.enabled = !this.enabled;
         const btn = document.getElementById('audioToggle');
-        btn.textContent = this.enabled ? '🔊' : '🔇';
+        if (btn) {
+            btn.textContent = this.enabled ? '🔊' : '🔇';
+        }
         console.log(`🔊 Audio ${this.enabled ? 'enabled' : 'disabled'}`);
     }
 }
@@ -268,8 +270,8 @@ const gameState = {
     canvas: null,
     ctx: null,
     player: {
-        x: 0,
-        y: 0,
+        x: 400,
+        y: 300,
         size: 15,
         health: 100,
         maxHealth: 100,
@@ -859,7 +861,7 @@ function updateGame() {
 }
 
 function drawGame() {
-    if (!gameState.running) return;
+    if (!gameState.running || !gameState.ctx) return;
     
     const ctx = gameState.ctx;
     
@@ -902,6 +904,7 @@ function gameLoop() {
 // Input Handling
 function setupInputHandlers() {
     const canvas = gameState.canvas;
+    if (!canvas) return;
     
     // Touch Events (Mobile)
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
@@ -1007,7 +1010,7 @@ function constrainPlayer() {
     const canvas = gameState.canvas;
     
     player.x = Math.max(player.size, Math.min(canvas.width - player.size, player.x));
-    player.y = Math.max(player.size + 80, Math.min(canvas.height - player.size - 80, player.y));
+    player.y = Math.max(player.size + 100, Math.min(canvas.height - player.size - 100, player.y));
 }
 
 function toggleFlashlight() {
@@ -1016,10 +1019,12 @@ function toggleFlashlight() {
     
     // Update UI
     const indicator = document.getElementById('flashlightIndicator');
-    if (gameState.flashlight.on) {
-        indicator.classList.remove('hidden');
-    } else {
-        indicator.classList.add('hidden');
+    if (indicator) {
+        if (gameState.flashlight.on) {
+            indicator.classList.remove('hidden');
+        } else {
+            indicator.classList.add('hidden');
+        }
     }
     
     console.log(`🔦 Flashlight ${gameState.flashlight.on ? 'ON' : 'OFF'}`);
@@ -1028,11 +1033,17 @@ function toggleFlashlight() {
 // UI Functions
 function updateUI() {
     const health = Math.max(0, Math.floor(gameState.player.health));
-    document.getElementById('health').textContent = health;
-    document.getElementById('healthFill').style.width = (health / gameState.player.maxHealth * 100) + '%';
-    document.getElementById('score').textContent = gameState.score;
-    document.getElementById('timer').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
-    document.getElementById('level').textContent = gameState.level;
+    const healthEl = document.getElementById('health');
+    const healthFillEl = document.getElementById('healthFill');
+    const scoreEl = document.getElementById('score');
+    const timerEl = document.getElementById('timer');
+    const levelEl = document.getElementById('level');
+    
+    if (healthEl) healthEl.textContent = health;
+    if (healthFillEl) healthFillEl.style.width = (health / gameState.player.maxHealth * 100) + '%';
+    if (scoreEl) scoreEl.textContent = gameState.score;
+    if (timerEl) timerEl.textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
+    if (levelEl) levelEl.textContent = gameState.level;
     
     updatePowerupIndicators();
 }
@@ -1227,6 +1238,8 @@ function displayHighScores() {
     const highScores = getHighScores();
     const list = document.getElementById('highScoresList');
     
+    if (!list) return;
+    
     if (highScores.length === 0) {
         list.innerHTML = '<p style="text-align: center; color: #ccc; padding: 20px;">No high scores yet!<br>Be the first to survive!</p>';
         return;
@@ -1243,8 +1256,11 @@ function displayHighScores() {
 
 // Social Sharing
 function shareScore() {
-    document.getElementById('shareScore').textContent = gameState.score;
-    document.getElementById('shareModal').classList.remove('hidden');
+    const shareScoreEl = document.getElementById('shareScore');
+    const shareModalEl = document.getElementById('shareModal');
+    
+    if (shareScoreEl) shareScoreEl.textContent = gameState.score;
+    if (shareModalEl) shareModalEl.classList.remove('hidden');
 }
 
 function shareTwitter() {
@@ -1274,7 +1290,8 @@ function copyScore() {
 }
 
 function closeShare() {
-    document.getElementById('shareModal').classList.add('hidden');
+    const shareModalEl = document.getElementById('shareModal');
+    if (shareModalEl) shareModalEl.classList.add('hidden');
 }
 
 // PWA Install
@@ -1316,14 +1333,32 @@ function dismissInstall() {
 // Game Functions
 function startGame() {
     console.log('🎮 Starting House Head Chase...');
+    
+    // Get canvas and context
+    gameState.canvas = document.getElementById('gameCanvas');
+    if (!gameState.canvas) {
+        console.error('❌ Canvas not found!');
+        return;
+    }
+    
+    gameState.ctx = gameState.canvas.getContext('2d');
+    if (!gameState.ctx) {
+        console.error('❌ Could not get canvas context!');
+        return;
+    }
+    
+    // Set canvas size FIRST
+    resizeCanvas();
+    
+    // Initialize game state
     gameState.running = true;
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
     // Reset game state
     gameState.player = {
-        x: 400,
-        y: 300,
+        x: gameState.canvas.width / 2,
+        y: gameState.canvas.height / 2,
         size: 15,
         health: 100,
         maxHealth: 100,
@@ -1349,20 +1384,13 @@ function startGame() {
     gameState.camera.intensity = 0;
     gameState.totalEnemiesSpawned = 0;
     
-    // Initialize canvas
-    gameState.canvas = document.getElementById('gameCanvas');
-    gameState.ctx = gameState.canvas.getContext('2d');
-    
-    // Set canvas size to screen size
-    resizeCanvas();
-    
-    // Position player in center
-    gameState.player.x = gameState.canvas.width / 2;
-    gameState.player.y = gameState.canvas.height / 2;
+    console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
     
     // Hide screens
-    document.getElementById('startScreen').classList.add('hidden');
-    document.getElementById('gameOver').classList.add('hidden');
+    const startScreen = document.getElementById('startScreen');
+    const gameOver = document.getElementById('gameOver');
+    if (startScreen) startScreen.classList.add('hidden');
+    if (gameOver) gameOver.classList.add('hidden');
     
     // Show controls hint
     setTimeout(() => {
@@ -1393,10 +1421,15 @@ function endGame() {
     saveHighScore(survivalTime, gameState.level, survivalTime);
     
     // Update final stats
-    document.getElementById('finalScore').textContent = survivalTime;
-    document.getElementById('finalTime').textContent = survivalTime;
-    document.getElementById('finalLevel').textContent = gameState.level;
-    document.getElementById('gameOver').classList.remove('hidden');
+    const finalScoreEl = document.getElementById('finalScore');
+    const finalTimeEl = document.getElementById('finalTime');
+    const finalLevelEl = document.getElementById('finalLevel');
+    const gameOverEl = document.getElementById('gameOver');
+    
+    if (finalScoreEl) finalScoreEl.textContent = survivalTime;
+    if (finalTimeEl) finalTimeEl.textContent = survivalTime;
+    if (finalLevelEl) finalLevelEl.textContent = gameState.level;
+    if (gameOverEl) gameOverEl.classList.remove('hidden');
     
     // Hide controls hint
     const hint = document.getElementById('controlsHint');
@@ -1410,8 +1443,11 @@ function restartGame() {
 }
 
 function showStartScreen() {
-    document.getElementById('startScreen').classList.remove('hidden');
-    document.getElementById('gameOver').classList.add('hidden');
+    const startScreen = document.getElementById('startScreen');
+    const gameOver = document.getElementById('gameOver');
+    
+    if (startScreen) startScreen.classList.remove('hidden');
+    if (gameOver) gameOver.classList.add('hidden');
     gameState.running = false;
     
     // Hide controls hint
@@ -1421,19 +1457,23 @@ function showStartScreen() {
 
 function showHighScores() {
     displayHighScores();
-    document.getElementById('highScoresModal').classList.remove('hidden');
+    const modal = document.getElementById('highScoresModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeHighScores() {
-    document.getElementById('highScoresModal').classList.add('hidden');
+    const modal = document.getElementById('highScoresModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 function showHelp() {
-    document.getElementById('helpModal').classList.remove('hidden');
+    const modal = document.getElementById('helpModal');
+    if (modal) modal.classList.remove('hidden');
 }
 
 function closeHelp() {
-    document.getElementById('helpModal').classList.add('hidden');
+    const modal = document.getElementById('helpModal');
+    if (modal) modal.classList.add('hidden');
 }
 
 // Canvas Management
@@ -1451,10 +1491,10 @@ function resizeCanvas() {
     
     console.log(`📏 Canvas resized to ${canvas.width}x${canvas.height}`);
     
-    // Reposition player if needed
+    // Reposition player if game is running
     if (gameState.running && gameState.player) {
         gameState.player.x = Math.min(gameState.player.x, canvas.width - gameState.player.size);
-        gameState.player.y = Math.min(gameState.player.y, canvas.height - gameState.player.size - 80);
+        gameState.player.y = Math.min(gameState.player.y, canvas.height - gameState.player.size - 100);
         constrainPlayer();
     }
 }
@@ -1475,9 +1515,12 @@ window.addEventListener('load', () => {
     }
     
     // Setup audio toggle
-    document.getElementById('audioToggle').addEventListener('click', () => {
-        soundSystem.toggle();
-    });
+    const audioToggle = document.getElementById('audioToggle');
+    if (audioToggle) {
+        audioToggle.addEventListener('click', () => {
+            soundSystem.toggle();
+        });
+    }
     
     // Setup window resize handler
     window.addEventListener('resize', () => {
