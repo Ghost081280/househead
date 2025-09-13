@@ -1,7 +1,7 @@
-// House Head Survival - Main Game Logic
+// House Head Chase - Main Game Logic
 // Senior Game Designer, UI/UX Expert & Senior Engineer Implementation
 
-console.log('🏠 House Head Survival - Loading...');
+console.log('🏠 House Head Chase - Loading...');
 
 // Sound System
 class SoundSystem {
@@ -57,6 +57,13 @@ class SoundSystem {
                 gainNode.gain.setValueAtTime(volume * 0.5, this.context.currentTime);
                 duration = 0.1;
                 break;
+            case 'powerup':
+                oscillator.type = 'sine';
+                oscillator.frequency.setValueAtTime(660, this.context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(1320, this.context.currentTime + 0.3);
+                gainNode.gain.setValueAtTime(volume, this.context.currentTime);
+                duration = 0.3;
+                break;
         }
 
         oscillator.start();
@@ -68,6 +75,189 @@ class SoundSystem {
         const btn = document.getElementById('audioToggle');
         btn.textContent = this.enabled ? '🔊' : '🔇';
         console.log(`🔊 Audio ${this.enabled ? 'enabled' : 'disabled'}`);
+    }
+}
+
+// Power-up Types
+const PowerupTypes = {
+    HEALTH: {
+        name: 'Health Pack',
+        emoji: '💚',
+        color: '#44ff44',
+        effect: 'health',
+        value: 30,
+        duration: 0,
+        spawnWeight: 0.4
+    },
+    SHIELD: {
+        name: 'Shield',
+        emoji: '🛡️',
+        color: '#4488ff',
+        effect: 'shield',
+        value: 0,
+        duration: 5000,
+        spawnWeight: 0.3
+    },
+    SPEED: {
+        name: 'Speed Boost',
+        emoji: '⚡',
+        color: '#ffaa44',
+        effect: 'speed',
+        value: 2,
+        duration: 8000,
+        spawnWeight: 0.3
+    }
+};
+
+// Powerup Class
+class Powerup {
+    constructor(x, y, type) {
+        this.x = x;
+        this.y = y;
+        this.type = type;
+        this.config = PowerupTypes[type];
+        this.size = 15;
+        this.collected = false;
+        this.spawnTime = Date.now();
+        this.pulseOffset = Math.random() * Math.PI * 2;
+        this.floatOffset = Math.random() * Math.PI * 2;
+        this.despawnTime = this.spawnTime + 15000; // 15 seconds to collect
+        
+        console.log(`⚡ ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
+    }
+
+    update() {
+        const currentTime = Date.now();
+        
+        // Check if powerup should despawn
+        if (currentTime > this.despawnTime) {
+            return false;
+        }
+        
+        // Check collision with player
+        const dx = this.x - gameState.player.x;
+        const dy = this.y - gameState.player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance < this.size + gameState.player.size - 5) {
+            this.collect();
+            return false;
+        }
+        
+        return true;
+    }
+
+    collect() {
+        if (this.collected) return;
+        this.collected = true;
+        
+        soundSystem.play('powerup');
+        showPowerupMessage(`+${this.config.name}!`);
+        
+        switch (this.config.effect) {
+            case 'health':
+                gameState.player.health = Math.min(gameState.player.maxHealth, 
+                    gameState.player.health + this.config.value);
+                console.log(`💚 Health restored: +${this.config.value}`);
+                break;
+                
+            case 'shield':
+                gameState.player.shieldTime = this.config.duration;
+                gameState.activePowerups.push({
+                    type: this.type,
+                    timeLeft: this.config.duration
+                });
+                console.log(`🛡️ Shield activated for ${this.config.duration/1000}s`);
+                break;
+                
+            case 'speed':
+                gameState.player.speed = gameState.player.baseSpeed * this.config.value;
+                gameState.player.speedBoostTime = this.config.duration;
+                gameState.activePowerups.push({
+                    type: this.type,
+                    timeLeft: this.config.duration
+                });
+                console.log(`⚡ Speed boost activated for ${this.config.duration/1000}s`);
+                break;
+        }
+    }
+
+    draw() {
+        if (this.collected) return;
+        
+        const ctx = gameState.ctx;
+        const currentTime = Date.now();
+        
+        ctx.save();
+        ctx.translate(this.x, this.y);
+        
+        // Floating animation
+        const floatY = Math.sin(currentTime * 0.003 + this.floatOffset) * 3;
+        ctx.translate(0, floatY);
+        
+        // Pulsing scale
+        const pulse = 0.8 + Math.sin(currentTime * 0.008 + this.pulseOffset) * 0.2;
+        ctx.scale(pulse, pulse);
+        
+        // Glow effect
+        ctx.shadowColor = this.config.color;
+        ctx.shadowBlur = 15;
+        
+        // Main powerup circle
+        ctx.fillStyle = this.config.color;
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Inner bright core
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Icon (emoji simulation)
+        ctx.fillStyle = '#000';
+        ctx.font = `${this.size}px Arial`;
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'middle';
+        
+        // Draw simplified icon based on type
+        switch (this.type) {
+            case 'HEALTH':
+                // Draw cross
+                ctx.fillRect(-2, -6, 4, 12);
+                ctx.fillRect(-6, -2, 12, 4);
+                break;
+            case 'SHIELD':
+                // Draw shield shape
+                ctx.beginPath();
+                ctx.moveTo(0, -8);
+                ctx.lineTo(6, -4);
+                ctx.lineTo(6, 4);
+                ctx.lineTo(0, 8);
+                ctx.lineTo(-6, 4);
+                ctx.lineTo(-6, -4);
+                ctx.closePath();
+                ctx.fill();
+                break;
+            case 'SPEED':
+                // Draw lightning bolt
+                ctx.beginPath();
+                ctx.moveTo(-2, -8);
+                ctx.lineTo(4, -2);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(6, 6);
+                ctx.lineTo(0, 8);
+                ctx.lineTo(-4, 2);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(-6, -6);
+                ctx.closePath();
+                ctx.fill();
+                break;
+        }
+        
+        ctx.restore();
     }
 }
 
@@ -84,10 +274,15 @@ const gameState = {
         health: 100,
         maxHealth: 100,
         speed: 3,
+        baseSpeed: 3,
         isDragging: false,
-        dragOffset: { x: 0, y: 0 }
+        dragOffset: { x: 0, y: 0 },
+        shieldTime: 0,
+        speedBoostTime: 0
     },
     enemies: [],
+    powerups: [],
+    activePowerups: [],
     flashlight: {
         on: false,
         intensity: 0,
@@ -98,8 +293,10 @@ const gameState = {
     level: 1,
     startTime: 0,
     lastEnemySpawn: 0,
+    lastPowerupSpawn: 0,
     lastScoreUpdate: 0,
     spawnRate: 3000,
+    powerupSpawnRate: 12000,
     input: {
         lastTap: 0,
         doubleTapDelay: 300
@@ -216,8 +413,8 @@ class Enemy {
             this.y = Math.max(this.size + 80, Math.min(gameState.canvas.height - this.size, this.y));
         }
         
-        // Check collision with player
-        if (distance < this.size + gameState.player.size - 5) {
+        // Check collision with player (only if not shielded)
+        if (distance < this.size + gameState.player.size - 5 && gameState.player.shieldTime <= 0) {
             this.damagePlayer();
         }
     }
@@ -401,6 +598,17 @@ function drawPlayer() {
     ctx.save();
     ctx.translate(player.x, player.y);
     
+    // Shield effect
+    if (player.shieldTime > 0) {
+        ctx.shadowColor = '#4488ff';
+        ctx.shadowBlur = 20;
+        ctx.strokeStyle = '#4488ff';
+        ctx.lineWidth = 3;
+        ctx.beginPath();
+        ctx.arc(0, 0, player.size + 8, 0, Math.PI * 2);
+        ctx.stroke();
+    }
+    
     // Player glow effect
     ctx.shadowColor = '#4488ff';
     ctx.shadowBlur = 15;
@@ -528,6 +736,57 @@ function spawnEnemy() {
     console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
 }
 
+function spawnPowerup() {
+    const currentTime = Date.now();
+    if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
+    
+    // Determine powerup type based on weights
+    const rand = Math.random();
+    let powerupType = 'HEALTH';
+    
+    if (rand < PowerupTypes.HEALTH.spawnWeight) {
+        powerupType = 'HEALTH';
+    } else if (rand < PowerupTypes.HEALTH.spawnWeight + PowerupTypes.SHIELD.spawnWeight) {
+        powerupType = 'SHIELD';
+    } else {
+        powerupType = 'SPEED';
+    }
+    
+    // Random spawn position (away from player and enemies)
+    let x, y;
+    let attempts = 0;
+    do {
+        x = 80 + Math.random() * (gameState.canvas.width - 160);
+        y = 120 + Math.random() * (gameState.canvas.height - 200);
+        
+        // Check distance from player
+        const playerDistance = Math.sqrt(
+            Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
+        );
+        
+        // Check distance from enemies
+        let tooCloseToEnemy = false;
+        for (const enemy of gameState.enemies) {
+            const enemyDistance = Math.sqrt(
+                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
+            );
+            if (enemyDistance < 100) {
+                tooCloseToEnemy = true;
+                break;
+            }
+        }
+        
+        attempts++;
+        if (attempts > 20) break; // Prevent infinite loop
+    } while ((playerDistance < 120 || tooCloseToEnemy) && attempts < 20);
+    
+    const powerup = new Powerup(x, y, powerupType);
+    gameState.powerups.push(powerup);
+    gameState.lastPowerupSpawn = currentTime;
+    
+    console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
+}
+
 function updateGame() {
     if (!gameState.running) return;
     
@@ -540,11 +799,33 @@ function updateGame() {
         gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - gameState.flashlight.fadeSpeed);
     }
     
+    // Update powerup effects
+    if (gameState.player.shieldTime > 0) {
+        gameState.player.shieldTime -= 16; // ~60 FPS
+    }
+    
+    if (gameState.player.speedBoostTime > 0) {
+        gameState.player.speedBoostTime -= 16;
+        if (gameState.player.speedBoostTime <= 0) {
+            gameState.player.speed = gameState.player.baseSpeed;
+        }
+    }
+    
+    // Update active powerup timers
+    gameState.activePowerups = gameState.activePowerups.filter(powerup => {
+        powerup.timeLeft -= 16;
+        return powerup.timeLeft > 0;
+    });
+    
     // Update enemies
     gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
     
-    // Spawn new enemies
+    // Update powerups
+    gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
+    
+    // Spawn new enemies and powerups
     spawnEnemy();
+    spawnPowerup();
     
     // Update score (1 point per second)
     if (currentTime - gameState.lastScoreUpdate > 1000) {
@@ -596,6 +877,9 @@ function drawGame() {
     // Draw game world
     drawBackground();
     drawFlashlight();
+    
+    // Draw powerups
+    gameState.powerups.forEach(powerup => powerup.draw());
     
     // Draw enemies
     gameState.enemies.forEach(enemy => enemy.draw());
@@ -749,6 +1033,8 @@ function updateUI() {
     document.getElementById('score').textContent = gameState.score;
     document.getElementById('timer').textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
     document.getElementById('level').textContent = gameState.level;
+    
+    updatePowerupIndicators();
 }
 
 function showPowerupMessage(message) {
@@ -914,7 +1200,7 @@ function showLevelUpEffect() {
 // High Score System
 function getHighScores() {
     try {
-        return JSON.parse(localStorage.getItem('houseHeadHighScores')) || [];
+        return JSON.parse(localStorage.getItem('houseHeadChaseHighScores')) || [];
     } catch {
         return [];
     }
@@ -933,7 +1219,7 @@ function saveHighScore(score, level, time) {
     highScores.sort((a, b) => b.score - a.score);
     highScores.splice(10); // Keep top 10
     
-    localStorage.setItem('houseHeadHighScores', JSON.stringify(highScores));
+    localStorage.setItem('houseHeadChaseHighScores', JSON.stringify(highScores));
     console.log('💾 High score saved!', newScore);
 }
 
@@ -962,7 +1248,7 @@ function shareScore() {
 }
 
 function shareTwitter() {
-    const text = `I just survived ${gameState.score} seconds in House Head Survival! 🏠💀 Can you beat my score?`;
+    const text = `I just survived ${gameState.score} seconds in House Head Chase! 🏠💀 Can you beat my score?`;
     const url = window.location.href;
     window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${encodeURIComponent(url)}`, '_blank');
 }
@@ -973,7 +1259,7 @@ function shareFacebook() {
 }
 
 function copyScore() {
-    const text = `I just survived ${gameState.score} seconds in House Head Survival! 🏠💀 Play at: ${window.location.href}`;
+    const text = `I just survived ${gameState.score} seconds in House Head Chase! 🏠💀 Play at: ${window.location.href}`;
     navigator.clipboard.writeText(text).then(() => {
         alert('Score copied to clipboard! 📋');
     }).catch(() => {
@@ -1029,7 +1315,7 @@ function dismissInstall() {
 
 // Game Functions
 function startGame() {
-    console.log('🎮 Starting House Head Survival...');
+    console.log('🎮 Starting House Head Chase...');
     gameState.running = true;
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
@@ -1176,10 +1462,6 @@ function resizeCanvas() {
 // Initialize everything
 window.addEventListener('load', () => {
     console.log('🏠 House Head Chase - PWA Loaded!');
-    
-    // Remove any stray buttons that might have been created
-    const strayButtons = document.querySelectorAll('body > .btn, body > .modal-footer');
-    strayButtons.forEach(btn => btn.remove());
     
     // Register service worker
     if ('serviceWorker' in navigator) {
