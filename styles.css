@@ -529,6 +529,71 @@ body {
     display: none !important;
 }
 
+/* Game Footer Info Bar */
+#gameFooter {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    background: linear-gradient(0deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    padding: 8px 15px;
+    z-index: 1000;
+    backdrop-filter: blur(10px);
+    border-top: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.footer-section {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+}
+
+.footer-label {
+    font-size: 8px;
+    color: var(--text-dark);
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 2px;
+    font-weight: 300;
+}
+
+.footer-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 12px;
+    font-weight: 700;
+    color: var(--text-light);
+    text-shadow: 0 0 6px rgba(255, 255, 255, 0.3);
+}
+
+.footer-powerup {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255, 170, 68, 0.2);
+    border: 1px solid rgba(255, 170, 68, 0.5);
+    border-radius: 12px;
+    padding: 4px 8px;
+    font-family: 'Orbitron', monospace;
+    font-size: 10px;
+    font-weight: bold;
+    color: #ffaa44;
+    animation: powerupGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes powerupGlow {
+    from { box-shadow: 0 0 5px rgba(255, 170, 68, 0.3); }
+    to { box-shadow: 0 0 12px rgba(255, 170, 68, 0.6); }
+}
+
+#powerupIcon {
+    font-size: 12px;
+}
+
 /* Utility Classes */
 .hidden {
     display: none !important;
