@@ -202,7 +202,6 @@ Looking to contribute? Try these beginner-friendly tasks:
 - [ ] Better particle effects
 
 ### Version 1.2
-- [ ] Multiplayer support
 - [ ] Level themes
 - [ ] Custom player skins
 - [ ] Enhanced audio
@@ -211,7 +210,6 @@ Looking to contribute? Try these beginner-friendly tasks:
 - [ ] 3D graphics with Three.js
 - [ ] Story mode
 - [ ] Level editor
-- [ ] Steam release
 
 ## 📊 Browser Support
 
