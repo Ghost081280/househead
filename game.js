@@ -1177,6 +1177,10 @@ function resizeCanvas() {
 window.addEventListener('load', () => {
     console.log('🏠 House Head Survival - PWA Loaded!');
     
+    // Remove any stray buttons that might have been created
+    const strayButtons = document.querySelectorAll('body > .btn, body > .modal-footer');
+    strayButtons.forEach(btn => btn.remove());
+    
     // Register service worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
