@@ -4,7 +4,375 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>House Head Chase - Ultimate Edition</title>
-    <link rel="stylesheet" href="styles.css">
+    <!-- FORCE BROWSER REFRESH -->
+    <meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+    <meta http-equiv="Pragma" content="no-cache">
+    <meta http-equiv="Expires" content="0">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        
+        body {
+            background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+            font-family: 'Exo 2', sans-serif;
+            overflow: hidden;
+            cursor: none;
+            user-select: none;
+        }
+        
+        #gameContainer {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        
+        #gameCanvas {
+            border: 3px solid #ff4444;
+            border-radius: 8px;
+            background: linear-gradient(180deg, #001122 0%, #000 100%);
+            box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
+        }
+        
+        /* ABSOLUTELY FIXED UI - ZERO SHAKE GUARANTEED */
+        #hud {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 70px;
+            background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0 25px;
+            z-index: 1000;
+            backdrop-filter: blur(8px);
+            transform: translate3d(0, 0, 0);
+            backface-visibility: hidden;
+            perspective: 1000px;
+            will-change: transform;
+            pointer-events: none;
+        }
+        
+        #hud * {
+            pointer-events: auto;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .hud-section {
+            display: flex;
+            align-items: center;
+            gap: 20px;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .stat-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-width: 70px;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        .stat-label {
+            font-size: 10px;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 3px;
+            font-weight: 300;
+        }
+        
+        .stat-value {
+            font-family: 'Orbitron', monospace;
+            font-size: 16px;
+            font-weight: 700;
+            color: #fff;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+        }
+        
+        #healthBar {
+            width: 100px;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 3px;
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+        }
+        
+        #healthFill {
+            height: 100%;
+            width: 100%;
+            background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
+            transition: width 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        #ammoContainer {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        
+        #ammoDisplay {
+            display: flex;
+            gap: 2px;
+            margin-top: 4px;
+        }
+        
+        .ammo-bullet {
+            width: 5px;
+            height: 10px;
+            background: linear-gradient(180deg, #ffdd44 0%, #ff8844 100%);
+            border-radius: 2px;
+            box-shadow: 0 0 5px rgba(255, 221, 68, 0.5);
+        }
+        
+        .ammo-bullet.empty {
+            background: rgba(255, 255, 255, 0.2);
+            box-shadow: none;
+        }
+        
+        #audioToggle {
+            background: rgba(255, 68, 68, 0.2);
+            border: 2px solid rgba(255, 68, 68, 0.5);
+            color: #ff4444;
+            padding: 10px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 18px;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+            min-width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transform: translate3d(0, 0, 0);
+        }
+        
+        #crosshair {
+            position: absolute;
+            width: 25px;
+            height: 25px;
+            pointer-events: none;
+            z-index: 50;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-line {
+            position: absolute;
+            background: #ff4444;
+            box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+        }
+        
+        .crosshair-h {
+            width: 16px;
+            height: 2px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-v {
+            width: 2px;
+            height: 16px;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+        }
+        
+        .crosshair-dot {
+            width: 3px;
+            height: 3px;
+            background: #ff4444;
+            border-radius: 50%;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            box-shadow: 0 0 6px rgba(255, 68, 68, 1);
+        }
+        
+        /* TUTORIAL SYSTEM */
+        #tutorialOverlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 3000;
+            backdrop-filter: blur(5px);
+        }
+        
+        #tutorialBox {
+            background: linear-gradient(135deg, rgba(68, 136, 255, 0.9) 0%, rgba(0, 100, 200, 0.9) 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 15px;
+            text-align: center;
+            border: 3px solid #4488ff;
+            box-shadow: 0 0 30px rgba(68, 136, 255, 0.6);
+            max-width: 400px;
+            min-width: 300px;
+            animation: tutorialPulse 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes tutorialPulse {
+            from { 
+                box-shadow: 0 0 30px rgba(68, 136, 255, 0.6);
+                transform: scale(1);
+            }
+            to { 
+                box-shadow: 0 0 40px rgba(68, 136, 255, 0.8);
+                transform: scale(1.02);
+            }
+        }
+        
+        #tutorialTitle {
+            font-family: 'Orbitron', monospace;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 15px;
+            text-shadow: 0 0 10px rgba(255, 255, 255, 0.5);
+        }
+        
+        #tutorialText {
+            font-size: 16px;
+            line-height: 1.4;
+            margin-bottom: 20px;
+            color: #e6f3ff;
+        }
+        
+        #tutorialProgress {
+            width: 100%;
+            height: 6px;
+            background: rgba(255, 255, 255, 0.3);
+            border-radius: 3px;
+            margin-bottom: 15px;
+            overflow: hidden;
+        }
+        
+        #tutorialProgressBar {
+            height: 100%;
+            background: linear-gradient(90deg, #44ff44 0%, #88ff88 100%);
+            border-radius: 3px;
+            transition: width 0.5s ease;
+            box-shadow: 0 0 10px rgba(68, 255, 68, 0.5);
+            width: 0%;
+        }
+        
+        #tutorialSkip {
+            background: rgba(255, 255, 255, 0.2);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            padding: 8px 16px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+            transition: all 0.3s ease;
+        }
+        
+        #tutorialSkip:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: scale(1.05);
+        }
+        
+        #gameOver, #startScreen {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, rgba(0, 0, 0, 0.96) 0%, rgba(20, 0, 0, 0.96) 100%);
+            color: #ff4444;
+            padding: 25px;
+            border-radius: 12px;
+            text-align: center;
+            border: 2px solid #ff4444;
+            box-shadow: 0 0 40px rgba(255, 68, 68, 0.5);
+            z-index: 2000;
+            backdrop-filter: blur(10px);
+            max-width: 85vw;
+            max-height: 85vh;
+            overflow-y: auto;
+        }
+        
+        #startScreen h1 {
+            font-family: 'Creepster', cursive;
+            font-size: 36px;
+            margin-bottom: 15px;
+            text-shadow: 0 0 15px #ff4444;
+            animation: titleGlow 2s ease-in-out infinite alternate;
+        }
+        
+        @keyframes titleGlow {
+            from { 
+                text-shadow: 0 0 15px #ff4444, 0 0 25px #ff4444; 
+                transform: scale(1);
+            }
+            to { 
+                text-shadow: 0 0 25px #ff6666, 0 0 35px #ff4444, 0 0 45px #ff4444; 
+                transform: scale(1.01);
+            }
+        }
+        
+        .btn {
+            background: linear-gradient(45deg, #ff4444, #cc2222);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            font-size: 16px;
+            cursor: pointer;
+            border-radius: 8px;
+            margin: 8px;
+            transition: all 0.3s ease;
+            font-weight: bold;
+            font-family: 'Orbitron', monospace;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            display: inline-block;
+            min-width: 120px;
+        }
+        
+        .btn:hover {
+            background: linear-gradient(45deg, #ff6666, #ff4444);
+            transform: scale(1.05) translateY(-1px);
+            box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
+        }
+        
+        #instructions {
+            margin: 15px 0;
+            font-size: 13px;
+            line-height: 1.5;
+            max-width: 450px;
+            color: #ccc;
+            margin-left: auto;
+            margin-right: auto;
+        }
+        
+        .button-container {
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            margin-top: 15px;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+    </style>
 </head>
 <body>
     <div id="gameContainer">
@@ -54,20 +422,33 @@
             <div class="crosshair-line crosshair-v"></div>
             <div class="crosshair-line crosshair-dot"></div>
         </div>
+        
+        <!-- IN-GAME TUTORIAL SYSTEM -->
+        <div id="tutorialOverlay" class="hidden">
+            <div id="tutorialBox">
+                <div id="tutorialTitle">🎮 TUTORIAL</div>
+                <div id="tutorialText">Welcome to House Head Chase!</div>
+                <div id="tutorialProgress">
+                    <div id="tutorialProgressBar"></div>
+                </div>
+                <button id="tutorialSkip">Skip Tutorial</button>
+            </div>
+        </div>
     </div>
     
     <div id="startScreen">
         <h1>🏠 HOUSE HEAD CHASE 🏠</h1>
         <div id="instructions">
-            <p><strong>🎮 HOUSE HEADS EAT PEOPLE! 🎮</strong></p>
+            <p><strong>🎮 BLUE DOT VS HOUSE HEADS! 🎮</strong></p>
             <p>🏃 Move: WASD or Arrow Keys</p>
             <p>🔫 Shoot: SPACE or Click</p>
             <p>🔦 Flashlight: F or Right-click</p>
             <p>💨 Run Fast: Hold SHIFT</p>
             <br>
-            <p>🏠 Spooky house creatures pop up from underground!</p>
+            <p>🔵 You're a brave blue dot hero!</p>
+            <p>🏠 House creatures pop up from underground!</p>
             <p>👂 Listen for creepy sounds when they get close!</p>
-            <p>🎯 Shoot them before they eat you!</p>
+            <p>🎯 Shoot them before they catch you!</p>
             <p>⏰ How long can you survive?</p>
         </div>
         <div class="button-container">
@@ -89,7 +470,9 @@
     </div>
 
     <script>
-        // ULTIMATE GAME STATE
+        console.log('🔵 FORCING BLUE DOT REFRESH - NO MORE CACHE!');
+        
+        // GAME STATE WITH TUTORIAL
         let gameState = {
             running: false,
             player: { 
@@ -110,12 +493,144 @@
             audioEnabled: true,
             cameraShake: 0,
             lastSpawn: 0,
-            difficulty: 1
+            difficulty: 1,
+            tutorial: {
+                active: false,
+                step: 0,
+                completed: false,
+                stepStartTime: 0,
+                skipRequested: false
+            }
         };
         
         // Canvas setup
         const canvas = document.getElementById('gameCanvas');
         const ctx = canvas.getContext('2d');
+        
+        // TUTORIAL STEPS
+        const tutorialSteps = [
+            {
+                title: "Welcome Blue Dot Hero! 🔵",
+                text: "Use WASD or Arrow Keys to move around. Try moving now!",
+                duration: 5000,
+                action: "move"
+            },
+            {
+                title: "Turn on your Flashlight! 🔦",
+                text: "Press F or Right-click to see in the dark. Try it!",
+                duration: 5000,
+                action: "flashlight"
+            },
+            {
+                title: "Aim with your Mouse! 🎯",
+                text: "Move your mouse to aim where you want to shoot",
+                duration: 3000,
+                action: "aim"
+            },
+            {
+                title: "Shoot the House Heads! 🔫",
+                text: "Press SPACE or Left-click to shoot. Try shooting!",
+                duration: 5000,
+                action: "shoot"
+            },
+            {
+                title: "Listen for Scary Sounds! 👂",
+                text: "House Heads make furniture noises when they're close",
+                duration: 3000,
+                action: "listen"
+            },
+            {
+                title: "You're Ready! 🎮",
+                text: "Survive as long as you can! Good luck, blue dot!",
+                duration: 2000,
+                action: "complete"
+            }
+        ];
+        
+        function startTutorial() {
+            console.log('🎓 Starting tutorial...');
+            gameState.tutorial.active = true;
+            gameState.tutorial.step = 0;
+            gameState.tutorial.stepStartTime = Date.now();
+            showTutorialStep();
+        }
+        
+        function showTutorialStep() {
+            if (gameState.tutorial.step >= tutorialSteps.length) {
+                completeTutorial();
+                return;
+            }
+            
+            const step = tutorialSteps[gameState.tutorial.step];
+            const overlay = document.getElementById('tutorialOverlay');
+            const title = document.getElementById('tutorialTitle');
+            const text = document.getElementById('tutorialText');
+            const progressBar = document.getElementById('tutorialProgressBar');
+            
+            title.textContent = step.title;
+            text.textContent = step.text;
+            
+            // Update progress bar
+            const progress = ((gameState.tutorial.step + 1) / tutorialSteps.length) * 100;
+            progressBar.style.width = progress + '%';
+            
+            overlay.classList.remove('hidden');
+            console.log(`📚 Tutorial Step ${gameState.tutorial.step + 1}: ${step.title}`);
+            
+            // Auto-advance after duration
+            setTimeout(() => {
+                if (gameState.tutorial.active && !gameState.tutorial.skipRequested) {
+                    nextTutorialStep();
+                }
+            }, step.duration);
+        }
+        
+        function nextTutorialStep() {
+            gameState.tutorial.step++;
+            gameState.tutorial.stepStartTime = Date.now();
+            showTutorialStep();
+        }
+        
+        function completeTutorial() {
+            console.log('✅ Tutorial completed!');
+            gameState.tutorial.active = false;
+            gameState.tutorial.completed = true;
+            document.getElementById('tutorialOverlay').classList.add('hidden');
+        }
+        
+        function skipTutorial() {
+            console.log('⏭️ Tutorial skipped');
+            gameState.tutorial.skipRequested = true;
+            completeTutorial();
+        }
+        
+        function updateTutorial() {
+            const step = tutorialSteps[gameState.tutorial.step];
+            if (!step) return;
+            
+            // Check if player completed the tutorial action
+            switch(step.action) {
+                case "move":
+                    if (gameState.keys['w'] || gameState.keys['s'] || gameState.keys['a'] || gameState.keys['d'] ||
+                        gameState.keys['arrowup'] || gameState.keys['arrowdown'] || gameState.keys['arrowleft'] || gameState.keys['arrowright']) {
+                        console.log('✅ Player moved!');
+                        nextTutorialStep();
+                    }
+                    break;
+                case "flashlight":
+                    if (gameState.flashlight.on) {
+                        console.log('✅ Flashlight turned on!');
+                        nextTutorialStep();
+                    }
+                    break;
+                case "shoot":
+                    if (gameState.bullets.length > 0) {
+                        console.log('✅ Player shot!');
+                        nextTutorialStep();
+                    }
+                    break;
+            }
+        }
         
         // Audio context
         let audioContext;
@@ -200,6 +715,47 @@
             oscillator.stop(audioContext.currentTime + duration);
         }
         
+        // BLUE DOT PLAYER - FORCED REFRESH!
+        function drawPlayer() {
+            ctx.save();
+            ctx.translate(gameState.player.x, gameState.player.y);
+            ctx.rotate(gameState.player.angle);
+            
+            // BLUE DOT BODY - NO LEGO!
+            ctx.fillStyle = '#4488ff';
+            ctx.beginPath();
+            ctx.arc(0, 0, gameState.player.size, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // White outline for visibility
+            ctx.strokeStyle = '#ffffff';
+            ctx.lineWidth = 2;
+            ctx.stroke();
+            
+            // Weapon
+            ctx.fillStyle = '#444';
+            ctx.fillRect(gameState.player.size - 5, -3, 18, 6);
+            ctx.fillStyle = '#666';
+            ctx.fillRect(gameState.player.size + 8, -2, 6, 4);
+            
+            // Direction indicator
+            ctx.fillStyle = '#fff';
+            ctx.beginPath();
+            ctx.arc(gameState.player.size - 6, 0, 3, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Blue glow effect
+            ctx.shadowColor = '#4488ff';
+            ctx.shadowBlur = 8;
+            ctx.fillStyle = 'rgba(68, 136, 255, 0.3)';
+            ctx.beginPath();
+            ctx.arc(0, 0, gameState.player.size + 5, 0, Math.PI * 2);
+            ctx.fill();
+            ctx.shadowBlur = 0;
+            
+            ctx.restore();
+        }
+        
         // Ground Hole class
         class GroundHole {
             constructor(x, y) {
@@ -260,38 +816,10 @@
                         this.life = 0;
                         playSound('hit');
                         
-                        // Hit particles
-                        for (let i = 0; i < 6; i++) {
-                            gameState.particles.push({
-                                x: enemy.x,
-                                y: enemy.y,
-                                vx: (Math.random() - 0.5) * 5,
-                                vy: (Math.random() - 0.5) * 5,
-                                life: 25,
-                                color: '#ff8844',
-                                size: 2 + Math.random() * 2
-                            });
-                        }
-                        
-                        createDamageIndicator(enemy.x, enemy.y, '-1');
-                        
                         if (enemy.health <= 0) {
                             gameState.enemies.splice(index, 1);
                             gameState.score += 10;
                             gameState.kills++;
-                            
-                            // Death explosion
-                            for (let i = 0; i < 12; i++) {
-                                gameState.particles.push({
-                                    x: enemy.x,
-                                    y: enemy.y,
-                                    vx: (Math.random() - 0.5) * 8,
-                                    vy: (Math.random() - 0.5) * 8,
-                                    life: 35,
-                                    color: i % 2 ? '#ff4444' : '#ffaa44',
-                                    size: 2 + Math.random() * 3
-                                });
-                            }
                         }
                     }
                 });
@@ -307,18 +835,10 @@
                 ctx.arc(this.x, this.y, this.size, 0, Math.PI * 2);
                 ctx.fill();
                 ctx.shadowBlur = 0;
-                
-                // Bullet trail
-                ctx.strokeStyle = 'rgba(255, 221, 68, 0.4)';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(this.x, this.y);
-                ctx.lineTo(this.x - Math.cos(this.angle) * 8, this.y - Math.sin(this.angle) * 8);
-                ctx.stroke();
             }
         }
         
-        // ENHANCED House Head - pops up, then moves anywhere!
+        // House Head class
         class HouseHead {
             constructor(x, y) {
                 this.startX = x;
@@ -335,25 +855,20 @@
                 this.legs = [];
                 this.attackRange = 45;
                 this.windowGlow = Math.random() * 0.5 + 0.5;
-                this.houseStyle = Math.floor(Math.random() * 4);
                 this.bodyRotation = 0;
                 this.lastAttack = 0;
                 
-                // Pop-up phases: emerging -> active -> free_roam
                 this.popupPhase = 'emerging';
                 this.popupProgress = 0;
                 this.emergeDuration = 50;
-                this.activeDuration = 200;
                 
-                // Create ground hole
                 gameState.groundHoles.push(new GroundHole(x, y));
                 playSound('popup');
                 
-                // SHORTER legs - more realistic
                 for (let i = 0; i < 8; i++) {
                     this.legs.push({
                         angle: (i / 8) * Math.PI * 2,
-                        length: this.size * 0.9, // Much shorter
+                        length: this.size * 0.9,
                         offset: Math.random() * 0.5,
                         bendAngle: Math.random() * 0.5
                     });
@@ -364,7 +879,6 @@
                 this.updatePopupAnimation();
                 
                 if (this.popupPhase === 'active' || this.popupPhase === 'free_roam') {
-                    // Hunt player - can go ANYWHERE on screen now!
                     const dx = gameState.player.x - this.x;
                     const dy = gameState.player.y - this.y;
                     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -376,34 +890,29 @@
                         this.bodyRotation += 0.03;
                     }
                     
-                    // Keep in bounds
                     this.x = Math.max(this.size, Math.min(canvas.width - this.size, this.x));
                     this.y = Math.max(this.size + 70, Math.min(canvas.height - this.size, this.y));
                     
-                    // Make furniture sounds
                     if (distance < 200 && Date.now() - this.lastSound > this.soundCooldown) {
                         this.makeSound();
                         this.lastSound = Date.now();
                         this.soundCooldown = 1500 + Math.random() * 2000;
                     }
                     
-                    // Attack player
                     if (distance < this.attackRange && Date.now() - this.lastAttack > 1000) {
                         this.attack();
                         this.lastAttack = Date.now();
                     }
                 }
                 
-                // Animate legs
                 this.legs.forEach(leg => {
                     leg.offset += 0.1;
                     leg.bendAngle = Math.sin(leg.offset * 2) * 0.3;
                 });
                 
-                // Window glow
                 this.windowGlow = 0.5 + Math.sin(Date.now() * 0.004 + this.x * 0.01) * 0.3;
                 
-                return true; // Always continue existing
+                return true;
             }
             
             updatePopupAnimation() {
@@ -421,14 +930,10 @@
                         
                     case 'active':
                         this.popupProgress++;
-                        if (this.popupProgress >= this.activeDuration) {
+                        if (this.popupProgress >= 200) {
                             this.popupPhase = 'free_roam';
                             this.popupProgress = 0;
                         }
-                        break;
-                        
-                    case 'free_roam':
-                        // Can move anywhere on screen now!
                         break;
                 }
             }
@@ -444,38 +949,15 @@
                 gameState.player.health -= damage;
                 gameState.cameraShake = 8;
                 playSound('damage');
-                
-                // Damage particles
-                for (let i = 0; i < 6; i++) {
-                    gameState.particles.push({
-                        x: gameState.player.x,
-                        y: gameState.player.y,
-                        vx: (Math.random() - 0.5) * 5,
-                        vy: (Math.random() - 0.5) * 5,
-                        life: 30,
-                        color: '#ff4444',
-                        size: 2 + Math.random() * 2
-                    });
-                }
-                
-                createDamageIndicator(gameState.player.x, gameState.player.y, '-5');
             }
             
             draw() {
                 ctx.save();
                 ctx.translate(this.x, this.y);
                 
-                // Draw normal spider legs
                 this.drawLegs();
-                
-                // Draw house head
                 ctx.rotate(this.bodyRotation * 0.2);
                 this.drawHouse();
-                
-                // Health bar
-                if (this.health < this.maxHealth) {
-                    this.drawHealthBar();
-                }
                 
                 ctx.restore();
             }
@@ -497,7 +979,6 @@
                     ctx.lineTo(endX, endY);
                     ctx.stroke();
                     
-                    // Joint
                     ctx.fillStyle = '#333';
                     ctx.beginPath();
                     ctx.arc(midX, midY, 2, 0, Math.PI * 2);
@@ -507,10 +988,6 @@
             
             drawHouse() {
                 const size = this.size;
-                
-                // House shadow
-                ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
-                ctx.fillRect(-size/2 + 1, -size/2 + 1, size, size * 0.8);
                 
                 // House body
                 const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
@@ -531,11 +1008,6 @@
                 ctx.lineTo(size/2 + 6, -size/2);
                 ctx.closePath();
                 ctx.fill();
-                
-                // Roof outline
-                ctx.strokeStyle = '#1a0a00';
-                ctx.lineWidth = 1;
-                ctx.stroke();
                 
                 // Glowing windows (eyes)
                 const glowIntensity = this.windowGlow;
@@ -558,100 +1030,7 @@
                 ctx.fillRect(-size/8, size/6, size/4, size/3);
                 ctx.strokeStyle = '#333';
                 ctx.strokeRect(-size/8, size/6, size/4, size/3);
-                
-                // House details
-                this.drawHouseDetails(size);
             }
-            
-            drawHouseDetails(size) {
-                ctx.strokeStyle = '#555';
-                ctx.lineWidth = 1;
-                
-                if (this.houseStyle === 0) {
-                    // Brick pattern
-                    for (let i = 0; i < 4; i++) {
-                        for (let j = 0; j < 6; j++) {
-                            const offsetX = (i % 2) * size/12;
-                            ctx.strokeRect(-size/2 + j * size/6 + offsetX, -size/2 + i * size/6, size/6, size/6);
-                        }
-                    }
-                }
-            }
-            
-            drawHealthBar() {
-                const barWidth = this.size;
-                const barHeight = 3;
-                const healthPercent = this.health / this.maxHealth;
-                
-                ctx.fillStyle = 'rgba(255, 0, 0, 0.8)';
-                ctx.fillRect(-barWidth/2, -this.size - 12, barWidth, barHeight);
-                
-                ctx.fillStyle = 'rgba(0, 255, 0, 0.8)';
-                ctx.fillRect(-barWidth/2, -this.size - 12, barWidth * healthPercent, barHeight);
-            }
-        }
-        
-        // LEGO PERSON PLAYER!
-        function drawPlayer() {
-            ctx.save();
-            ctx.translate(gameState.player.x, gameState.player.y);
-            ctx.rotate(gameState.player.angle);
-            
-            // Lego person body
-            ctx.fillStyle = '#3366ff';
-            ctx.fillRect(-8, -12, 16, 24);
-            
-            // Lego person head
-            ctx.fillStyle = '#ffdd88';
-            ctx.beginPath();
-            ctx.arc(0, -18, 8, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Lego studs on head
-            ctx.fillStyle = '#fff';
-            ctx.beginPath();
-            ctx.arc(-3, -20, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(3, -20, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(0, -16, 1.5, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Arms
-            ctx.fillStyle = '#ffdd88';
-            ctx.fillRect(-12, -8, 4, 12);
-            ctx.fillRect(8, -8, 4, 12);
-            
-            // Legs
-            ctx.fillStyle = '#2244aa';
-            ctx.fillRect(-6, 12, 5, 8);
-            ctx.fillRect(1, 12, 5, 8);
-            
-            // Weapon in hand
-            ctx.fillStyle = '#444';
-            ctx.fillRect(12, -4, 15, 3);
-            ctx.fillStyle = '#666';
-            ctx.fillRect(22, -3, 6, 2);
-            
-            // Face
-            ctx.fillStyle = '#000';
-            ctx.beginPath();
-            ctx.arc(-2, -18, 1, 0, Math.PI * 2);
-            ctx.fill();
-            ctx.beginPath();
-            ctx.arc(2, -18, 1, 0, Math.PI * 2);
-            ctx.fill();
-            
-            // Smile
-            ctx.strokeStyle = '#000';
-            ctx.lineWidth = 1;
-            ctx.beginPath();
-            ctx.arc(0, -15, 3, 0, Math.PI);
-            ctx.stroke();
-            
-            ctx.restore();
         }
         
         // Weapon system
@@ -668,12 +1047,6 @@
             );
             
             gameState.bullets.push(bullet);
-            
-            createMuzzleFlash(
-                gameState.player.x + Math.cos(gameState.player.angle) * 25,
-                gameState.player.y + Math.sin(gameState.player.angle) * 25
-            );
-            
             playSound('gunshot');
             gameState.cameraShake = 4;
             
@@ -687,35 +1060,6 @@
         function reload() {
             gameState.player.weapon.reloadTime = 50;
             playSound('reload', 200, 0.4);
-        }
-        
-        function createMuzzleFlash(x, y) {
-            const flash = document.createElement('div');
-            flash.className = 'muzzle-flash';
-            flash.style.left = x + 'px';
-            flash.style.top = y + 'px';
-            document.body.appendChild(flash);
-            
-            setTimeout(() => {
-                if (document.body.contains(flash)) {
-                    document.body.removeChild(flash);
-                }
-            }, 80);
-        }
-        
-        function createDamageIndicator(x, y, text) {
-            const indicator = document.createElement('div');
-            indicator.className = 'damage-indicator';
-            indicator.textContent = text;
-            indicator.style.left = x + 'px';
-            indicator.style.top = y + 'px';
-            document.body.appendChild(indicator);
-            
-            setTimeout(() => {
-                if (document.body.contains(indicator)) {
-                    document.body.removeChild(indicator);
-                }
-            }, 800);
         }
         
         function updateAmmoDisplay() {
@@ -735,35 +1079,10 @@
                 `${gameState.player.weapon.ammo}/${gameState.player.weapon.maxAmmo}`;
         }
         
-        // Particle system
-        function updateParticles() {
-            gameState.particles = gameState.particles.filter(particle => {
-                particle.x += particle.vx;
-                particle.y += particle.vy;
-                particle.life--;
-                particle.vy += 0.1;
-                particle.vx *= 0.98;
-                particle.vy *= 0.98;
-                return particle.life > 0;
-            });
-        }
-        
-        function drawParticles() {
-            gameState.particles.forEach(particle => {
-                ctx.fillStyle = particle.color;
-                ctx.globalAlpha = particle.life / 35;
-                ctx.beginPath();
-                ctx.arc(particle.x, particle.y, particle.size || 2, 0, Math.PI * 2);
-                ctx.fill();
-            });
-            ctx.globalAlpha = 1;
-        }
-        
         // Spawn system
         function spawnEnemy() {
             if (Date.now() - gameState.lastSpawn < 3500 / gameState.difficulty) return;
             
-            // Spawn at ground positions
             const x = 80 + Math.random() * (canvas.width - 160);
             const y = canvas.height - 60;
             
@@ -781,6 +1100,11 @@
         }
         
         function update() {
+            // Handle tutorial
+            if (gameState.tutorial.active) {
+                updateTutorial();
+            }
+            
             updatePlayer();
             
             // Weapon reload
@@ -797,8 +1121,10 @@
             gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
             gameState.groundHoles = gameState.groundHoles.filter(hole => hole.update());
             
-            spawnEnemy();
-            updateParticles();
+            // Only spawn enemies after tutorial
+            if (!gameState.tutorial.active) {
+                spawnEnemy();
+            }
             
             // Flashlight
             if (gameState.flashlight.on) {
@@ -807,14 +1133,16 @@
                 gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - 0.15);
             }
             
-            // Camera shake (ONLY affects canvas)
+            // Camera shake
             if (gameState.cameraShake > 0) {
                 gameState.cameraShake--;
             }
             
-            // Difficulty and scoring
-            gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 50000;
-            gameState.score += Math.floor((Date.now() - gameState.startTime) / 1500);
+            // Difficulty and scoring (only during actual gameplay)
+            if (!gameState.tutorial.active) {
+                gameState.difficulty = 1 + (Date.now() - gameState.startTime) / 50000;
+                gameState.score += Math.floor((Date.now() - gameState.startTime) / 1500);
+            }
             
             if (gameState.player.health <= 0) {
                 endGame();
@@ -878,7 +1206,6 @@
             drawGround();
             gameState.groundHoles.forEach(hole => hole.draw());
             drawStars();
-            drawFog();
             
             if (gameState.flashlight.intensity > 0) {
                 drawFlashlight();
@@ -898,7 +1225,6 @@
             });
             
             drawPlayer();
-            drawParticles();
             
             ctx.restore();
         }
@@ -909,16 +1235,6 @@
             groundGradient.addColorStop(1, '#1a2a1a');
             ctx.fillStyle = groundGradient;
             ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-            
-            // Ground texture
-            ctx.strokeStyle = '#444';
-            ctx.lineWidth = 1;
-            for (let i = 0; i < canvas.width; i += 40) {
-                ctx.beginPath();
-                ctx.moveTo(i, canvas.height - 80);
-                ctx.lineTo(i + 20, canvas.height);
-                ctx.stroke();
-            }
         }
         
         function drawStars() {
@@ -931,14 +1247,6 @@
                 ctx.fillRect(x, y, 1, 1);
             }
             ctx.globalAlpha = 1;
-        }
-        
-        function drawFog() {
-            const fog = ctx.createRadialGradient(canvas.width/2, canvas.height/2, 150, canvas.width/2, canvas.height/2, 500);
-            fog.addColorStop(0, 'rgba(20, 20, 40, 0)');
-            fog.addColorStop(1, 'rgba(20, 20, 40, 0.3)');
-            ctx.fillStyle = fog;
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
         }
         
         function drawFlashlight() {
@@ -1022,8 +1330,12 @@
             }
         });
         
+        // Tutorial skip button
+        document.getElementById('tutorialSkip').addEventListener('click', skipTutorial);
+        
         // Game functions
         function startGame() {
+            console.log('🎮 Starting game with tutorial...');
             gameState.running = true;
             gameState.startTime = Date.now();
             gameState.player = { 
@@ -1039,12 +1351,26 @@
             gameState.difficulty = 1;
             gameState.lastSpawn = 0;
             
+            // Reset tutorial
+            gameState.tutorial = {
+                active: false,
+                step: 0,
+                completed: false,
+                stepStartTime: 0,
+                skipRequested: false
+            };
+            
             document.getElementById('startScreen').classList.add('hidden');
             document.getElementById('gameOver').classList.add('hidden');
             
             updateAmmoDisplay();
             
             if (!audioContext) initAudio();
+            
+            // Start tutorial
+            setTimeout(() => {
+                startTutorial();
+            }, 1000);
             
             gameLoop();
         }
@@ -1076,8 +1402,9 @@
         }
         
         window.onload = () => {
-            console.log('🎮 House Head Chase - ULTIMATE Edition with Lego Person!');
-            console.log('🏠 House Heads pop up from ground then roam anywhere!');
+            console.log('🔵 BLUE DOT HERO - CACHE FORCED REFRESH!');
+            console.log('🎓 Tutorial system active!');
+            console.log('🚀 Everything embedded - no external CSS!');
             updateAmmoDisplay();
         };
     </script>
