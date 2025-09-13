@@ -1,0 +1,391 @@
+@import url('https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    background: radial-gradient(circle at center, #0a0a0a 0%, #000000 100%);
+    font-family: 'Exo 2', sans-serif;
+    overflow: hidden;
+    cursor: none;
+    user-select: none;
+}
+
+#gameContainer {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+#gameCanvas {
+    border: 3px solid #ff4444;
+    border-radius: 8px;
+    background: linear-gradient(180deg, #001122 0%, #000 100%);
+    box-shadow: 0 0 50px rgba(255, 68, 68, 0.3);
+}
+
+/* ABSOLUTELY FIXED UI - ZERO SHAKE GUARANTEED */
+#hud {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 70px;
+    background: linear-gradient(180deg, rgba(0,0,0,0.95) 0%, rgba(0,0,0,0.8) 70%, transparent 100%);
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 25px;
+    z-index: 1000;
+    backdrop-filter: blur(8px);
+    transform: translate3d(0, 0, 0);
+    backface-visibility: hidden;
+    perspective: 1000px;
+    will-change: transform;
+    pointer-events: none;
+}
+
+#hud * {
+    pointer-events: auto;
+    transform: translate3d(0, 0, 0);
+}
+
+.hud-section {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    transform: translate3d(0, 0, 0);
+}
+
+.stat-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    min-width: 70px;
+    transform: translate3d(0, 0, 0);
+}
+
+.stat-label {
+    font-size: 10px;
+    color: #888;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin-bottom: 3px;
+    font-weight: 300;
+}
+
+.stat-value {
+    font-family: 'Orbitron', monospace;
+    font-size: 16px;
+    font-weight: 700;
+    color: #fff;
+    text-shadow: 0 0 10px rgba(255, 255, 255, 0.3);
+}
+
+#healthBar {
+    width: 100px;
+    height: 6px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 3px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+}
+
+#healthFill {
+    height: 100%;
+    width: 100%;
+    background: linear-gradient(90deg, #ff4444 0%, #ffaa44 50%, #44ff44 100%);
+    transition: width 0.3s ease;
+    border-radius: 2px;
+}
+
+#ammoContainer {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#ammoDisplay {
+    display: flex;
+    gap: 2px;
+    margin-top: 4px;
+}
+
+.ammo-bullet {
+    width: 5px;
+    height: 10px;
+    background: linear-gradient(180deg, #ffdd44 0%, #ff8844 100%);
+    border-radius: 2px;
+    box-shadow: 0 0 5px rgba(255, 221, 68, 0.5);
+}
+
+.ammo-bullet.empty {
+    background: rgba(255, 255, 255, 0.2);
+    box-shadow: none;
+}
+
+/* Audio Button */
+#audioToggle {
+    background: rgba(255, 68, 68, 0.2);
+    border: 2px solid rgba(255, 68, 68, 0.5);
+    color: #ff4444;
+    padding: 10px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 18px;
+    transition: all 0.3s ease;
+    backdrop-filter: blur(10px);
+    min-width: 45px;
+    height: 45px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transform: translate3d(0, 0, 0);
+}
+
+#audioToggle:hover {
+    background: rgba(255, 68, 68, 0.4);
+    border-color: #ff4444;
+    transform: translate3d(0, 0, 0) scale(1.1);
+    box-shadow: 0 0 20px rgba(255, 68, 68, 0.6);
+}
+
+/* Professional Crosshair */
+#crosshair {
+    position: absolute;
+    width: 25px;
+    height: 25px;
+    pointer-events: none;
+    z-index: 50;
+    transform: translate(-50%, -50%);
+}
+
+.crosshair-line {
+    position: absolute;
+    background: #ff4444;
+    box-shadow: 0 0 8px rgba(255, 68, 68, 0.8);
+}
+
+.crosshair-h {
+    width: 16px;
+    height: 2px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.crosshair-v {
+    width: 2px;
+    height: 16px;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.crosshair-dot {
+    width: 3px;
+    height: 3px;
+    background: #ff4444;
+    border-radius: 50%;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    box-shadow: 0 0 6px rgba(255, 68, 68, 1);
+}
+
+/* REDESIGNED SCREENS - NO OVERLAP! */
+#gameOver, #startScreen {
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.96) 0%, rgba(20, 0, 0, 0.96) 100%);
+    color: #ff4444;
+    padding: 25px;
+    border-radius: 12px;
+    text-align: center;
+    border: 2px solid #ff4444;
+    box-shadow: 0 0 40px rgba(255, 68, 68, 0.5);
+    z-index: 2000;
+    backdrop-filter: blur(10px);
+    max-width: 85vw;
+    max-height: 85vh;
+    overflow-y: auto;
+}
+
+#startScreen h1 {
+    font-family: 'Creepster', cursive;
+    font-size: 36px;
+    margin-bottom: 15px;
+    text-shadow: 0 0 15px #ff4444;
+    animation: titleGlow 2s ease-in-out infinite alternate;
+}
+
+@keyframes titleGlow {
+    from { 
+        text-shadow: 0 0 15px #ff4444, 0 0 25px #ff4444; 
+        transform: scale(1);
+    }
+    to { 
+        text-shadow: 0 0 25px #ff6666, 0 0 35px #ff4444, 0 0 45px #ff4444; 
+        transform: scale(1.01);
+    }
+}
+
+.btn {
+    background: linear-gradient(45deg, #ff4444, #cc2222);
+    color: white;
+    border: none;
+    padding: 12px 25px;
+    font-size: 16px;
+    cursor: pointer;
+    border-radius: 8px;
+    margin: 8px;
+    transition: all 0.3s ease;
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    display: inline-block;
+    min-width: 120px;
+}
+
+.btn:hover {
+    background: linear-gradient(45deg, #ff6666, #ff4444);
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 8px 25px rgba(255, 68, 68, 0.6);
+}
+
+#instructions {
+    margin: 15px 0;
+    font-size: 13px;
+    line-height: 1.5;
+    max-width: 450px;
+    color: #ccc;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+.button-container {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    align-items: center;
+    margin-top: 15px;
+}
+
+.hidden {
+    display: none !important;
+}
+
+/* Muzzle Flash Effect */
+.muzzle-flash {
+    position: absolute;
+    width: 15px;
+    height: 15px;
+    background: radial-gradient(circle, #ffff88 0%, #ff8844 50%, transparent 100%);
+    border-radius: 50%;
+    pointer-events: none;
+    z-index: 30;
+    animation: muzzleFlash 0.08s ease-out;
+}
+
+@keyframes muzzleFlash {
+    0% { transform: scale(0); opacity: 1; }
+    100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Damage Indicator */
+.damage-indicator {
+    position: absolute;
+    color: #ff4444;
+    font-weight: bold;
+    font-size: 18px;
+    pointer-events: none;
+    z-index: 40;
+    animation: damageFloat 0.8s ease-out forwards;
+    font-family: 'Orbitron', monospace;
+}
+
+@keyframes damageFloat {
+    0% { transform: translateY(0); opacity: 1; }
+    100% { transform: translateY(-40px); opacity: 0; }
+}
+
+/* Pop-up animation for House Heads */
+@keyframes popUp {
+    0% { 
+        transform: translateY(80px) scale(0.7);
+        opacity: 0;
+    }
+    60% {
+        transform: translateY(-8px) scale(1.05);
+        opacity: 1;
+    }
+    100% { 
+        transform: translateY(0) scale(1);
+        opacity: 1;
+    }
+}
+
+.house-head-popup {
+    animation: popUp 0.6s ease-out;
+}
+
+/* Responsive Design */
+@media (max-width: 768px) {
+    #hud {
+        height: 60px;
+        padding: 0 15px;
+    }
+    
+    .hud-section {
+        gap: 15px;
+    }
+    
+    .stat-container {
+        min-width: 60px;
+    }
+    
+    .stat-value {
+        font-size: 14px;
+    }
+    
+    #startScreen h1 {
+        font-size: 28px;
+    }
+    
+    #instructions {
+        font-size: 12px;
+        max-width: 350px;
+    }
+    
+    .btn {
+        padding: 10px 20px;
+        font-size: 14px;
+        min-width: 100px;
+    }
+}
+
+@media (max-width: 480px) {
+    #startScreen, #gameOver {
+        padding: 20px;
+        max-width: 95vw;
+        max-height: 95vh;
+    }
+    
+    #instructions {
+        font-size: 11px;
+        max-width: 300px;
+    }
+    
+    #startScreen h1 {
+        font-size: 24px;
+    }
+}
