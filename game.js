@@ -973,15 +973,21 @@ function startGame() {
         health: 100,
         maxHealth: 100,
         speed: 3,
+        baseSpeed: 3,
         isDragging: false,
-        dragOffset: { x: 0, y: 0 }
+        dragOffset: { x: 0, y: 0 },
+        shieldTime: 0,
+        speedBoostTime: 0
     };
     
     gameState.enemies = [];
+    gameState.powerups = [];
+    gameState.activePowerups = [];
     gameState.score = 0;
     gameState.level = 1;
     gameState.difficulty = 1;
     gameState.lastEnemySpawn = 0;
+    gameState.lastPowerupSpawn = 0;
     gameState.flashlight.on = false;
     gameState.flashlight.intensity = 0;
     gameState.camera.shake = 0;
