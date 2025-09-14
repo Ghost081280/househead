@@ -1587,7 +1587,7 @@ function createShareModal() {
 function shareScore(platform) {
     const score = gameState.score;
     const level = gameState.level;
-    const gameUrl = 'https://househeadchase.com';
+    const gameUrl = window.location.origin; // Uses current domain automatically
     const message = `🏠 I survived ${score} seconds and reached level ${level} in House Head Chase! Can you beat my score?`;
     const messageWithUrl = `${message}\n\nPlay now: ${gameUrl}`;
     
@@ -1614,29 +1614,57 @@ let deferredPrompt;
 function setupPWAInstall() {
     console.log('📱 Setting up PWA install...');
     
+    // Listen for the beforeinstallprompt event
     window.addEventListener('beforeinstallprompt', (e) => {
+        console.log('📱 Install prompt available');
         e.preventDefault();
         deferredPrompt = e;
         
+        // Show our custom install prompt
         const installPrompt = document.getElementById('installPrompt');
         if (installPrompt) {
             installPrompt.classList.remove('hidden');
         }
+        
+        // Also show install button in HUD after game starts
+        setTimeout(() => {
+            showInstallHint();
+        }, 10000); // Show after 10 seconds of gameplay
     });
     
-    window.addEventListener('appinstalled', () => {
-        console.log('✅ PWA installed');
+    // Listen for successful installation
+    window.addEventListener('appinstalled', (e) => {
+        console.log('✅ PWA installed successfully');
         hideInstallPrompt();
+        
+        // Show success message
+        if (typeof showPowerupMessage === 'function') {
+            showPowerupMessage('📱 App Installed! Play offline anytime!');
+        }
+        
+        // Clear the deferred prompt
+        deferredPrompt = null;
     });
+    
+    // Check if already in standalone mode (already installed)
+    if (window.matchMedia('(display-mode: standalone)').matches || 
+        window.navigator.standalone === true) {
+        console.log('📱 Already running as installed app');
+        hideInstallPrompt();
+    }
 }
 
 function installPWA() {
     if (!deferredPrompt) {
         console.log('❌ Install prompt not available');
+        // Fallback: show manual install instructions
+        showManualInstallInstructions();
         return;
     }
     
+    console.log('📱 Showing install prompt...');
     deferredPrompt.prompt();
+    
     deferredPrompt.userChoice.then((choiceResult) => {
         if (choiceResult.outcome === 'accepted') {
             console.log('✅ User accepted install prompt');
@@ -1653,6 +1681,31 @@ function hideInstallPrompt() {
     if (installPrompt) {
         installPrompt.classList.add('hidden');
     }
+}
+
+function showInstallHint() {
+    if (deferredPrompt && gameState.running) {
+        if (typeof showPowerupMessage === 'function') {
+            showPowerupMessage('📱 Add to home screen for better experience!');
+        }
+    }
+}
+
+function showManualInstallInstructions() {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent);
+    const isAndroid = /Android/.test(navigator.userAgent);
+    
+    let instructions = '';
+    
+    if (isIOS) {
+        instructions = 'On iOS: Tap the Share button (square with arrow) in Safari, then "Add to Home Screen"';
+    } else if (isAndroid) {
+        instructions = 'On Android: Tap the menu (⋮) in Chrome, then "Add to Home screen" or "Install app"';
+    } else {
+        instructions = 'Look for the install icon (⊕) in your browser\'s address bar, or check the menu for "Install" option';
+    }
+    
+    alert('📱 Install House Head Chase as an app!\n\n' + instructions);
 }
 
 // === NAVIGATION HELPER FUNCTIONS ===
