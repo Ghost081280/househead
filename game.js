@@ -1,5 +1,5 @@
-// === HOUSE HEAD CHASE - WORKING VERSION ===
-console.log('🏠 House Head Chase - Loading working version...');
+// === HOUSE HEAD CHASE - MOBILE-FIRST WORKING VERSION ===
+console.log('🏠 House Head Chase - Loading mobile-first version...');
 
 // === SOUND SYSTEM ===
 const soundSystem = {
@@ -31,7 +31,8 @@ const soundSystem = {
                 'powerup': 600,
                 'levelup': 800,
                 'enemy': 150,
-                'flashlight': 300
+                'flashlight': 300,
+                'spawn': 180
             };
             
             oscillator.frequency.setValueAtTime(frequencies[type] || frequency, this.context.currentTime);
@@ -112,19 +113,41 @@ const gameState = {
     difficulty: 1
 };
 
-// === ENEMY CLASS ===
+// === ENEMY CLASS WITH PROPER HOUSE RENDERING ===
 class Enemy {
     constructor(x, y, type = 'small') {
         this.x = x;
         this.y = y;
         this.type = type;
-        this.size = type === 'big' ? 25 : 15;
-        this.speed = type === 'big' ? 1 : 1.5;
+        this.size = type === 'big' ? 35 : 25;
+        this.speed = type === 'big' ? 0.8 : 1.2;
         this.damage = type === 'big' ? 25 : 15;
-        this.color = type === 'big' ? '#ff6644' : '#ff4444';
+        this.color = type === 'big' ? '#4a3a2a' : '#3a2a1a';
         this.state = 'spawning';
         this.spawnTime = Date.now();
         this.velocity = { x: 0, y: 0 };
+        this.windowGlow = 0.5 + Math.random() * 0.5;
+        this.lastDamageTime = 0;
+        this.isVisible = false;
+        
+        // AI properties
+        this.wanderTarget = { x: this.x, y: this.y };
+        this.lastWanderUpdate = 0;
+        this.alertRadius = type === 'big' ? 200 : 180;
+        this.lastPlayerSeen = 0;
+        
+        // Leg animation
+        this.legs = [];
+        for (let i = 0; i < 6; i++) {
+            this.legs.push({
+                angle: (i / 6) * Math.PI * 2,
+                length: this.size * 0.8,
+                offset: Math.random() * Math.PI * 2,
+                speed: 0.1 + Math.random() * 0.1
+            });
+        }
+        
+        console.log(`🏠 ${type} house spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
     }
     
     update() {
@@ -133,43 +156,123 @@ class Enemy {
         
         if (this.state === 'spawning' && stateTime > 1000) {
             this.state = 'dormant';
+            soundSystem.play('spawn');
         } else if (this.state === 'dormant' && stateTime > 3000) {
             this.state = 'active';
             soundSystem.play('enemy');
+            console.log(`🦵 ${this.type} house grew legs!`);
         }
         
         if (this.state === 'active') {
-            this.updateMovement();
+            this.updateAI();
+            this.updateLegs();
         }
         
+        this.updateVisibility();
         this.checkPlayerCollision();
+        this.windowGlow = 0.5 + Math.sin(currentTime * 0.003 + this.x * 0.01) * 0.3;
+        
         return this.isOnScreen();
     }
     
-    updateMovement() {
+    updateAI() {
+        const currentTime = Date.now();
         const player = gameState.player;
+        const dx = player.x - this.x;
+        const dy = player.y - this.y;
+        const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
         
-        if (gameState.flashlight.on) {
-            const dx = player.x - this.x;
-            const dy = player.y - this.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            if (distance > 0) {
-                this.velocity.x = (dx / distance) * this.speed * gameState.difficulty;
-                this.velocity.y = (dy / distance) * this.speed * gameState.difficulty;
+        // AI behavior based on flashlight
+        if (gameState.flashlight.on && gameState.flashlight.intensity > 0.5) {
+            // Flashlight is on - hunt aggressively
+            if (distanceToPlayer < this.alertRadius) {
+                this.lastPlayerSeen = currentTime;
+                const huntSpeed = this.speed * gameState.difficulty * 1.2;
+                if (distanceToPlayer > 5) {
+                    this.velocity.x = (dx / distanceToPlayer) * huntSpeed;
+                    this.velocity.y = (dy / distanceToPlayer) * huntSpeed;
+                }
+            } else if (currentTime - this.lastPlayerSeen < 3000) {
+                // Continue hunting briefly
+                const huntSpeed = this.speed * gameState.difficulty * 0.8;
+                if (distanceToPlayer > 5) {
+                    this.velocity.x = (dx / distanceToPlayer) * huntSpeed;
+                    this.velocity.y = (dy / distanceToPlayer) * huntSpeed;
+                }
+            } else {
+                this.wander();
             }
         } else {
-            if (Math.random() < 0.02) {
-                this.velocity.x = (Math.random() - 0.5) * this.speed;
-                this.velocity.y = (Math.random() - 0.5) * this.speed;
+            // Flashlight is off - wander unless very close
+            if (distanceToPlayer < 50) {
+                const huntSpeed = this.speed * gameState.difficulty;
+                this.velocity.x = (dx / distanceToPlayer) * huntSpeed;
+                this.velocity.y = (dy / distanceToPlayer) * huntSpeed;
+            } else {
+                this.wander();
             }
         }
         
+        // Apply movement
         this.x += this.velocity.x;
         this.y += this.velocity.y;
         
+        // Boundary constraints
         this.x = Math.max(this.size, Math.min(gameState.canvas.width - this.size, this.x));
-        this.y = Math.max(this.size, Math.min(gameState.canvas.height - this.size, this.y));
+        this.y = Math.max(this.size + 80, Math.min(gameState.canvas.height - this.size, this.y));
+        
+        // Apply friction
+        this.velocity.x *= 0.95;
+        this.velocity.y *= 0.95;
+    }
+    
+    wander() {
+        const currentTime = Date.now();
+        
+        if (currentTime - this.lastWanderUpdate > 2000 + Math.random() * 3000) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = 100 * (0.3 + Math.random() * 0.7);
+            
+            this.wanderTarget.x = this.x + Math.cos(angle) * distance;
+            this.wanderTarget.y = this.y + Math.sin(angle) * distance;
+            
+            this.wanderTarget.x = Math.max(this.size + 50, Math.min(gameState.canvas.width - this.size - 50, this.wanderTarget.x));
+            this.wanderTarget.y = Math.max(this.size + 130, Math.min(gameState.canvas.height - this.size - 50, this.wanderTarget.y));
+            
+            this.lastWanderUpdate = currentTime;
+        }
+        
+        const dx = this.wanderTarget.x - this.x;
+        const dy = this.wanderTarget.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 20) {
+            const wanderSpeed = this.speed * 0.5;
+            this.velocity.x += (dx / distance) * wanderSpeed * 0.2;
+            this.velocity.y += (dy / distance) * wanderSpeed * 0.2;
+        }
+    }
+    
+    updateLegs() {
+        const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        const legSpeed = 0.1 + speed * 0.02;
+        
+        this.legs.forEach(leg => {
+            leg.offset += legSpeed;
+        });
+    }
+    
+    updateVisibility() {
+        const player = gameState.player;
+        const dx = this.x - player.x;
+        const dy = this.y - player.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (gameState.flashlight.on && gameState.flashlight.intensity > 0.3) {
+            this.isVisible = distance < gameState.flashlight.radius;
+        } else {
+            this.isVisible = distance < 60;
+        }
     }
     
     checkPlayerCollision() {
@@ -184,15 +287,17 @@ class Enemy {
     }
     
     damagePlayer() {
-        if (gameState.player.shieldTime > 0) return;
-        
-        gameState.player.health -= this.damage;
-        gameState.player.invulnerabilityTime = 1000;
-        
-        soundSystem.play('hit');
-        gameState.camera.shake = 10;
-        
-        console.log(`💥 Player hit! Health: ${gameState.player.health}`);
+        const currentTime = Date.now();
+        if (currentTime - this.lastDamageTime > 1000) {
+            if (gameState.player.shieldTime <= 0) {
+                gameState.player.health -= this.damage;
+                gameState.player.invulnerabilityTime = 1000;
+                gameState.camera.shake = 10;
+                soundSystem.play('hit');
+                console.log(`💥 Player hit! Health: ${gameState.player.health}`);
+            }
+            this.lastDamageTime = currentTime;
+        }
     }
     
     isOnScreen() {
@@ -201,53 +306,131 @@ class Enemy {
     }
     
     render(ctx) {
+        if (!this.isVisible && this.state !== 'spawning') return;
+        
         ctx.save();
-        
-        let alpha = 0.3;
-        if (gameState.flashlight.on) {
-            const dx = this.x - gameState.player.x;
-            const dy = this.y - gameState.player.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            alpha = Math.min(1, gameState.flashlight.radius / distance);
-        } else {
-            const dx = this.x - gameState.player.x;
-            const dy = this.y - gameState.player.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            alpha = distance < 50 ? 1 : 0.1;
-        }
-        
-        ctx.globalAlpha = alpha;
+        ctx.translate(this.x, this.y);
         
         if (this.state === 'spawning') {
-            ctx.fillStyle = '#666';
-            ctx.globalAlpha = 0.5;
-        } else if (this.state === 'dormant') {
-            ctx.fillStyle = '#888';
+            this.drawSpawning(ctx);
         } else {
-            ctx.fillStyle = this.color;
-        }
-        
-        ctx.fillRect(this.x - this.size, this.y - this.size, this.size * 2, this.size * 1.5);
-        
-        ctx.beginPath();
-        ctx.moveTo(this.x - this.size * 1.2, this.y - this.size);
-        ctx.lineTo(this.x, this.y - this.size * 1.8);
-        ctx.lineTo(this.x + this.size * 1.2, this.y - this.size);
-        ctx.closePath();
-        ctx.fill();
-        
-        if (this.state === 'active') {
-            ctx.strokeStyle = this.color;
-            ctx.lineWidth = 3;
-            ctx.beginPath();
-            ctx.moveTo(this.x - this.size * 0.5, this.y + this.size * 0.5);
-            ctx.lineTo(this.x - this.size * 0.7, this.y + this.size * 1.2);
-            ctx.moveTo(this.x + this.size * 0.5, this.y + this.size * 0.5);
-            ctx.lineTo(this.x + this.size * 0.7, this.y + this.size * 1.2);
-            ctx.stroke();
+            this.drawHouse(ctx);
+            if (this.state === 'active') {
+                this.drawLegs(ctx);
+            }
         }
         
         ctx.restore();
+    }
+    
+    drawSpawning(ctx) {
+        const progress = Math.min((Date.now() - this.spawnTime) / 1000, 1);
+        const currentSize = this.size * progress;
+        
+        ctx.fillStyle = this.color;
+        ctx.globalAlpha = progress;
+        ctx.fillRect(-currentSize/2, -currentSize/2, currentSize, currentSize * 0.8);
+        ctx.globalAlpha = 1;
+    }
+    
+    drawHouse(ctx) {
+        const size = this.size;
+        
+        // Shadow
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size * 0.8);
+        
+        // House body gradient
+        const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
+        gradient.addColorStop(0, this.color);
+        gradient.addColorStop(0.5, this.type === 'big' ? '#2a1a0a' : '#3a2a1a');
+        gradient.addColorStop(1, '#1a0a0a');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-size/2, -size/2, size, size * 0.8);
+        
+        // House outline
+        ctx.strokeStyle = '#000';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-size/2, -size/2, size, size * 0.8);
+        
+        // Roof
+        const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
+        roofGradient.addColorStop(0, '#2a1a0a');
+        roofGradient.addColorStop(1, '#1a0a0a');
+        ctx.fillStyle = roofGradient;
+        ctx.beginPath();
+        ctx.moveTo(-size/2 - 4, -size/2);
+        ctx.lineTo(0, -size);
+        ctx.lineTo(size/2 + 4, -size/2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Windows (eyes) with glow
+        const glowIntensity = this.windowGlow;
+        const eyeSize = size / (this.type === 'big' ? 6 : 8);
+        
+        ctx.shadowColor = '#ffff88';
+        ctx.shadowBlur = 8;
+        ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity})`;
+        
+        ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
+        ctx.fillRect(size/6, -size/4, eyeSize, eyeSize);
+        
+        ctx.shadowBlur = 0;
+        
+        // Window frames
+        ctx.strokeStyle = '#666';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-size/3, -size/4, eyeSize, eyeSize);
+        ctx.strokeRect(size/6, -size/4, eyeSize, eyeSize);
+        
+        // Door
+        ctx.fillStyle = '#000';
+        const doorWidth = this.type === 'big' ? size/3 : size/4;
+        const doorHeight = size/4;
+        ctx.fillRect(-doorWidth/2, size/6, doorWidth, doorHeight);
+        ctx.strokeStyle = '#333';
+        ctx.strokeRect(-doorWidth/2, size/6, doorWidth, doorHeight);
+        
+        // Door handle
+        ctx.fillStyle = '#444';
+        ctx.beginPath();
+        ctx.arc(doorWidth/3, size/6 + doorHeight/2, 2, 0, Math.PI * 2);
+        ctx.fill();
+    }
+    
+    drawLegs(ctx) {
+        ctx.strokeStyle = '#2a2a2a';
+        ctx.lineWidth = this.type === 'big' ? 5 : 3;
+        ctx.lineCap = 'round';
+        
+        this.legs.forEach(leg => {
+            const legX = Math.cos(leg.angle + leg.offset) * leg.length;
+            const legY = Math.sin(leg.angle + leg.offset) * leg.length;
+            
+            const midX = legX * 0.6;
+            const midY = legY * 0.6;
+            
+            // Draw leg
+            ctx.beginPath();
+            ctx.moveTo(0, this.size * 0.3);
+            ctx.lineTo(midX, midY + this.size * 0.3);
+            ctx.lineTo(legX, legY + this.size * 0.3);
+            ctx.stroke();
+            
+            // Joint
+            ctx.fillStyle = '#333';
+            ctx.beginPath();
+            ctx.arc(midX, midY + this.size * 0.3, 2, 0, Math.PI * 2);
+            ctx.fill();
+            
+            // Foot
+            ctx.fillStyle = '#222';
+            ctx.beginPath();
+            ctx.arc(legX, legY + this.size * 0.3, 3, 0, Math.PI * 2);
+            ctx.fill();
+        });
     }
 }
 
@@ -260,14 +443,16 @@ class Powerup {
         this.size = 12;
         this.spawnTime = Date.now();
         this.lifetime = 15000;
+        this.pulseOffset = Math.random() * Math.PI * 2;
         
         const types = {
-            'health': { color: '#44ff44' },
-            'shield': { color: '#4444ff' },
-            'speed': { color: '#ffff44' }
+            'health': { color: '#44ff44', emoji: '💚' },
+            'shield': { color: '#4444ff', emoji: '🛡️' },
+            'speed': { color: '#ffff44', emoji: '⚡' }
         };
         
         this.config = types[type] || types.health;
+        console.log(`⚡ ${this.config.emoji} ${type} powerup spawned`);
     }
     
     update() {
@@ -319,17 +504,25 @@ class Powerup {
             ctx.globalAlpha = 1 - (age - fadeStart) / 3000;
         }
         
-        const pulse = Math.sin(age * 0.01) * 0.3 + 0.7;
+        const pulse = Math.sin(age * 0.008 + this.pulseOffset) * 0.3 + 0.7;
         const size = this.size * pulse;
         
+        // Glow effect
+        ctx.shadowColor = this.config.color;
+        ctx.shadowBlur = 15;
+        
+        // Main circle
         ctx.fillStyle = this.config.color;
         ctx.beginPath();
         ctx.arc(this.x, this.y, size, 0, Math.PI * 2);
         ctx.fill();
         
-        ctx.strokeStyle = '#fff';
-        ctx.lineWidth = 2;
-        ctx.stroke();
+        // Inner highlight
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.beginPath();
+        ctx.arc(this.x, this.y, size * 0.6, 0, Math.PI * 2);
+        ctx.fill();
         
         ctx.restore();
     }
@@ -368,11 +561,20 @@ function showScreen(screenId) {
 }
 
 function showGameUI() {
-    const elements = ['hud', 'powerupIndicators', 'flashlightIndicator', 'controlsHint'];
+    const elements = ['hud', 'powerupIndicators', 'flashlightIndicator'];
     elements.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.remove('hidden');
     });
+    
+    // Show controls hint briefly
+    setTimeout(() => {
+        const hint = document.getElementById('controlsHint');
+        if (hint) {
+            hint.classList.remove('hidden');
+            setTimeout(() => hint.classList.add('hidden'), 4000);
+        }
+    }, 1000);
 }
 
 function hideGameUI() {
@@ -450,33 +652,11 @@ function setupCanvas() {
     if (!canvas) return;
     
     function resizeCanvas() {
-        // Mobile-first responsive canvas sizing
-        const isMobile = window.innerWidth <= 768;
-        
-        if (isMobile) {
-            canvas.width = window.innerWidth;
-            canvas.height = window.innerHeight;
-            canvas.style.width = '100vw';
-            canvas.style.height = '100vh';
-        } else {
-            const aspectRatio = 4/3;
-            const maxWidth = Math.min(800, window.innerWidth - 40);
-            const maxHeight = Math.min(600, window.innerHeight - 40);
-            
-            let width = maxWidth;
-            let height = maxHeight;
-            
-            if (width / height > aspectRatio) {
-                width = height * aspectRatio;
-            } else {
-                height = width / aspectRatio;
-            }
-            
-            canvas.width = width;
-            canvas.height = height;
-            canvas.style.width = width + 'px';
-            canvas.style.height = height + 'px';
-        }
+        // Mobile-first: full screen on mobile, contained on desktop
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.width = '100vw';
+        canvas.style.height = '100vh';
         
         // Reposition player if needed
         if (gameState.running && gameState.player) {
@@ -725,18 +905,29 @@ function spawnEntities(currentTime) {
 
 function spawnEnemy() {
     const canvas = gameState.canvas;
-    const margin = 50;
+    const margin = 80;
     let x, y;
+    let attempts = 0;
+    let validPosition = false;
     
-    const edge = Math.floor(Math.random() * 4);
-    switch (edge) {
-        case 0: x = Math.random() * canvas.width; y = -margin; break;
-        case 1: x = canvas.width + margin; y = Math.random() * canvas.height; break;
-        case 2: x = Math.random() * canvas.width; y = canvas.height + margin; break;
-        case 3: x = -margin; y = Math.random() * canvas.height; break;
-    }
+    do {
+        const edge = Math.floor(Math.random() * 4);
+        switch (edge) {
+            case 0: x = Math.random() * canvas.width; y = -margin; break;
+            case 1: x = canvas.width + margin; y = Math.random() * canvas.height; break;
+            case 2: x = Math.random() * canvas.width; y = canvas.height + margin; break;
+            case 3: x = -margin; y = Math.random() * canvas.height; break;
+        }
+        
+        const playerDistance = Math.sqrt(
+            Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
+        );
+        
+        validPosition = playerDistance > 200;
+        attempts++;
+    } while (!validPosition && attempts < 20);
     
-    const type = Math.random() < 0.3 ? 'big' : 'small';
+    const type = Math.random() < 0.25 ? 'big' : 'small';
     const enemy = new Enemy(x, y, type);
     gameState.enemies.push(enemy);
     
@@ -747,8 +938,32 @@ function spawnPowerup() {
     const canvas = gameState.canvas;
     const margin = 100;
     
-    const x = margin + Math.random() * (canvas.width - margin * 2);
-    const y = margin + Math.random() * (canvas.height - margin * 2);
+    let x, y;
+    let attempts = 0;
+    let validPosition = false;
+    
+    do {
+        x = margin + Math.random() * (canvas.width - margin * 2);
+        y = margin + Math.random() * (canvas.height - margin * 2);
+        
+        const playerDistance = Math.sqrt(
+            Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
+        );
+        
+        let tooCloseToEnemy = false;
+        for (const enemy of gameState.enemies) {
+            const enemyDistance = Math.sqrt(
+                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
+            );
+            if (enemyDistance < 80) {
+                tooCloseToEnemy = true;
+                break;
+            }
+        }
+        
+        validPosition = playerDistance > 100 && !tooCloseToEnemy;
+        attempts++;
+    } while (!validPosition && attempts < 20);
     
     const types = ['health', 'shield', 'speed'];
     const type = types[Math.floor(Math.random() * types.length)];
@@ -805,9 +1020,13 @@ function endGame() {
     try {
         const finalTimeEl = document.getElementById('finalTime');
         const finalLevelEl = document.getElementById('finalLevel');
+        const shareTimeEl = document.getElementById('shareTimeValue');
+        const shareLevelEl = document.getElementById('shareLevelValue');
         
         if (finalTimeEl) finalTimeEl.textContent = formatTime(survivalTime);
         if (finalLevelEl) finalLevelEl.textContent = gameState.level;
+        if (shareTimeEl) shareTimeEl.textContent = formatTime(survivalTime);
+        if (shareLevelEl) shareLevelEl.textContent = gameState.level;
     } catch (error) {
         console.error('Error updating final stats:', error);
     }
@@ -832,17 +1051,31 @@ function render() {
         ctx.translate(shakeX, shakeY);
     }
     
-    ctx.fillStyle = '#000';
+    // Clear and draw background
+    ctx.fillStyle = '#000011';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    gameState.enemies.forEach(enemy => enemy.render(ctx));
-    gameState.powerups.forEach(powerup => powerup.render(ctx));
+    // Draw star field
+    ctx.fillStyle = '#ffffff';
+    for (let i = 0; i < 50; i++) {
+        const x = (i * 23.7) % canvas.width;
+        const y = (i * 37.3) % canvas.height;
+        const brightness = Math.sin(Date.now() * 0.001 + i) * 0.5 + 0.5;
+        ctx.globalAlpha = brightness * 0.3;
+        ctx.fillRect(x, y, 1, 1);
+    }
+    ctx.globalAlpha = 1;
     
-    renderPlayer(ctx);
-    
+    // Draw flashlight if on
     if (gameState.flashlight.intensity > 0) {
         renderFlashlight(ctx);
     }
+    
+    // Draw game objects
+    gameState.powerups.forEach(powerup => powerup.render(ctx));
+    gameState.enemies.forEach(enemy => enemy.render(ctx));
+    
+    renderPlayer(ctx);
     
     ctx.restore();
 }
@@ -857,21 +1090,32 @@ function renderPlayer(ctx) {
     }
     
     if (gameState.player.shieldTime > 0) {
-        ctx.strokeStyle = '#4444ff';
+        ctx.strokeStyle = '#4488ff';
         ctx.lineWidth = 3;
         ctx.beginPath();
         ctx.arc(player.x, player.y, player.size + 8, 0, Math.PI * 2);
         ctx.stroke();
     }
     
-    ctx.fillStyle = '#4af';
+    // Player glow
+    ctx.shadowColor = '#4488ff';
+    ctx.shadowBlur = 15;
+    
+    ctx.fillStyle = '#4488ff';
     ctx.beginPath();
     ctx.arc(player.x, player.y, player.size, 0, Math.PI * 2);
     ctx.fill();
     
-    ctx.strokeStyle = '#fff';
-    ctx.lineWidth = 2;
-    ctx.stroke();
+    ctx.shadowBlur = 0;
+    ctx.fillStyle = '#88bbff';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.size * 0.6, 0, Math.PI * 2);
+    ctx.fill();
+    
+    ctx.fillStyle = '#ffffff';
+    ctx.beginPath();
+    ctx.arc(player.x, player.y, player.size * 0.3, 0, Math.PI * 2);
+    ctx.fill();
     
     if (gameState.player.speedBoostTime > 0) {
         ctx.strokeStyle = '#ffff44';
@@ -913,15 +1157,29 @@ function showLevelUpEffect() {
         top: 20%;
         left: 50%;
         transform: translateX(-50%);
-        background: linear-gradient(45deg, #4af, #6cf);
+        background: linear-gradient(45deg, #4488ff, #6688ff);
         color: white;
         padding: 15px 25px;
         border-radius: 10px;
         font-weight: bold;
         z-index: 9999;
         animation: slideDown 2s ease-out;
+        font-size: 18px;
+        text-align: center;
+        box-shadow: 0 4px 20px rgba(68, 136, 255, 0.4);
     `;
     notification.textContent = `🎊 LEVEL ${gameState.level}! 🎊`;
+    
+    const style = document.createElement('style');
+    style.textContent = `
+        @keyframes slideDown {
+            0% { transform: translateX(-50%) translateY(-100px); opacity: 0; }
+            20% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            80% { transform: translateX(-50%) translateY(0); opacity: 1; }
+            100% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
+        }
+    `;
+    document.head.appendChild(style);
     
     document.body.appendChild(notification);
     
@@ -966,6 +1224,50 @@ function saveHighScore(survivalTime, level) {
     }
 }
 
+function loadHighScores() {
+    try {
+        const stored = localStorage.getItem('houseHeadChase_highScores');
+        return stored ? JSON.parse(stored) : [];
+    } catch (error) {
+        console.error('Error loading high scores:', error);
+        return [];
+    }
+}
+
+function displayHighScores() {
+    const container = document.getElementById('highScoresList');
+    if (!container) return;
+    
+    const scores = loadHighScores();
+    
+    if (scores.length === 0) {
+        container.innerHTML = '<p style="text-align: center; color: #888;">No survival records yet! Play to set your first time.</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+    scores.forEach((score, index) => {
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+        
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 12px; background: rgba(255, 170, 68, 0.1); 
+                        border: 1px solid rgba(255, 170, 68, 0.3); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 12px;">
+                    <span style="font-size: 20px; min-width: 30px;">${medal}</span>
+                    <div>
+                        <div style="font-weight: bold; color: #ffaa44;">⏰ ${formatTime(score.score)}</div>
+                        <div style="font-size: 12px; color: #888;">Level ${score.level} • ${score.date}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    container.innerHTML = html;
+}
+
 // === NAVIGATION FUNCTIONS ===
 function restartGame() {
     startGame();
@@ -983,18 +1285,28 @@ function goToStartScreen() {
 }
 
 function showHighScores() {
-    console.log('🏆 Showing high scores...');
-    alert('High scores feature coming soon!');
+    displayHighScores();
+    showScreen('highScoresModal');
 }
 
 function showHelp() {
-    console.log('❓ Showing help...');
-    alert('Help feature coming soon!');
+    showScreen('helpModal');
 }
 
 function showShareModal() {
-    console.log('📤 Showing share modal...');
-    alert('Share feature coming soon!');
+    const survivalTime = getCurrentSurvivalTime();
+    
+    const shareTimeEl = document.getElementById('shareTimeValue');
+    const shareLevelEl = document.getElementById('shareLevelValue');
+    const sharePreviewEl = document.getElementById('shareTextPreview');
+    
+    if (shareTimeEl) shareTimeEl.textContent = formatTime(survivalTime);
+    if (shareLevelEl) shareLevelEl.textContent = gameState.level;
+    if (sharePreviewEl) {
+        sharePreviewEl.textContent = `I just survived for ${formatTime(survivalTime)} in House Head Chase! 🏠👾 Can you beat my time? Play free!`;
+    }
+    
+    showScreen('shareModal');
 }
 
 // === INITIALIZATION ===
@@ -1057,17 +1369,6 @@ window.soundSystem = soundSystem;
 // === MAIN INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', function() {
     console.log('🎮 House Head Chase - Loading...');
-    
-    const style = document.createElement('style');
-    style.textContent = `
-        @keyframes slideDown {
-            0% { transform: translateX(-50%) translateY(-100px); opacity: 0; }
-            20% { transform: translateX(-50%) translateY(0); opacity: 1; }
-            80% { transform: translateX(-50%) translateY(0); opacity: 1; }
-            100% { transform: translateX(-50%) translateY(-20px); opacity: 0; }
-        }
-    `;
-    document.head.appendChild(style);
     
     if (initializeGame()) {
         console.log('✅ House Head Chase ready to play!');
