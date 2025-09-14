@@ -11,6 +11,7 @@ const CACHE_URLS = [
   '/styles.css',
   '/game.js',
   '/manifest.json',
+  '/offline.html',
   '/icons/icon-72.png',
   '/icons/icon-96.png',
   '/icons/icon-128.png',
@@ -160,14 +161,6 @@ self.addEventListener('notificationclick', event => {
   }
 });
 
-// Periodic background sync for offline score submission
-self.addEventListener('periodicsync', event => {
-  if (event.tag === 'periodic-score-sync') {
-    console.log('⏰ Periodic sync: submitting offline scores');
-    event.waitUntil(syncOfflineScores());
-  }
-});
-
 // Helper functions
 async function syncHighScores() {
   try {
@@ -177,40 +170,6 @@ async function syncHighScores() {
     console.error('❌ Failed to sync high scores:', error);
     throw error;
   }
-}
-
-async function syncOfflineScores() {
-  try {
-    // Get pending scores from IndexedDB
-    const pendingScores = await getPendingScores();
-    
-    if (pendingScores.length > 0) {
-      // Submit scores to server
-      await submitScoresToServer(pendingScores);
-      
-      // Clear pending scores
-      await clearPendingScores();
-      
-      console.log(`📤 Submitted ${pendingScores.length} offline scores`);
-    }
-  } catch (error) {
-    console.error('❌ Failed to sync offline scores:', error);
-  }
-}
-
-async function getPendingScores() {
-  // In a real implementation, this would read from IndexedDB
-  return [];
-}
-
-async function submitScoresToServer(scores) {
-  // In a real implementation, this would POST to your server
-  return Promise.resolve();
-}
-
-async function clearPendingScores() {
-  // In a real implementation, this would clear IndexedDB
-  return Promise.resolve();
 }
 
 // Update available notification
