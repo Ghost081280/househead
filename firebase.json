@@ -6,11 +6,11 @@
       "**/.*",
       "**/node_modules/**",
       "**/*.md",
-      "**/src/**",
-      "**/tests/**",
+      "**/scripts/**",
       "package*.json",
       ".gitignore",
-      ".firebaserc"
+      ".firebaserc",
+      "**/*.log"
     ],
     "rewrites": [
       {
@@ -32,17 +32,8 @@
         "source": "**/*.@(png|jpg|jpeg|gif|svg|webp|ico)",
         "headers": [
           {
-            "key": "Cache-Control",
+            "key": "Cache-Control", 
             "value": "max-age=31536000, immutable"
-          }
-        ]
-      },
-      {
-        "source": "**/*.@(json|xml|txt)",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "max-age=86400"
           }
         ]
       },
@@ -58,7 +49,7 @@
             "value": "nosniff"
           },
           {
-            "key": "X-Frame-Options",
+            "key": "X-Frame-Options", 
             "value": "DENY"
           },
           {
@@ -70,70 +61,27 @@
             "value": "strict-origin-when-cross-origin"
           },
           {
-            "key": "Permissions-Policy",
-            "value": "accelerometer=(), camera=(), geolocation=(), gyroscope=(), magnetometer=(), microphone=(), payment=(), usb=()"
-          },
-          {
             "key": "Content-Security-Policy",
-            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://www.google-analytics.com https://api.househeadchase.com; manifest-src 'self'; worker-src 'self';"
-          }
-        ]
-      },
-      {
-        "source": "/manifest.json",
-        "headers": [
-          {
-            "key": "Content-Type",
-            "value": "application/manifest+json"
-          }
-        ]
-      },
-      {
-        "source": "/sw.js",
-        "headers": [
-          {
-            "key": "Cache-Control",
-            "value": "no-cache, no-store, must-revalidate"
-          },
-          {
-            "key": "Service-Worker-Allowed",
-            "value": "/"
+            "value": "default-src 'self'; script-src 'self' 'unsafe-inline' https://www.gstatic.com https://www.googletagmanager.com; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://*.firebaseio.com https://*.googleapis.com; manifest-src 'self'; worker-src 'self';"
           }
         ]
       }
     ],
     "cleanUrls": true,
-    "trailingSlash": false,
-    "predeploy": [
-      "npm run build:icons"
-    ],
-    "postdeploy": [
-      "echo 'Deploy completed! 🏠 House Head Chase is live!'"
-    ]
+    "trailingSlash": false
   },
   "firestore": {
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "functions": {
-    "predeploy": [
-      "npm --prefix \"$RESOURCE_DIR\" run lint",
-      "npm --prefix \"$RESOURCE_DIR\" run build"
-    ],
-    "source": "functions"
-  },
-  "storage": {
-    "rules": "storage.rules"
-  },
-  "remoteconfig": {
-    "template": "remoteconfig.template.json"
+  "auth": {
+    "settings": {
+      "appVerificationDisabledForTesting": false
+    }
   },
   "emulators": {
     "auth": {
       "port": 9099
-    },
-    "functions": {
-      "port": 5001
     },
     "firestore": {
       "port": 8080
@@ -141,13 +89,9 @@
     "hosting": {
       "port": 5000
     },
-    "storage": {
-      "port": 9199
-    },
     "ui": {
       "enabled": true,
       "port": 4000
-    },
-    "singleProjectMode": true
+    }
   }
 }
