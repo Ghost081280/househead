@@ -43,7 +43,7 @@
                 <span class="hud-value" id="level">1</span>
             </div>
             
-            <button id="audioToggle" class="audio-btn">🔊</button>
+            <button id="audioToggle" class="audio-btn" onclick="soundSystem.toggle()">🔊</button>
         </div>
         
         <!-- Powerup Indicators -->
@@ -73,9 +73,9 @@
             <p>💔 <strong>Avoid contact or take damage!</strong></p>
         </div>
         <div class="button-container">
-            <button class="btn primary" id="startGameBtn">🎮 START GAME</button>
-            <button class="btn secondary" id="showHighScoresBtn">🏆 HIGH SCORES</button>
-            <button class="btn secondary" id="showHelpBtn">❓ HOW TO PLAY</button>
+            <button class="btn primary" id="startGameBtn" onclick="startGame()">🎮 START GAME</button>
+            <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()">🏆 HIGH SCORES</button>
+            <button class="btn secondary" id="showHelpBtn" onclick="showHelp()">❓ HOW TO PLAY</button>
         </div>
     </div>
     
@@ -89,9 +89,9 @@
             <p>📊 Level: <span id="finalLevel">1</span></p>
         </div>
         <div class="button-container">
-            <button class="btn primary" id="restartGameBtn">🔄 PLAY AGAIN</button>
-            <button class="btn secondary" id="shareScoreBtn">📤 SHARE SCORE</button>
-            <button class="btn secondary" id="showStartScreenBtn">🏠 MENU</button>
+            <button class="btn primary" id="restartGameBtn" onclick="restartGame()">🔄 PLAY AGAIN</button>
+            <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()">📤 SHARE SCORE</button>
+            <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()">🏠 MENU</button>
         </div>
     </div>
     
@@ -100,7 +100,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🏆 HIGH SCORES</h2>
-                <button class="close-btn" id="closeHighScoresBtn">×</button>
+                <button class="close-btn" id="closeHighScoresBtn" onclick="closeHighScores()">×</button>
             </div>
             <div class="modal-body">
                 <div id="highScoresList">
@@ -108,7 +108,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn secondary" id="closeHighScoresFooterBtn">Close</button>
+                <button class="btn secondary" id="closeHighScoresFooterBtn" onclick="closeHighScores()">Close</button>
             </div>
         </div>
     </div>
@@ -118,7 +118,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>❓ HOW TO PLAY</h2>
-                <button class="close-btn" id="closeHelpBtn">×</button>
+                <button class="close-btn" id="closeHelpBtn" onclick="closeHelp()">×</button>
             </div>
             <div class="modal-body">
                 <div class="help-section">
@@ -153,10 +153,25 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn primary" id="closeHelpFooterBtn">Got It!</button>
+                <button class="btn primary" id="closeHelpFooterBtn" onclick="closeHelp()">Got It!</button>
             </div>
         </div>
     </div>
+    
+    <!-- Share Modal (will be created dynamically by JavaScript if needed) -->
+    
+    <script>
+        // Ensure functions are available globally before game.js loads
+        window.startGame = window.startGame || function() { console.log('Starting game...'); };
+        window.restartGame = window.restartGame || function() { console.log('Restarting game...'); };
+        window.goToStartScreen = window.goToStartScreen || function() { console.log('Going to start screen...'); };
+        window.showHighScores = window.showHighScores || function() { console.log('Showing high scores...'); };
+        window.closeHighScores = window.closeHighScores || function() { console.log('Closing high scores...'); };
+        window.showHelp = window.showHelp || function() { console.log('Showing help...'); };
+        window.closeHelp = window.closeHelp || function() { console.log('Closing help...'); };
+        window.showShareModal = window.showShareModal || function() { console.log('Showing share modal...'); };
+        window.soundSystem = window.soundSystem || { toggle: function() { console.log('Toggling sound...'); } };
+    </script>
     
     <script src="game.js"></script>
 </body>
