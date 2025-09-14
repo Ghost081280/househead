@@ -1,278 +1,237 @@
 # 🏠 House Head Chase
 
-<div align="center">
+A thrilling survival game where you play as a blue dot trying to escape from terrifying House Heads that spawn and hunt you down! Survive as long as you can while collecting power-ups and avoiding damage.
 
-![House Head Chase](https://img.shields.io/badge/Game-House%20Head%20Chase-ff4444?style=for-the-badge&logo=gamepad&logoColor=white)
-![Version](https://img.shields.io/badge/Version-1.0.0-brightgreen?style=for-the-badge)
-![License](https://img.shields.io/badge/License-MIT-blue?style=for-the-badge)
-![PWA](https://img.shields.io/badge/PWA-Ready-purple?style=for-the-badge)
+## 🎮 Game Features
 
-**A thrilling survival game where you dodge terrifying House Heads with legs!**
+- **Survival Gameplay**: Dodge House Heads that spawn randomly and grow legs to chase you
+- **Power-up System**: Collect health packs, shields, and speed boosts
+- **Progressive Difficulty**: More enemies spawn as you level up
+- **Flashlight Mechanic**: Use your flashlight to see enemies, but it reveals your location
+- **Mobile & Desktop Support**: Touch controls for mobile, mouse controls for desktop
+- **PWA Ready**: Install as an app on your device for offline play
+- **High Score System**: Track your best survival times locally
 
-[🎮 Play Now](https://ghost081280.github.io/househead/) • [📱 Install as App](#installation) • [🤝 Contribute](#contributing) • [🐛 Report Bug](https://ghost081280.github.io/househead/issues)
+## 🎯 How to Play
 
-</div>
+### Controls
+- **Mobile**: Touch and drag the blue dot to move
+- **Desktop**: Click and drag with mouse
+- **Flashlight**: Double tap/click anywhere to toggle flashlight
 
-## 🎯 About
+### Objective
+Survive as long as possible while avoiding contact with House Heads!
 
-House Head Chase is a fast-paced survival game where you control a blue dot hero trying to survive as long as possible while being hunted by creepy houses that grow legs! Collect power-ups, use your flashlight strategically, and see how long you can survive as the difficulty increases.
+### Enemies
+- **Small Houses**: Fast but deal less damage (15 HP)
+- **Big Houses**: Slower but deal more damage (25 HP)
+- Houses spawn → become dormant → grow legs → hunt you down!
 
-### ✨ Features
+### Power-ups
+- **💚 Health Pack**: Restores 30 health points
+- **🛡️ Shield**: Temporary invincibility for 5 seconds
+- **⚡ Speed Boost**: Move 2x faster for 8 seconds
 
-- 🏃‍♂️ **Smooth Touch & Mouse Controls** - Drag to move on any device
-- 🔦 **Dynamic Flashlight System** - Reveals enemies but exposes your location
-- ⚡ **Power-up System** - Health packs, shields, and speed boosts
-- 📈 **Progressive Difficulty** - Enemies spawn faster and move quicker over time
-- 🏆 **Local High Scores** - Track your best survival times
-- 📱 **PWA Ready** - Install as an app on any device
-- 🎵 **Dynamic Sound Effects** - Audio feedback for all actions
-- 🌐 **Offline Play** - Works without internet connection
-- 📱 **Responsive Design** - Perfect on mobile, tablet, and desktop
+### Strategy Tips
+- Use the flashlight to see hidden enemies, but use it sparingly
+- Stay away from areas where houses are spawning
+- Collect power-ups to survive longer
+- Higher levels mean more frequent enemy spawns
 
-## 🎮 How to Play
+## 🛠 Technical Stack
 
-1. **Move** - Touch/click and drag the blue dot to move around
-2. **Flashlight** - Double tap/click to toggle your flashlight
-3. **Survive** - Avoid the House Heads that spawn and hunt you down
-4. **Collect** - Grab power-ups for health, shields, and speed boosts
-5. **Strategy** - Use the flashlight to see enemies, but it reveals your location!
-
-### 🏠 Enemy Types
-
-- **Small Houses** - Fast and nimble, deal 15 damage
-- **Big Houses** - Slower but stronger, deal 25 damage
-
-### ⚡ Power-ups
-
-- **💚 Health Pack** - Restores 30 health points
-- **🛡️ Shield** - 5 seconds of invincibility
-- **⚡ Speed Boost** - 2x movement speed for 8 seconds
-
-## 🚀 Quick Start
-
-### For Players
-
-1. **Web Browser**: Visit the [live demo](https://your-username.github.io/house-head-chase)
-2. **PWA Install**: Click the install prompt or add to home screen
-3. **Local Setup**: Download and open `index.html` in your browser
-
-### For Developers
-
-```bash
-# Clone the repository
-git clone https://github.com/your-username/house-head-chase.git
-
-# Navigate to project directory
-cd house-head-chase
-
-# Open in your favorite editor
-code .
-
-# Serve locally (optional)
-python -m http.server 8000
-# or
-npx serve .
-# or simply open index.html in your browser
-```
+- **Frontend**: Pure HTML5, CSS3, JavaScript (ES6+)
+- **Graphics**: HTML5 Canvas with 2D rendering
+- **Audio**: Web Audio API for sound effects
+- **PWA**: Service Worker for offline functionality
+- **Storage**: LocalStorage for high scores
+- **Mobile**: Touch events and responsive design
 
 ## 📁 Project Structure
 
 ```
 house-head-chase/
-├── index.html          # Main HTML file
-├── styles.css          # All CSS styles and responsive design
-├── game.js             # Core game logic and systems
+├── index.html          # Main game page
+├── styles.css          # Game styling and responsive design
+├── game.js             # Core game logic and classes
 ├── manifest.json       # PWA manifest
-├── sw.js              # Service worker for offline functionality
-├── offline.html       # Offline fallback page
-├── icons/             # PWA icons (various sizes)
-├── screenshots/       # App store screenshots
-└── README.md          # This file
+├── sw.js               # Service worker for offline support
+├── offline.html        # Offline fallback page
+├── README.md           # Project documentation
+└── icons/              # PWA icons (various sizes)
+    ├── icon-72.png
+    ├── icon-96.png
+    ├── icon-128.png
+    ├── icon-144.png
+    ├── icon-152.png
+    ├── icon-192.png
+    ├── icon-384.png
+    └── icon-512.png
 ```
 
-## 🛠️ Tech Stack
+## 🚀 Getting Started
 
-- **Frontend**: Vanilla HTML5, CSS3, JavaScript (ES6+)
-- **Graphics**: HTML5 Canvas API
-- **Audio**: Web Audio API
-- **PWA**: Service Workers, Web App Manifest
-- **Storage**: localStorage for high scores
-- **Fonts**: Google Fonts (Creepster, Orbitron, Exo 2)
+### Local Development
+
+1. **Clone or download** the project files
+2. **Start a local server** (required for PWA features):
+   ```bash
+   # Using Python
+   python -m http.server 8000
+   
+   # Using Node.js
+   npx http-server
+   
+   # Using PHP
+   php -S localhost:8000
+   ```
+3. **Open** `http://localhost:8000` in your browser
+4. **Start playing!**
+
+### Deployment
+
+Deploy to any static hosting service:
+- **GitHub Pages**: Push to a repository and enable Pages
+- **Netlify**: Drag and drop the folder or connect via Git
+- **Vercel**: Connect your repository for automatic deployments
+- **Firebase Hosting**: Use `firebase deploy`
 
 ## 🎨 Game Architecture
 
-### Core Systems
+### Core Classes
 
-- **Game Loop**: 60 FPS with `requestAnimationFrame`
-- **Entity System**: Player, Enemies, Powerups classes
-- **Sound System**: Dynamic audio with Web Audio API
-- **Input System**: Unified touch/mouse handling
-- **Camera System**: Screen shake effects
-- **UI System**: Real-time HUD updates
+- **`SoundSystem`**: Manages Web Audio API for game sounds
+- **`Enemy`**: Handles house spawning, movement, and AI behavior
+- **`Powerup`**: Manages power-up spawning, collection, and effects
+- **`gameState`**: Central state management for all game data
 
-### Key Classes
+### Key Systems
+
+- **Game Loop**: 60 FPS update/render cycle using `requestAnimationFrame`
+- **Input Handling**: Unified touch and mouse event system
+- **Collision Detection**: Distance-based collision for player/enemy/powerup interactions
+- **Visibility System**: Dynamic enemy visibility based on flashlight state
+- **UI Management**: Real-time HUD updates and modal system
+
+### Rendering Pipeline
+
+1. **Clear Canvas**: Reset the drawing surface
+2. **Draw Background**: Gradient background with animated stars
+3. **Draw Flashlight**: Radial gradient light effect when active
+4. **Draw Powerups**: Animated collectible items
+5. **Draw Enemies**: Houses with legs when active
+6. **Draw Player**: Blue dot with shield effects
+7. **Apply Camera Shake**: Screen shake on damage
+
+## 🔧 Configuration
+
+### Game Balance
+
+Adjust these values in `game.js` for different difficulty:
 
 ```javascript
-// Main game systems
-SoundSystem()      // Handles all audio
-Enemy()           // House Head entities
-Powerup()         // Collectible power-ups
-gameState         // Central game state management
+// Enemy spawn rate (milliseconds)
+spawnRate: 3000  // Lower = more frequent spawns
+
+// Powerup spawn rate  
+powerupSpawnRate: 12000  // Lower = more frequent powerups
+
+// Player speed
+baseSpeed: 3  // Higher = faster movement
+
+// Health values
+maxHealth: 100  // Player starting health
 ```
 
-## 🤝 Contributing
+### Power-up Configuration
 
-We love contributions! Here's how you can help make House Head Chase even better:
+Modify `PowerupTypes` object to adjust power-up effects:
 
-### 🐛 Bug Reports
+```javascript
+HEALTH: {
+    value: 30,        // Health restored
+    spawnWeight: 0.4  // Spawn probability
+},
+SHIELD: {
+    duration: 5000    // Shield time in milliseconds
+},
+SPEED: {
+    value: 2,         // Speed multiplier
+    duration: 8000    // Boost duration
+}
+```
 
-Found a bug? Please [open an issue](https://github.com/your-username/house-head-chase/issues) with:
-- Browser and device info
-- Steps to reproduce
-- Expected vs actual behavior
-- Screenshots if applicable
+## 📱 PWA Features
 
-### ✨ Feature Requests
+- **Offline Play**: Full game functionality without internet
+- **Install Prompt**: Add to home screen on mobile devices
+- **Background Sync**: High score syncing when connection returns
+- **Responsive Design**: Optimized for all screen sizes
+- **Touch Controls**: Native mobile experience
 
-Have an idea? We'd love to hear it! [Create an issue](https://github.com/your-username/house-head-chase/issues) with:
-- Clear description of the feature
-- Why it would be useful
-- Any implementation ideas
+## 🎵 Audio System
 
-### 🔧 Pull Requests
+- **Dynamic Sound Generation**: Uses Web Audio API oscillators
+- **Sound Types**: Spawn, damage, level up, flashlight, powerup
+- **Audio Toggle**: Players can mute/unmute all sounds
+- **Browser Compatibility**: Graceful fallback when audio unavailable
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Make your changes
-4. Test thoroughly
-5. Commit your changes (`git commit -m 'Add amazing feature'`)
-6. Push to the branch (`git push origin feature/amazing-feature`)
-7. Open a Pull Request
+## 🏆 High Score System
 
-### 🎯 Good First Issues
+- **Local Storage**: Scores saved in browser's localStorage
+- **Top 10 Tracking**: Maintains list of best survival times
+- **Score Metrics**: Tracks survival time, level reached, and date
+- **Sorting**: Automatically sorts by highest score
 
-Looking to contribute? Try these beginner-friendly tasks:
+## 🐛 Browser Compatibility
 
-- [ ] Add new enemy types with different behaviors
-- [ ] Create new power-up types (double points, slow time, etc.)
-- [ ] Improve particle effects
-- [ ] Add screen transitions/animations
-- [ ] Implement new background themes
-- [ ] Add accessibility features
-- [ ] Create unit tests
-- [ ] Improve mobile performance
+- **Modern Browsers**: Chrome 60+, Firefox 55+, Safari 11+, Edge 79+
+- **Mobile Browsers**: iOS Safari 11+, Chrome Mobile 60+
+- **Required Features**: Canvas 2D, Web Audio API, LocalStorage, Service Workers
 
-### 💡 Advanced Features to Implement
+## 🎮 Game States
 
-- [ ] Level editor
-- [ ] Custom enemy AI patterns
-- [ ] Achievement system
-- [ ] Leaderboards with backend
-- [ ] Save game states
-- [ ] Custom controls configuration
-- [ ] WebGL renderer for better performance
+1. **Start Screen**: Welcome screen with instructions
+2. **Playing**: Active gameplay with HUD visible
+3. **Game Over**: Shows final stats and options
+4. **Modals**: Help, high scores, and sharing overlays
 
-## 📋 Development Guidelines
+## 📊 Performance Optimization
 
-### Code Style
-- Use ES6+ features
-- Follow semantic naming conventions
-- Comment complex game logic
-- Keep functions small and focused
-- Use consistent indentation (2 spaces)
+- **Efficient Rendering**: Only draws visible enemies
+- **Object Pooling**: Reuses game objects when possible
+- **Collision Optimization**: Distance checks before expensive calculations
+- **Memory Management**: Proper cleanup of DOM elements and event listeners
 
-### Performance
-- Maintain 60 FPS on mobile devices
-- Optimize canvas rendering
-- Use object pooling for entities
-- Minimize garbage collection
+## 🔄 Future Enhancements
 
-### Testing
-- Test on multiple devices and browsers
-- Verify PWA functionality
-- Check offline capabilities
-- Validate responsive design
-
-## 🌟 Roadmap
-
-### Version 1.1
-- [ ] New enemy types
-- [ ] Boss battles
-- [ ] Achievement system
-- [ ] Better particle effects
-
-### Version 1.2
-- [ ] Level themes
-- [ ] Custom player skins
-- [ ] Enhanced audio
-
-### Version 2.0
-- [ ] 3D graphics with Three.js
-- [ ] Story mode
-- [ ] Level editor
-
-## 📊 Browser Support
-
-| Browser | Desktop | Mobile |
-|---------|---------|--------|
-| Chrome  | ✅      | ✅     |
-| Firefox | ✅      | ✅     |
-| Safari  | ✅      | ✅     |
-| Edge    | ✅      | ✅     |
-
-**Minimum Requirements:**
-- ES6 support
-- Canvas API
-- Web Audio API (optional)
-- Service Workers (for PWA features)
-
-## 🏆 Credits
-
-- **Original Concept**: Inspired by classic survival games
-- **Fonts**: Google Fonts (Creepster, Orbitron, Exo 2)
-- **Icons**: Custom emoji-based design
-- **Audio**: Web Audio API synthesized sounds
+- **Multiplayer Support**: Real-time multiplayer survival
+- **More Power-ups**: Additional special abilities
+- **Boss Enemies**: Special large houses with unique behaviors
+- **Achievements System**: Unlock rewards for specific goals
+- **Sound Effects**: More diverse audio feedback
+- **Visual Effects**: Particle systems and improved animations
 
 ## 📄 License
 
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+This project is open source and available under the [MIT License](LICENSE).
 
-```
-MIT License
+## 🤝 Contributing
 
-Copyright (c) 2024 House Head Chase Contributors
-
-Permission is hereby granted, free of charge, to any person obtaining a copy
-of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
-
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
-```
+1. Fork the repository
+2. Create a feature branch (`git checkout -b feature/amazing-feature`)
+3. Commit your changes (`git commit -m 'Add amazing feature'`)
+4. Push to the branch (`git push origin feature/amazing-feature`)
+5. Open a Pull Request
 
 ## 🙏 Acknowledgments
 
-- Thanks to all contributors who help make this game better
-- Special thanks to the web development community for inspiration
-- Built with ❤️ for gamers everywhere
+- **Font Sources**: Google Fonts (Creepster, Orbitron, Exo 2)
+- **Icon Generation**: PWA icon generator tools
+- **Inspiration**: Classic arcade survival games
 
 ---
 
-<div align="center">
+**Made with ❤️ for survival game enthusiasts!**
 
-**Made with 🏠 and ❤️**
-
-[⭐ Star this repo](https://github.com/your-username/house-head-chase) • [🐦 Share on Twitter](https://twitter.com/intent/tweet?text=Check%20out%20House%20Head%20Chase%20-%20a%20thrilling%20survival%20game!&url=https://github.com/your-username/house-head-chase) • [💬 Join Discussion](https://github.com/your-username/house-head-chase/discussions)
-
-</div>
+Survive as long as you can! 🏠💀
