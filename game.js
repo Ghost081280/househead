@@ -1158,6 +1158,10 @@ function updateGame() {
         gameState.player.shieldTime -= 16;
     }
     
+    if (gameState.freezeTime > 0) {
+        gameState.freezeTime -= 16;
+    }
+    
     if (gameState.player.speedBoostTime > 0) {
         gameState.player.speedBoostTime -= 16;
         if (gameState.player.speedBoostTime <= 0) {
