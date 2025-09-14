@@ -214,38 +214,27 @@
     
     <!-- Start Screen -->
     <div id="startScreen" class="game-screen" role="main" id="main-content">
-        <header>
+        <header class="start-header">
             <h1>🏠 HOUSE HEAD CHASE</h1>
-            <p class="tagline">The Ultimate Survival Horror Game!</p>
+            <p class="tagline">Survival Horror Game!</p>
         </header>
         
         <div class="game-preview">
-            <div class="preview-icon">🏠👾</div>
+            <div class="preview-icon">🏠</div>
             <p class="preview-text">
                 <strong>FREE TO PLAY!</strong><br>
-                Survive the walking houses in this thrilling browser game!
+                Survive the walking houses!
             </p>
         </div>
         
         <div class="instructions">
             <div class="instruction-group">
-                <h3>🎯 HOW TO SURVIVE:</h3>
+                <h3>🎯 HOW TO PLAY:</h3>
                 <p>🔵 <strong>You are the blue dot</strong> - Stay alive!</p>
                 <p>📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
                 <p>🏠 <strong>House Heads</strong> spawn and hunt you down!</p>
                 <p>⚡ <strong>Collect power-ups</strong> for special abilities!</p>
-                <p>💔 <strong>Avoid contact</strong> or take damage!</p>
-                <p>🔦 <strong>Flashlight Strategy:</strong> Light reveals enemies but attracts them!</p>
-            </div>
-            
-            <div class="features-highlight">
-                <h3>✨ AMAZING FEATURES:</h3>
-                <div class="feature-grid">
-                    <div class="feature">📱 Works on Phone & Desktop</div>
-                    <div class="feature">🌐 Play Offline Anywhere</div>
-                    <div class="feature">🏆 Track Your High Scores</div>
-                    <div class="feature">🎮 Smooth Touch Controls</div>
-                </div>
+                <p>🔦 <strong>Use your flashlight wisely</strong> - it attracts enemies!</p>
             </div>
         </div>
         
@@ -255,16 +244,18 @@
                     aria-label="Start new game">
                 🎮 START GAME
             </button>
-            <button class="btn secondary" 
-                    id="showHighScoresBtn" 
-                    aria-label="View high scores">
-                🏆 HIGH SCORES
-            </button>
-            <button class="btn secondary" 
-                    id="showHelpBtn" 
-                    aria-label="Show game instructions">
-                ❓ HOW TO PLAY
-            </button>
+            <div class="secondary-buttons">
+                <button class="btn secondary" 
+                        id="showHighScoresBtn" 
+                        aria-label="View high scores">
+                    🏆 SCORES
+                </button>
+                <button class="btn secondary" 
+                        id="showHelpBtn" 
+                        aria-label="Show game instructions">
+                    ❓ HELP
+                </button>
+            </div>
         </div>
     </div>
     
@@ -304,16 +295,18 @@
                     aria-label="Play again">
                 🔄 PLAY AGAIN
             </button>
-            <button class="btn secondary" 
-                    id="shareScoreBtn" 
-                    aria-label="Share your score">
-                📤 SHARE SCORE
-            </button>
-            <button class="btn secondary" 
-                    id="showStartScreenBtn" 
-                    aria-label="Return to main menu">
-                🏠 MAIN MENU
-            </button>
+            <div class="secondary-buttons">
+                <button class="btn secondary" 
+                        id="shareScoreBtn" 
+                        aria-label="Share your score">
+                    📤 SHARE
+                </button>
+                <button class="btn secondary" 
+                        id="showStartScreenBtn" 
+                        aria-label="Return to main menu">
+                    🏠 MENU
+                </button>
+            </div>
         </div>
     </div>
     
@@ -432,6 +425,50 @@
             </div>
             <div class="modal-footer">
                 <button class="btn primary" id="closeHelpFooterBtn">🎮 Got It - Let's Play!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay hidden" role="dialog" aria-labelledby="shareTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="shareTitle">📤 SHARE YOUR SCORE</h2>
+                <button class="close-btn" 
+                        id="closeShareBtn" 
+                        aria-label="Close share modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-score-display">
+                    <h3>🏆 Your Score: <span id="shareScoreValue">0</span> points</h3>
+                    <p>⏰ Survival Time: <span id="shareTimeValue">0</span> seconds</p>
+                    <p>📊 Level Reached: <span id="shareLevelValue">1</span></p>
+                </div>
+                
+                <div class="share-buttons">
+                    <button class="btn secondary share-btn" id="shareTwitter">
+                        🐦 Twitter
+                    </button>
+                    <button class="btn secondary share-btn" id="shareFacebook">
+                        📘 Facebook
+                    </button>
+                    <button class="btn secondary share-btn" id="shareReddit">
+                        🤖 Reddit
+                    </button>
+                    <button class="btn secondary share-btn" id="copyScore">
+                        📋 Copy Text
+                    </button>
+                </div>
+                
+                <div class="share-preview">
+                    <p><em>Share text preview:</em></p>
+                    <div id="shareTextPreview" class="share-text">
+                        I just survived for 0 seconds in House Head Chase! 🏠👾 Can you beat my score? Play free at: [URL]
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" id="closeShareFooterBtn">Close</button>
             </div>
         </div>
     </div>
@@ -575,6 +612,7 @@
         window.showHelp = window.showHelp || function() { console.log('Showing help...'); };
         window.closeHelp = window.closeHelp || function() { console.log('Closing help...'); };
         window.showShareModal = window.showShareModal || function() { console.log('Showing share modal...'); };
+        window.closeShareModal = window.closeShareModal || function() { console.log('Closing share modal...'); };
         window.soundSystem = window.soundSystem || { toggle: function() { console.log('Toggling sound...'); } };
         window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
         window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
