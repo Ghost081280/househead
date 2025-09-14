@@ -1237,428 +1237,6 @@ function drawPlayer() {
     ctx.restore();
 }
 
-function drawFlashlight() {
-    const flashlight = gameState.flashlight;
-    if (!flashlight || !flashlight.on || flashlight.intensity <= 0) return;
-    
-    const ctx = gameState.ctx;
-    const player = gameState.player;
-    if (!ctx || !player) return;
-    
-    const intensity = flashlight.intensity;
-    
-    // Create radial gradient for flashlight effect
-    const gradient = ctx.createRadialGradient(
-        player.x, player.y, 0,
-        player.x, player.y, flashlight.radius
-    );
-    
-    gradient.addColorStop(0, `rgba(255, 255, 200, ${intensity * 0.6})`);
-    gradient.addColorStop(0.3, `rgba(255, 255, 150, ${intensity * 0.4})`);
-    gradient.addColorStop(0.7, `rgba(255, 255, 100, ${intensity * 0.2})`);
-    gradient.addColorStop(1, 'rgba(255, 255, 50, 0)');
-    
-    ctx.save();
-    ctx.globalCompositeOperation = 'screen';
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
-    ctx.restore();
-}
-
-function drawBackground() {
-    const ctx = gameState.ctx;
-    const canvas = gameState.canvas;
-    if (!ctx || !canvas) return;
-    
-    // Gradient background
-    const gradient = ctx.createRadialGradient(
-        canvas.width/2, canvas.height/2, 0,
-        canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
-    );
-    gradient.addColorStop(0, '#001122');
-    gradient.addColorStop(1, '#000000');
-    ctx.fillStyle = gradient;
-    ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
-    // Animated stars
-    const time = Date.now() * 0.001;
-    ctx.fillStyle = '#ffffff';
-    
-    for (let i = 0; i < 50; i++) {
-        const x = (i * 23.7 + time * 10) % canvas.width;
-        const y = (i * 37.3) % (canvas.height - 80);
-        const brightness = Math.sin(time + i) * 0.5 + 0.5;
-        ctx.globalAlpha = brightness * 0.3;
-        ctx.fillRect(x, y, 1, 1);
-    }
-    ctx.globalAlpha = 1;
-    
-    // Ground
-    const groundGradient = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
-    groundGradient.addColorStop(0, '#1a2a1a');
-    groundGradient.addColorStop(1, '#0a1a0a');
-    ctx.fillStyle = groundGradient;
-    ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
-}
-
-// === GAME SYSTEMS ===
-function spawnEnemy() {
-    if (!gameState.config || !gameState.canvas) return;
-    
-    const currentTime = Date.now();
-    if (currentTime - gameState.lastEnemySpawn < gameState.spawnRate) return;
-    
-    // Determine enemy type based on level and difficulty
-    const rand = Math.random();
-    const bigHouseChance = Math.min(0.25 + (gameState.level - 1) * 0.05, 0.4);
-    const enemyType = rand < bigHouseChance ? 'BIG' : 'SMALL';
-    
-    // Find safe spawn position
-    const spawnPosition = findSafeSpawnPosition();
-    if (!spawnPosition) {
-        console.warn('⚠️ Could not find safe spawn position');
-        return;
-    }
-    
-    // Create enemy
-    const enemy = new Enemy(spawnPosition.x, spawnPosition.y, enemyType, gameState.config);
-    gameState.enemies.push(enemy);
-    gameState.totalEnemiesSpawned++;
-    gameState.stats.enemiesEncountered++;
-    gameState.lastEnemySpawn = currentTime;
-    
-    // Update spawn rate with balanced scaling
-    gameState.spawnRate = Math.max(1500, 3500 - (gameState.level - 1) * 150);
-    
-    // Update debug display
-    updateDebugDisplay();
-    
-    if (gameState.config?.features.consoleLogging) {
-        console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
-    }
-}
-
-function findSafeSpawnPosition() {
-    const canvas = gameState.canvas;
-    const player = gameState.player;
-    if (!canvas || !player) return null;
-    
-    let attempts = 0;
-    const maxAttempts = 30;
-    
-    while (attempts < maxAttempts) {
-        const spawnMargin = 120;
-        const centerAvoidanceRadius = Math.min(200, Math.max(canvas.width, canvas.height) * 0.25);
-        
-        // Try to spawn away from center and other enemies
-        const angle = Math.random() * Math.PI * 2;
-        const distance = spawnMargin + Math.random() * (centerAvoidanceRadius - spawnMargin);
-        const centerX = canvas.width / 2;
-        const centerY = canvas.height / 2;
-        
-        let x = centerX + Math.cos(angle) * distance;
-        let y = centerY + Math.sin(angle) * distance;
-        
-        // Clamp to boundaries
-        x = Math.max(80, Math.min(canvas.width - 80, x));
-        y = Math.max(150, Math.min(canvas.height - 80, y));
-        
-        // Check distance from player
-        const playerDistance = Math.sqrt(
-            Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
-        );
-        
-        // Check distance from other enemies
-        let tooCloseToOthers = false;
-        const minEnemyDistance = 100;
-        
-        for (const enemy of gameState.enemies) {
-            const enemyDistance = Math.sqrt(
-                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
-            );
-            if (enemyDistance < minEnemyDistance) {
-                tooCloseToOthers = true;
-                break;
-            }
-        }
-        
-        if (playerDistance > 180 && !tooCloseToOthers) {
-            return { x, y };
-        }
-        
-        attempts++;
-    }
-    
-    return null;
-}
-
-function spawnPowerup() {
-    if (!gameState.config || !gameState.canvas) return;
-    
-    const currentTime = Date.now();
-    if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
-    
-    // Determine powerup type based on weights and game state
-    const powerupType = selectPowerupType();
-    
-    // Find safe spawn position
-    const spawnPosition = findSafePowerupPosition();
-    if (!spawnPosition) {
-        console.warn('⚠️ Could not find safe powerup position');
-        return;
-    }
-    
-    const powerup = new Powerup(spawnPosition.x, spawnPosition.y, powerupType, gameState.config);
-    gameState.powerups.push(powerup);
-    gameState.lastPowerupSpawn = currentTime;
-    
-    // Adjust spawn rate
-    gameState.powerupSpawnRate = Math.max(8000, 12000 - (gameState.level - 1) * 200);
-    
-    if (gameState.config?.features.consoleLogging) {
-        console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
-    }
-}
-
-function selectPowerupType() {
-    const player = gameState.player;
-    if (!player) return 'HEALTH';
-    
-    // Intelligent powerup selection based on player state
-    if (player.health < 30) {
-        return 'HEALTH'; // Prioritize health when low
-    }
-    
-    const rand = Math.random();
-    let cumulativeWeight = 0;
-    
-    for (const [type, config] of Object.entries(PowerupTypes)) {
-        cumulativeWeight += config.spawnWeight;
-        if (rand < cumulativeWeight) {
-            return type;
-        }
-    }
-    
-    return 'HEALTH'; // Fallback
-}
-
-function findSafePowerupPosition() {
-    const canvas = gameState.canvas;
-    const player = gameState.player;
-    if (!canvas || !player) return null;
-    
-    let attempts = 0;
-    const maxAttempts = 20;
-    
-    while (attempts < maxAttempts) {
-        const x = 80 + Math.random() * (canvas.width - 160);
-        const y = 120 + Math.random() * (canvas.height - 200);
-        
-        const playerDistance = Math.sqrt(
-            Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
-        );
-        
-        let tooCloseToEnemy = false;
-        for (const enemy of gameState.enemies) {
-            const enemyDistance = Math.sqrt(
-                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
-            );
-            if (enemyDistance < 80) {
-                tooCloseToEnemy = true;
-                break;
-            }
-        }
-        
-        if (playerDistance > 100 && !tooCloseToEnemy) {
-            return { x, y };
-        }
-        
-        attempts++;
-    }
-    
-    return null;
-}
-
-function updateGame() {
-    if (!gameState.running) return;
-    
-    const currentTime = Date.now();
-    
-    // Update performance tracking
-    updatePerformanceMetrics();
-    
-    // Update flashlight
-    updateFlashlight();
-    
-    // Update player effects
-    updatePlayerEffects();
-    
-    // Update active powerups
-    updateActivePowerups();
-    
-    // Update game objects
-    gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
-    gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
-    
-    // Spawn new entities
-    spawnEnemy();
-    spawnPowerup();
-    
-    // Update score and level
-    updateScoreAndLevel(currentTime);
-    
-    // Update camera effects
-    updateCameraEffects();
-    
-    // Check game over condition
-    if (gameState.player.health <= 0) {
-        endGame();
-    }
-    
-    // Update UI
-    updateUI();
-}
-
-function updatePerformanceMetrics() {
-    gameState.performance.frameCount++;
-    
-    const currentTime = Date.now();
-    if (currentTime - gameState.performance.lastFPSUpdate > 1000) {
-        gameState.performance.currentFPS = Math.round(
-            (gameState.performance.frameCount * 1000) / 
-            (currentTime - gameState.performance.lastFPSUpdate)
-        );
-        gameState.performance.frameCount = 0;
-        gameState.performance.lastFPSUpdate = currentTime;
-        
-        updateDebugDisplay();
-    }
-}
-
-function updateFlashlight() {
-    const flashlight = gameState.flashlight;
-    if (!flashlight) return;
-    
-    if (flashlight.on) {
-        flashlight.intensity = Math.min(1, flashlight.intensity + flashlight.fadeSpeed);
-    } else {
-        flashlight.intensity = Math.max(0, flashlight.intensity - flashlight.fadeSpeed);
-    }
-}
-
-function updatePlayerEffects() {
-    const player = gameState.player;
-    if (!player) return;
-    
-    // Update shield
-    if (player.shieldTime > 0) {
-        player.shieldTime -= 16;
-    }
-    
-    // Update speed boost
-    if (player.speedBoostTime > 0) {
-        player.speedBoostTime -= 16;
-        if (player.speedBoostTime <= 0) {
-            player.speed = player.baseSpeed;
-        }
-    }
-    
-    // Update invulnerability
-    if (player.invulnerabilityTime > 0) {
-        player.invulnerabilityTime -= 16;
-    }
-}
-
-function updateActivePowerups() {
-    gameState.activePowerups = gameState.activePowerups.filter(powerup => {
-        powerup.timeLeft -= 16;
-        return powerup.timeLeft > 0;
-    });
-}
-
-function updateScoreAndLevel(currentTime) {
-    // Update score
-    if (currentTime - gameState.lastScoreUpdate > 1000) {
-        gameState.score++;
-        gameState.lastScoreUpdate = currentTime;
-    }
-    
-    // Check for level up
-    const newLevel = Math.floor(gameState.score / 45) + 1;
-    if (newLevel > gameState.level) {
-        gameState.level = newLevel;
-        gameState.stats.highestLevel = Math.max(gameState.stats.highestLevel, newLevel);
-        gameState.difficulty = 1 + (gameState.level - 1) * 0.15;
-        
-        soundSystem.play('levelup');
-        showLevelUpEffect();
-        
-        // Track level up
-        if (window.analytics) {
-            window.analytics.trackLevelUp(newLevel, gameState.score, gameState.score);
-        }
-        
-        console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)})`);
-    }
-}
-
-function updateCameraEffects() {
-    if (gameState.camera.shake > 0) {
-        gameState.camera.shake--;
-        gameState.camera.intensity = Math.max(0, gameState.camera.intensity - 0.5);
-    }
-}
-
-function updateDebugDisplay() {
-    if (!gameState.config?.features.debugMode) return;
-    
-    const fpsCounter = document.getElementById('fpsCounter');
-    const enemyCount = document.getElementById('enemyCount');
-    const memoryUsage = document.getElementById('memoryUsage');
-    
-    if (fpsCounter) {
-        fpsCounter.textContent = gameState.performance.currentFPS;
-    }
-    
-    if (enemyCount) {
-        enemyCount.textContent = gameState.enemies.length;
-    }
-    
-    if (memoryUsage && performance.memory) {
-        const memoryMB = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
-        memoryUsage.textContent = memoryMB + 'MB';
-    }
-}
-
-function drawGame() {
-    if (!gameState.running || !gameState.ctx) return;
-    
-    const ctx = gameState.ctx;
-    
-    // Clear canvas
-    ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
-    
-    ctx.save();
-    
-    // Apply camera shake
-    if (gameState.camera.shake > 0) {
-        const shakeX = (Math.random() - 0.5) * gameState.camera.intensity;
-        const shakeY = (Math.random() - 0.5) * gameState.camera.intensity;
-        ctx.translate(shakeX, shakeY);
-    }
-    
-    // Draw game layers
-    drawBackground();
-    drawFlashlight();
-    
-    // Draw game objects
-    gameState.powerups.forEach(powerup => powerup.draw());
-    gameState.enemies.forEach(enemy => enemy.draw());
-    drawPlayer();
-    
-    ctx.restore();
-}
-
 // === MAIN GAME LOOP ===
 function gameLoop() {
     updateGame();
@@ -1852,6 +1430,178 @@ function togglePause() {
         }
         console.log('▶️ Game resumed');
     }
+}
+
+// === SHARE FUNCTIONALITY ===
+function showShareModal() {
+    const shareModal = document.getElementById('shareModal');
+    const shareScoreValue = document.getElementById('shareScoreValue');
+    const shareTimeValue = document.getElementById('shareTimeValue');
+    const shareLevelValue = document.getElementById('shareLevelValue');
+    const shareTextPreview = document.getElementById('shareTextPreview');
+    
+    if (!shareModal) {
+        console.error('Share modal not found');
+        return;
+    }
+    
+    // Get current game stats
+    const finalScore = document.getElementById('finalScore')?.textContent || '0';
+    const finalTime = document.getElementById('finalTime')?.textContent || '0';
+    const finalLevel = document.getElementById('finalLevel')?.textContent || '1';
+    
+    // Update share modal content
+    if (shareScoreValue) shareScoreValue.textContent = finalScore;
+    if (shareTimeValue) shareTimeValue.textContent = finalTime;
+    if (shareLevelValue) shareLevelValue.textContent = finalLevel;
+    
+    // Generate share text
+    const shareText = `I just survived for ${finalTime} seconds in House Head Chase! 🏠👾 Reached level ${finalLevel} with ${finalScore} points. Can you beat my score? Play free at: ${window.location.href}`;
+    if (shareTextPreview) shareTextPreview.textContent = shareText;
+    
+    // Show modal
+    hideAllScreens();
+    shareModal.classList.remove('hidden');
+    
+    // Track share modal display
+    if (window.analytics) {
+        window.analytics.trackEvent('share_modal_opened', {
+            score: parseInt(finalScore) || 0,
+            time: parseInt(finalTime) || 0,
+            level: parseInt(finalLevel) || 1
+        });
+    }
+    
+    console.log('📤 Share modal displayed');
+}
+
+function closeShareModal() {
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) {
+        shareModal.classList.add('hidden');
+        showScreen('gameOver');
+    }
+}
+
+function shareToTwitter() {
+    const shareText = document.getElementById('shareTextPreview')?.textContent || '';
+    const twitterUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(shareText)}`;
+    window.open(twitterUrl, '_blank', 'width=550,height=420,scrollbars=yes,resizable=yes');
+    
+    if (window.analytics) {
+        window.analytics.trackShareScore('twitter', gameState.score || 0, gameState.level || 1);
+    }
+}
+
+function shareToFacebook() {
+    const gameUrl = window.location.href;
+    const facebookUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}`;
+    window.open(facebookUrl, '_blank', 'width=580,height=296,scrollbars=yes,resizable=yes');
+    
+    if (window.analytics) {
+        window.analytics.trackShareScore('facebook', gameState.score || 0, gameState.level || 1);
+    }
+}
+
+function shareToReddit() {
+    const shareText = document.getElementById('shareTextPreview')?.textContent || '';
+    const gameUrl = window.location.href;
+    const redditUrl = `https://www.reddit.com/submit?url=${encodeURIComponent(gameUrl)}&title=${encodeURIComponent(shareText)}`;
+    window.open(redditUrl, '_blank', 'width=600,height=500,scrollbars=yes,resizable=yes');
+    
+    if (window.analytics) {
+        window.analytics.trackShareScore('reddit', gameState.score || 0, gameState.level || 1);
+    }
+}
+
+function copyScoreToClipboard() {
+    const shareText = document.getElementById('shareTextPreview')?.textContent || '';
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(shareText).then(() => {
+            showTemporaryMessage('Score copied to clipboard!');
+            if (window.analytics) {
+                window.analytics.trackShareScore('clipboard', gameState.score || 0, gameState.level || 1);
+            }
+        }).catch(err => {
+            console.error('Failed to copy to clipboard:', err);
+            fallbackCopyToClipboard(shareText);
+        });
+    } else {
+        fallbackCopyToClipboard(shareText);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showTemporaryMessage('Score copied to clipboard!');
+            if (window.analytics) {
+                window.analytics.trackShareScore('clipboard_fallback', gameState.score || 0, gameState.level || 1);
+            }
+        } else {
+            showTemporaryMessage('Failed to copy score');
+        }
+    } catch (err) {
+        console.error('Fallback copy failed:', err);
+        showTemporaryMessage('Copy not supported in this browser');
+    }
+    
+    document.body.removeChild(textArea);
+}
+
+function showTemporaryMessage(message) {
+    const messageDiv = document.createElement('div');
+    messageDiv.className = 'temp-message';
+    messageDiv.textContent = message;
+    messageDiv.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: rgba(68, 255, 68, 0.95);
+        color: #000;
+        padding: 10px 20px;
+        border-radius: 20px;
+        font-weight: bold;
+        z-index: 9000;
+        font-size: 14px;
+        box-shadow: 0 4px 15px rgba(68, 255, 68, 0.4);
+        animation: tempMessageFade 2s ease-out forwards;
+    `;
+    
+    // Add animation keyframes if not already present
+    if (!document.querySelector('style[data-temp-message]')) {
+        const style = document.createElement('style');
+        style.setAttribute('data-temp-message', 'true');
+        style.textContent = `
+            @keyframes tempMessageFade {
+                0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
+                20% { opacity: 1; transform: translate(-50%, -50%) scale(1.1); }
+                80% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
+                100% { opacity: 0; transform: translate(-50%, -50%) scale(0.9); }
+            }
+        `;
+        document.head.appendChild(style);
+    }
+    
+    document.body.appendChild(messageDiv);
+    
+    setTimeout(() => {
+        if (document.body.contains(messageDiv)) {
+            document.body.removeChild(messageDiv);
+        }
+    }, 2000);
 }
 
 // === MAIN GAME FUNCTIONS ===
@@ -2303,7 +2053,7 @@ function clearHighScores() {
         console.log('🧹 High scores cleared');
         
         // Show temporary message
-        showPowerupMessage('High scores cleared!');
+        showTemporaryMessage('High scores cleared!');
         
     } catch (error) {
         console.error('❌ Error clearing high scores:', error);
@@ -2366,52 +2116,6 @@ function showNewHighScoreEffect(score) {
 }
 
 // === UI ENHANCEMENT FUNCTIONS ===
-function showPowerupMessage(message) {
-    if (!document.querySelector('style[data-powerup-message]')) {
-        const style = document.createElement('style');
-        style.setAttribute('data-powerup-message', 'true');
-        style.textContent = `
-            .powerup-message {
-                position: fixed;
-                top: 50%;
-                left: 50%;
-                transform: translate(-50%, -50%);
-                color: #44ff44;
-                font-weight: bold;
-                font-size: 18px;
-                pointer-events: none;
-                z-index: 8000;
-                animation: powerupMessageFloat 1.5s ease-out forwards;
-                font-family: 'Orbitron', monospace;
-                text-shadow: 0 0 10px #44ff44;
-                background: rgba(0, 0, 0, 0.8);
-                padding: 10px 20px;
-                border-radius: 20px;
-                border: 2px solid #44ff44;
-            }
-            @keyframes powerupMessageFloat {
-                0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-                20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
-                80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
-                100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
-            }
-        `;
-        document.head.appendChild(style);
-    }
-
-    const messageDiv = document.createElement('div');
-    messageDiv.className = 'powerup-message';
-    messageDiv.textContent = message;
-    
-    document.body.appendChild(messageDiv);
-    
-    setTimeout(() => {
-        if (document.body.contains(messageDiv)) {
-            document.body.removeChild(messageDiv);
-        }
-    }, 1500);
-}
-
 function showLevelUpEffect() {
     if (!document.querySelector('style[data-level-up]')) {
         const style = document.createElement('style');
@@ -2544,7 +2248,7 @@ function setupPWAInstall() {
         console.log('✅ PWA installed successfully');
         hideInstallPrompt();
         
-        showPowerupMessage('📱 App Installed! Play offline anytime!');
+        showTemporaryMessage('📱 App Installed! Play offline anytime!');
         
         // Track successful installation
         if (window.analytics) {
@@ -2649,6 +2353,94 @@ if (!document.querySelector('style[data-floating-text]')) {
     document.head.appendChild(style);
 }
 
+// Enhanced navigation system setup
+function setupNavigationSystem() {
+    console.log('🔗 Setting up enhanced navigation system...');
+    
+    const buttons = {
+        'startGameBtn': startGame,
+        'restartGameBtn': () => startGame(),
+        'showStartScreenBtn': () => showScreen('startScreen'),
+        'showHighScoresBtn': showHighScores,
+        'closeHighScoresBtn': closeHighScores,
+        'closeHighScoresFooterBtn': closeHighScores,
+        'showHelpBtn': showHelp,
+        'closeHelpBtn': closeHelp,
+        'closeHelpFooterBtn': closeHelp,
+        'shareScoreBtn': showShareModal,
+        'closeShareBtn': closeShareModal,
+        'closeShareFooterBtn': closeShareModal,
+        'shareTwitter': shareToTwitter,
+        'shareFacebook': shareToFacebook,
+        'shareReddit': shareToReddit,
+        'copyScore': copyScoreToClipboard,
+        'audioToggle': () => soundSystem?.toggle(),
+        'installPWABtn': () => window.installPWA && window.installPWA(),
+        'hideInstallBtn': () => window.hideInstallPrompt && window.hideInstallPrompt()
+    };
+    
+    // Setup all button event listeners
+    Object.entries(buttons).forEach(([buttonId, handler]) => {
+        const button = document.getElementById(buttonId);
+        if (button && handler) {
+            // Remove existing listeners
+            button.onclick = null;
+            
+            // Add new listener with error handling
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`🔘 Button clicked: ${buttonId}`);
+                
+                try {
+                    handler();
+                } catch (error) {
+                    console.error(`❌ Button handler failed for ${buttonId}:`, error);
+                    if (window.analytics) {
+                        window.analytics.trackError(error, `button_${buttonId}`);
+                    }
+                }
+            });
+            console.log(`✅ Event listener attached to: ${buttonId}`);
+        } else if (buttonId !== 'installPWABtn' && buttonId !== 'hideInstallBtn') {
+            // Don't warn about PWA buttons as they might not exist
+            console.warn(`⚠️ Button not found or handler missing: ${buttonId}`);
+        }
+    });
+    
+    // Setup modal close buttons (X buttons)
+    const modals = ['highScoresModal', 'helpModal', 'shareModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            // Close on backdrop click
+            modal.addEventListener('click', (e) => {
+                if (e.target === modal) {
+                    const closeFunction = modalId === 'shareModal' ? closeShareModal :
+                                        modalId === 'helpModal' ? closeHelp : closeHighScores;
+                    closeFunction();
+                }
+            });
+        }
+    });
+    
+    // Setup keyboard navigation
+    document.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+            // Close any open modals
+            const openModal = document.querySelector('.modal-overlay:not(.hidden)');
+            if (openModal) {
+                const modalId = openModal.id;
+                if (modalId === 'shareModal') closeShareModal();
+                else if (modalId === 'helpModal') closeHelp();
+                else if (modalId === 'highScoresModal') closeHighScores();
+            }
+        }
+    });
+    
+    console.log('✅ Enhanced navigation system initialized successfully!');
+}
+
 // === GLOBAL FUNCTION ASSIGNMENTS ===
 window.startGame = startGame;
 window.restartGame = () => startGame();
@@ -2660,8 +2452,8 @@ window.showHighScores = () => {
 window.closeHighScores = () => showScreen('startScreen');
 window.showHelp = () => showScreen('helpModal');
 window.closeHelp = () => showScreen('startScreen');
-window.showShareModal = () => showScreen('shareModal');
-window.closeShareModal = () => showScreen('gameOver');
+window.showShareModal = showShareModal;
+window.closeShareModal = closeShareModal;
 window.saveHighScore = saveHighScore;
 window.displayHighScores = displayHighScores;
 window.clearHighScores = clearHighScores;
@@ -2714,50 +2506,6 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 });
 
-function setupNavigationSystem() {
-    console.log('🔗 Setting up navigation system...');
-    
-    const buttons = {
-        'startGameBtn': startGame,
-        'restartGameBtn': () => startGame(),
-        'showStartScreenBtn': () => showScreen('startScreen'),
-        'showHighScoresBtn': window.showHighScores,
-        'closeHighScoresBtn': window.closeHighScores,
-        'closeHighScoresFooterBtn': window.closeHighScores,
-        'showHelpBtn': window.showHelp,
-        'closeHelpBtn': window.closeHelp,
-        'closeHelpFooterBtn': window.closeHelp,
-        'shareScoreBtn': window.showShareModal,
-        'audioToggle': () => soundSystem?.toggle()
-    };
-    
-    Object.entries(buttons).forEach(([buttonId, handler]) => {
-        const button = document.getElementById(buttonId);
-        if (button && handler) {
-            button.onclick = null;
-            button.addEventListener('click', (e) => {
-                e.preventDefault();
-                e.stopPropagation();
-                console.log(`🔘 Button clicked: ${buttonId}`);
-                
-                try {
-                    handler();
-                } catch (error) {
-                    console.error(`❌ Button handler failed for ${buttonId}:`, error);
-                    if (window.analytics) {
-                        window.analytics.trackError(error, `button_${buttonId}`);
-                    }
-                }
-            });
-            console.log(`✅ Event listener attached to: ${buttonId}`);
-        } else {
-            console.warn(`⚠️ Button not found or handler missing: ${buttonId}`);
-        }
-    });
-    
-    console.log('✅ Navigation system initialized successfully!');
-}
-
 // Make game state available for debugging
 if (window.GameConfig?.features.debugMode) {
     window.debug = window.debug || {};
@@ -2766,3 +2514,425 @@ if (window.GameConfig?.features.debugMode) {
 }
 
 console.log('✅ COMPLETE COMMERCIAL House Head Chase loaded with all features!');
+
+function drawFlashlight() {
+    const flashlight = gameState.flashlight;
+    if (!flashlight || !flashlight.on || flashlight.intensity <= 0) return;
+    
+    const ctx = gameState.ctx;
+    const player = gameState.player;
+    if (!ctx || !player) return;
+    
+    const intensity = flashlight.intensity;
+    
+    // Create radial gradient for flashlight effect
+    const gradient = ctx.createRadialGradient(
+        player.x, player.y, 0,
+        player.x, player.y, flashlight.radius
+    );
+    
+    gradient.addColorStop(0, `rgba(255, 255, 200, ${intensity * 0.6})`);
+    gradient.addColorStop(0.3, `rgba(255, 255, 150, ${intensity * 0.4})`);
+    gradient.addColorStop(0.7, `rgba(255, 255, 100, ${intensity * 0.2})`);
+    gradient.addColorStop(1, 'rgba(255, 255, 50, 0)');
+    
+    ctx.save();
+    ctx.globalCompositeOperation = 'screen';
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+    ctx.restore();
+}
+
+function drawBackground() {
+    const ctx = gameState.ctx;
+    const canvas = gameState.canvas;
+    if (!ctx || !canvas) return;
+    
+    // Gradient background
+    const gradient = ctx.createRadialGradient(
+        canvas.width/2, canvas.height/2, 0,
+        canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
+    );
+    gradient.addColorStop(0, '#001122');
+    gradient.addColorStop(1, '#000000');
+    ctx.fillStyle = gradient;
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Animated stars
+    const time = Date.now() * 0.001;
+    ctx.fillStyle = '#ffffff';
+    
+    for (let i = 0; i < 50; i++) {
+        const x = (i * 23.7 + time * 10) % canvas.width;
+        const y = (i * 37.3) % (canvas.height - 80);
+        const brightness = Math.sin(time + i) * 0.5 + 0.5;
+        ctx.globalAlpha = brightness * 0.3;
+        ctx.fillRect(x, y, 1, 1);
+    }
+    ctx.globalAlpha = 1;
+    
+    // Ground
+    const groundGradient = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
+    groundGradient.addColorStop(0, '#1a2a1a');
+    groundGradient.addColorStop(1, '#0a1a0a');
+    ctx.fillStyle = groundGradient;
+    ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
+}
+
+// === GAME SYSTEMS ===
+function spawnEnemy() {
+    if (!gameState.config || !gameState.canvas) return;
+    
+    const currentTime = Date.now();
+    if (currentTime - gameState.lastEnemySpawn < gameState.spawnRate) return;
+    
+    // Determine enemy type based on level and difficulty
+    const rand = Math.random();
+    const bigHouseChance = Math.min(0.25 + (gameState.level - 1) * 0.05, 0.4);
+    const enemyType = rand < bigHouseChance ? 'BIG' : 'SMALL';
+    
+    // Find safe spawn position
+    const spawnPosition = findSafeSpawnPosition();
+    if (!spawnPosition) {
+        console.warn('⚠️ Could not find safe spawn position');
+        return;
+    }
+    
+    // Create enemy
+    const enemy = new Enemy(spawnPosition.x, spawnPosition.y, enemyType, gameState.config);
+    gameState.enemies.push(enemy);
+    gameState.totalEnemiesSpawned++;
+    gameState.stats.enemiesEncountered++;
+    gameState.lastEnemySpawn = currentTime;
+    
+    // Update spawn rate with balanced scaling
+    gameState.spawnRate = Math.max(1500, 3500 - (gameState.level - 1) * 150);
+    
+    // Update debug display
+    updateDebugDisplay();
+    
+    if (gameState.config?.features.consoleLogging) {
+        console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
+    }
+}
+
+function findSafeSpawnPosition() {
+    const canvas = gameState.canvas;
+    const player = gameState.player;
+    if (!canvas || !player) return null;
+    
+    let attempts = 0;
+    const maxAttempts = 30;
+    
+    while (attempts < maxAttempts) {
+        const spawnMargin = 120;
+        const centerAvoidanceRadius = Math.min(200, Math.max(canvas.width, canvas.height) * 0.25);
+        
+        // Try to spawn away from center and other enemies
+        const angle = Math.random() * Math.PI * 2;
+        const distance = spawnMargin + Math.random() * (centerAvoidanceRadius - spawnMargin);
+        const centerX = canvas.width / 2;
+        const centerY = canvas.height / 2;
+        
+        let x = centerX + Math.cos(angle) * distance;
+        let y = centerY + Math.sin(angle) * distance;
+        
+        // Clamp to boundaries
+        x = Math.max(80, Math.min(canvas.width - 80, x));
+        y = Math.max(150, Math.min(canvas.height - 80, y));
+        
+        // Check distance from player
+        const playerDistance = Math.sqrt(
+            Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
+        );
+        
+        // Check distance from other enemies
+        let tooCloseToOthers = false;
+        const minEnemyDistance = 100;
+        
+        for (const enemy of gameState.enemies) {
+            const enemyDistance = Math.sqrt(
+                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
+            );
+            if (enemyDistance < minEnemyDistance) {
+                tooCloseToOthers = true;
+                break;
+            }
+        }
+        
+        if (playerDistance > 180 && !tooCloseToOthers) {
+            return { x, y };
+        }
+        
+        attempts++;
+    }
+    
+    return null;
+}
+
+function spawnPowerup() {
+    if (!gameState.config || !gameState.canvas) return;
+    
+    const currentTime = Date.now();
+    if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
+    
+    // Determine powerup type based on weights and game state
+    const powerupType = selectPowerupType();
+    
+    // Find safe spawn position
+    const spawnPosition = findSafePowerupPosition();
+    if (!spawnPosition) {
+        console.warn('⚠️ Could not find safe powerup position');
+        return;
+    }
+    
+    const powerup = new Powerup(spawnPosition.x, spawnPosition.y, powerupType, gameState.config);
+    gameState.powerups.push(powerup);
+    gameState.lastPowerupSpawn = currentTime;
+    
+    // Adjust spawn rate
+    gameState.powerupSpawnRate = Math.max(8000, 12000 - (gameState.level - 1) * 200);
+    
+    if (gameState.config?.features.consoleLogging) {
+        console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
+    }
+}
+
+function selectPowerupType() {
+    const player = gameState.player;
+    if (!player) return 'HEALTH';
+    
+    // Intelligent powerup selection based on player state
+    if (player.health < 30) {
+        return 'HEALTH'; // Prioritize health when low
+    }
+    
+    const rand = Math.random();
+    let cumulativeWeight = 0;
+    
+    for (const [type, config] of Object.entries(PowerupTypes)) {
+        cumulativeWeight += config.spawnWeight;
+        if (rand < cumulativeWeight) {
+            return type;
+        }
+    }
+    
+    return 'HEALTH'; // Fallback
+}
+
+function findSafePowerupPosition() {
+    const canvas = gameState.canvas;
+    const player = gameState.player;
+    if (!canvas || !player) return null;
+    
+    let attempts = 0;
+    const maxAttempts = 20;
+    
+    while (attempts < maxAttempts) {
+        const x = 80 + Math.random() * (canvas.width - 160);
+        const y = 120 + Math.random() * (canvas.height - 200);
+        
+        const playerDistance = Math.sqrt(
+            Math.pow(x - player.x, 2) + Math.pow(y - player.y, 2)
+        );
+        
+        let tooCloseToEnemy = false;
+        for (const enemy of gameState.enemies) {
+            const enemyDistance = Math.sqrt(
+                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
+            );
+            if (enemyDistance < 80) {
+                tooCloseToEnemy = true;
+                break;
+            }
+        }
+        
+        if (playerDistance > 100 && !tooCloseToEnemy) {
+            return { x, y };
+        }
+        
+        attempts++;
+    }
+    
+    return null;
+}
+
+function updateGame() {
+    if (!gameState.running) return;
+    
+    const currentTime = Date.now();
+    
+    // Update performance tracking
+    updatePerformanceMetrics();
+    
+    // Update flashlight
+    updateFlashlight();
+    
+    // Update player effects
+    updatePlayerEffects();
+    
+    // Update active powerups
+    updateActivePowerups();
+    
+    // Update game objects
+    gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
+    gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
+    
+    // Spawn new entities
+    spawnEnemy();
+    spawnPowerup();
+    
+    // Update score and level
+    updateScoreAndLevel(currentTime);
+    
+    // Update camera effects
+    updateCameraEffects();
+    
+    // Check game over condition
+    if (gameState.player.health <= 0) {
+        endGame();
+    }
+    
+    // Update UI
+    updateUI();
+}
+
+function updatePerformanceMetrics() {
+    gameState.performance.frameCount++;
+    
+    const currentTime = Date.now();
+    if (currentTime - gameState.performance.lastFPSUpdate > 1000) {
+        gameState.performance.currentFPS = Math.round(
+            (gameState.performance.frameCount * 1000) / 
+            (currentTime - gameState.performance.lastFPSUpdate)
+        );
+        gameState.performance.frameCount = 0;
+        gameState.performance.lastFPSUpdate = currentTime;
+        
+        updateDebugDisplay();
+    }
+}
+
+function updateFlashlight() {
+    const flashlight = gameState.flashlight;
+    if (!flashlight) return;
+    
+    if (flashlight.on) {
+        flashlight.intensity = Math.min(1, flashlight.intensity + flashlight.fadeSpeed);
+    } else {
+        flashlight.intensity = Math.max(0, flashlight.intensity - flashlight.fadeSpeed);
+    }
+}
+
+function updatePlayerEffects() {
+    const player = gameState.player;
+    if (!player) return;
+    
+    // Update shield
+    if (player.shieldTime > 0) {
+        player.shieldTime -= 16;
+    }
+    
+    // Update speed boost
+    if (player.speedBoostTime > 0) {
+        player.speedBoostTime -= 16;
+        if (player.speedBoostTime <= 0) {
+            player.speed = player.baseSpeed;
+        }
+    }
+    
+    // Update invulnerability
+    if (player.invulnerabilityTime > 0) {
+        player.invulnerabilityTime -= 16;
+    }
+}
+
+function updateActivePowerups() {
+    gameState.activePowerups = gameState.activePowerups.filter(powerup => {
+        powerup.timeLeft -= 16;
+        return powerup.timeLeft > 0;
+    });
+}
+
+function updateScoreAndLevel(currentTime) {
+    // Update score
+    if (currentTime - gameState.lastScoreUpdate > 1000) {
+        gameState.score++;
+        gameState.lastScoreUpdate = currentTime;
+    }
+    
+    // Check for level up
+    const newLevel = Math.floor(gameState.score / 45) + 1;
+    if (newLevel > gameState.level) {
+        gameState.level = newLevel;
+        gameState.stats.highestLevel = Math.max(gameState.stats.highestLevel, newLevel);
+        gameState.difficulty = 1 + (gameState.level - 1) * 0.15;
+        
+        soundSystem.play('levelup');
+        showLevelUpEffect();
+        
+        // Track level up
+        if (window.analytics) {
+            window.analytics.trackLevelUp(newLevel, gameState.score, gameState.score);
+        }
+        
+        console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)})`);
+    }
+}
+
+function updateCameraEffects() {
+    if (gameState.camera.shake > 0) {
+        gameState.camera.shake--;
+        gameState.camera.intensity = Math.max(0, gameState.camera.intensity - 0.5);
+    }
+}
+
+function updateDebugDisplay() {
+    if (!gameState.config?.features.debugMode) return;
+    
+    const fpsCounter = document.getElementById('fpsCounter');
+    const enemyCount = document.getElementById('enemyCount');
+    const memoryUsage = document.getElementById('memoryUsage');
+    
+    if (fpsCounter) {
+        fpsCounter.textContent = gameState.performance.currentFPS;
+    }
+    
+    if (enemyCount) {
+        enemyCount.textContent = gameState.enemies.length;
+    }
+    
+    if (memoryUsage && performance.memory) {
+        const memoryMB = Math.round(performance.memory.usedJSHeapSize / (1024 * 1024));
+        memoryUsage.textContent = memoryMB + 'MB';
+    }
+}
+
+function drawGame() {
+    if (!gameState.running || !gameState.ctx) return;
+    
+    const ctx = gameState.ctx;
+    
+    // Clear canvas
+    ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
+    
+    ctx.save();
+    
+    // Apply camera shake
+    if (gameState.camera.shake > 0) {
+        const shakeX = (Math.random() - 0.5) * gameState.camera.intensity;
+        const shakeY = (Math.random() - 0.5) * gameState.camera.intensity;
+        ctx.translate(shakeX, shakeY);
+    }
+    
+    // Draw game layers
+    drawBackground();
+    drawFlashlight();
+    
+    // Draw game objects
+    gameState.powerups.forEach(powerup => powerup.draw());
+    gameState.enemies.forEach(enemy => enemy.draw());
+    drawPlayer();
+    
+    ctx.restore();
+}
