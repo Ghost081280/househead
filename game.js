@@ -1364,6 +1364,12 @@ function goToStartScreen() {
     console.log('🏠 Going to start screen...');
     gameState.running = false;
     
+    // Disable canvas interaction
+    if (gameState.canvas) {
+        gameState.canvas.classList.remove('active');
+        gameState.canvas.style.pointerEvents = 'none';
+    }
+    
     // Hide all game elements
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('powerupIndicators').classList.add('hidden');
@@ -1565,121 +1571,7 @@ document.addEventListener('DOMContentLoaded', () => {
             startGame();
         });
     }
-    
-    // Restart game button
-    const restartBtn = document.getElementById('restartGameBtn');
-    if (restartBtn) {
-        restartBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🔄 Restart game clicked');
-            restartGame();
-        });
-    }
-    
-    // Show start screen button (from game over)
-    const showStartBtn = document.getElementById('showStartScreenBtn');
-    if (showStartBtn) {
-        showStartBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🏠 Show start screen clicked');
-            goToStartScreen();
-        });
-    }
-    
-    // High scores buttons
-    const showHighScoresBtn = document.getElementById('showHighScoresBtn');
-    if (showHighScoresBtn) {
-        showHighScoresBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🏆 Show high scores clicked');
-            showHighScores();
-        });
-    }
-    
-    const closeHighScoresBtn = document.getElementById('closeHighScoresBtn');
-    if (closeHighScoresBtn) {
-        closeHighScoresBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🚫 Close high scores clicked');
-            closeHighScores();
-        });
-    }
-    
-    const closeHighScoresFooterBtn = document.getElementById('closeHighScoresFooterBtn');
-    if (closeHighScoresFooterBtn) {
-        closeHighScoresFooterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🚫 Close high scores footer clicked');
-            closeHighScores();
-        });
-    }
-    
-    // Help buttons
-    const showHelpBtn = document.getElementById('showHelpBtn');
-    if (showHelpBtn) {
-        showHelpBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('❓ Show help clicked');
-            showHelp();
-        });
-    }
-    
-    const closeHelpBtn = document.getElementById('closeHelpBtn');
-    if (closeHelpBtn) {
-        closeHelpBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🚫 Close help clicked');
-            closeHelp();
-        });
-    }
-    
-    const closeHelpFooterBtn = document.getElementById('closeHelpFooterBtn');
-    if (closeHelpFooterBtn) {
-        closeHelpFooterBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🚫 Close help footer clicked');
-            closeHelp();
-        });
-    }
-    
-    // Share buttons
-    const shareScoreBtn = document.getElementById('shareScoreBtn');
-    if (shareScoreBtn) {
-        shareScoreBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('📤 Share score clicked');
-            showShareModal();
-        });
-    }
-    
-    // Audio toggle
-    const audioToggle = document.getElementById('audioToggle');
-    if (audioToggle) {
-        audioToggle.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🔊 Audio toggle clicked');
-            soundSystem.toggle();
-        });
-    }
-    
-    // PWA install buttons
-    const installAppBtn = document.getElementById('installAppBtn');
-    if (installAppBtn) {
-        installAppBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('📱 Install app clicked');
-            installPWA();
-        });
-    }
-    
-    const dismissInstallBtn = document.getElementById('dismissInstallBtn');
-    if (dismissInstallBtn) {
-        dismissInstallBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('❌ Dismiss install clicked');
-            hideInstallPrompt();
-        });
-    }
+
     
     // Setup window event listeners
     window.addEventListener('resize', resizeCanvas);
