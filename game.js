@@ -1,6 +1,4 @@
-// Key changes needed in the existing game.js file for time-focused gameplay
-
-// === UPDATED GAME STATE ===
+// === FIXED GAME STATE ===
 const gameState = {
     // Core game state
     running: false,
@@ -84,39 +82,56 @@ const gameState = {
     totalEnemiesSpawned: 0
 };
 
-// === UPDATED TIME FORMATTING FUNCTION ===
+// === FIXED TIME FORMATTING FUNCTION ===
 function formatTime(seconds) {
+    if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00';
     const mins = Math.floor(seconds / 60);
-    const secs = seconds % 60;
+    const secs = Math.floor(seconds % 60);
     return `${mins}:${secs.toString().padStart(2, '0')}`;
 }
 
-// === UPDATED TIME CALCULATION ===
+// === FIXED TIME CALCULATION ===
 function getCurrentSurvivalTime() {
-    if (!gameState.startTime) return 0;
+    if (!gameState.startTime || gameState.startTime === 0) return 0;
     return Math.floor((Date.now() - gameState.startTime) / 1000);
 }
 
-// === UPDATED UI FUNCTION ===
+// === FIXED UI UPDATE FUNCTION ===
 function updateUI() {
-    const health = Math.max(0, Math.floor(gameState.player?.health || 0));
-    const maxHealth = gameState.player?.maxHealth || 100;
-    const survivalTime = getCurrentSurvivalTime();
-    
-    const healthEl = document.getElementById('health');
-    const healthFillEl = document.getElementById('healthFill');
-    const survivalTimeEl = document.getElementById('survivalTime');
-    const levelEl = document.getElementById('level');
-    
-    if (healthEl) healthEl.textContent = health;
-    if (healthFillEl) healthFillEl.style.width = (health / maxHealth * 100) + '%';
-    if (survivalTimeEl) survivalTimeEl.textContent = formatTime(survivalTime);
-    if (levelEl) levelEl.textContent = gameState.level;
-    
-    updatePowerupIndicators();
+    try {
+        const health = Math.max(0, Math.floor(gameState.player?.health || 0));
+        const maxHealth = gameState.player?.maxHealth || 100;
+        const survivalTime = getCurrentSurvivalTime();
+        
+        // Update health display
+        const healthEl = document.getElementById('health');
+        const healthFillEl = document.getElementById('healthFill');
+        if (healthEl) healthEl.textContent = health;
+        if (healthFillEl) healthFillEl.style.width = (health / maxHealth * 100) + '%';
+        
+        // Update time display - this was the main issue
+        const survivalTimeEl = document.getElementById('survivalTime');
+        if (survivalTimeEl) {
+            survivalTimeEl.textContent = formatTime(survivalTime);
+        }
+        
+        // Update level display
+        const levelEl = document.getElementById('level');
+        if (levelEl) levelEl.textContent = gameState.level;
+        
+        // Update health bar accessibility
+        const healthBarEl = document.getElementById('healthBar');
+        if (healthBarEl) {
+            healthBarEl.setAttribute('aria-valuenow', health);
+        }
+        
+        updatePowerupIndicators();
+    } catch (error) {
+        console.error('Error updating UI:', error);
+    }
 }
 
-// === UPDATED LEVEL PROGRESSION (TIME-BASED) ===
+// === FIXED LEVEL PROGRESSION (TIME-BASED) ===
 function updateLevelProgression(currentTime) {
     const survivalTime = getCurrentSurvivalTime();
     
@@ -128,11 +143,15 @@ function updateLevelProgression(currentTime) {
         gameState.stats.highestLevel = Math.max(gameState.stats.highestLevel, newLevel);
         gameState.difficulty = 1 + (gameState.level - 1) * 0.15;
         
-        soundSystem.play('levelup');
+        // Play level up sound if sound system is available
+        if (window.soundSystem && typeof window.soundSystem.play === 'function') {
+            window.soundSystem.play('levelup');
+        }
+        
         showLevelUpEffect();
         
         // Track level up with time
-        if (window.analytics) {
+        if (window.analytics && typeof window.analytics.trackLevelUp === 'function') {
             window.analytics.trackLevelUp(newLevel, survivalTime, survivalTime);
         }
         
@@ -145,114 +164,106 @@ function updateLevelProgression(currentTime) {
     }
 }
 
-// === NEW TIME MILESTONE FUNCTION ===
-function showTimeMilestone(survivalTimeSeconds) {
-    const minutes = Math.floor(survivalTimeSeconds / 60);
+// === FIXED START GAME FUNCTION ===
+function startGame() {
+    console.log('🎮 Starting new game...');
     
-    if (minutes === 0) return; // Don't show for less than 1 minute
+    // Reset all game state
+    gameState.running = true;
+    gameState.paused = false;
+    gameState.level = 1;
+    gameState.difficulty = 1;
+    gameState.totalEnemiesSpawned = 0;
     
-    const milestoneDiv = document.createElement('div');
-    milestoneDiv.className = 'time-milestone';
+    // CRITICAL FIX: Set start time when game actually starts
+    gameState.startTime = Date.now();
     
-    let milestoneText = '';
-    let milestoneEmoji = '';
+    // Reset player
+    gameState.player = {
+        x: 400,
+        y: 300,
+        size: 15,
+        health: 100,
+        maxHealth: 100,
+        speed: 3,
+        baseSpeed: 3,
+        isDragging: false,
+        dragOffset: { x: 0, y: 0 },
+        shieldTime: 0,
+        speedBoostTime: 0,
+        velocity: { x: 0, y: 0 },
+        invulnerabilityTime: 0
+    };
     
-    if (minutes === 1) {
-        milestoneText = '1 MINUTE SURVIVED!';
-        milestoneEmoji = '🎯';
-    } else if (minutes === 2) {
-        milestoneText = '2 MINUTES! IMPRESSIVE!';
-        milestoneEmoji = '🔥';
-    } else if (minutes === 3) {
-        milestoneText = '3 MINUTES! AMAZING!';
-        milestoneEmoji = '⭐';
-    } else if (minutes === 5) {
-        milestoneText = '5 MINUTES! LEGENDARY!';
-        milestoneEmoji = '👑';
-    } else if (minutes >= 10) {
-        milestoneText = `${minutes} MINUTES! GODLIKE!`;
-        milestoneEmoji = '🚀';
-    } else {
-        milestoneText = `${minutes} MINUTES SURVIVED!`;
-        milestoneEmoji = '🏆';
-    }
+    // Clear arrays
+    gameState.enemies = [];
+    gameState.powerups = [];
+    gameState.activePowerups = [];
     
-    milestoneDiv.innerHTML = `
-        <h2 style="margin: 0 0 8px 0; font-size: 24px;">${milestoneEmoji} ${milestoneText} ${milestoneEmoji}</h2>
-        <p style="margin: 0; font-size: 14px; opacity: 0.9;">Keep going! You're doing great!</p>
-        <p style="margin: 4px 0 0 0; font-size: 12px; color: #ffdddd;">Level: ${gameState.level}</p>
-    `;
+    // Reset flashlight
+    gameState.flashlight = {
+        on: false,
+        intensity: 0,
+        radius: 200,
+        fadeSpeed: 0.1,
+        batteryLife: 100
+    };
     
-    document.body.appendChild(milestoneDiv);
+    // Reset spawn timers
+    gameState.lastEnemySpawn = 0;
+    gameState.lastPowerupSpawn = 0;
+    gameState.lastLevelUpdate = 0;
     
-    // Add glow effect to time displays
-    document.body.classList.add('time-milestone-active');
+    // Reset camera
+    gameState.camera = {
+        shake: 0,
+        intensity: 0
+    };
     
-    setTimeout(() => {
-        if (document.body.contains(milestoneDiv)) {
-            document.body.removeChild(milestoneDiv);
+    // Initialize canvas if needed
+    if (!gameState.canvas) {
+        gameState.canvas = document.getElementById('gameCanvas');
+        if (gameState.canvas) {
+            gameState.ctx = gameState.canvas.getContext('2d');
+            setupCanvas();
+            setupEventListeners();
         }
-        document.body.classList.remove('time-milestone-active');
-    }, 2000);
-    
-    // Track time milestone
-    if (window.analytics) {
-        window.analytics.trackEvent('time_milestone', {
-            minutes_survived: minutes,
-            level_reached: gameState.level,
-            milestone_type: minutes >= 5 ? 'major' : 'standard'
-        });
-    }
-}
-
-// === UPDATED GAME UPDATE FUNCTION ===
-function updateGame() {
-    if (!gameState.running) return;
-    
-    const currentTime = Date.now();
-    
-    // Update performance tracking
-    updatePerformanceMetrics();
-    
-    // Update flashlight
-    updateFlashlight();
-    
-    // Update player effects
-    updatePlayerEffects();
-    
-    // Update active powerups
-    updateActivePowerups();
-    
-    // Update game objects
-    gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
-    gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
-    
-    // Spawn new entities
-    spawnEnemy();
-    spawnPowerup();
-    
-    // Update level progression (time-based instead of score-based)
-    updateLevelProgression(currentTime);
-    
-    // Update camera effects
-    updateCameraEffects();
-    
-    // Check game over condition
-    if (gameState.player.health <= 0) {
-        endGame();
     }
     
-    // Update UI
-    updateUI();
+    // Show game UI
+    hideAllScreens();
+    showGameUI();
+    
+    // Enable canvas
+    if (gameState.canvas) {
+        gameState.canvas.classList.add('active');
+        gameState.canvas.style.pointerEvents = 'auto';
+        gameState.canvas.focus();
+    }
+    
+    // Start game loop
+    if (!gameState.gameLoopId) {
+        gameState.gameLoopId = setInterval(gameLoop, 16); // ~60fps
+    }
+    
+    console.log('✅ Game started successfully!');
 }
 
-// === UPDATED END GAME FUNCTION ===
+// === FIXED END GAME FUNCTION ===
 function endGame() {
+    console.log('🎮 Ending game...');
+    
     gameState.running = false;
     
     if (gameState.canvas) {
         gameState.canvas.classList.remove('active');
         gameState.canvas.style.pointerEvents = 'none';
+    }
+    
+    // Stop game loop
+    if (gameState.gameLoopId) {
+        clearInterval(gameState.gameLoopId);
+        gameState.gameLoopId = null;
     }
     
     const survivalTime = getCurrentSurvivalTime();
@@ -261,21 +272,27 @@ function endGame() {
     // Save high score (now based on time)
     saveHighScore(survivalTime, gameState.level);
     
-    // Update game over screen with time
-    document.getElementById('finalTime').textContent = formatTime(survivalTime);
-    document.getElementById('finalLevel').textContent = gameState.level;
+    // FIXED: Update game over screen with correct element IDs
+    try {
+        const finalTimeEl = document.getElementById('finalTime');
+        const finalLevelEl = document.getElementById('finalLevel');
+        
+        if (finalTimeEl) finalTimeEl.textContent = formatTime(survivalTime);
+        if (finalLevelEl) finalLevelEl.textContent = gameState.level;
+        
+        console.log(`📊 Final stats - Time: ${formatTime(survivalTime)}, Level: ${gameState.level}`);
+    } catch (error) {
+        console.error('Error updating final stats:', error);
+    }
     
     // Hide HUD
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('powerupIndicators').classList.add('hidden');
-    document.getElementById('flashlightIndicator').classList.add('hidden');
-    document.getElementById('controlsHint').classList.add('hidden');
+    hideGameUI();
     
     // Show game over screen
     showScreen('gameOver');
     
     // Track game over with time
-    if (window.analytics) {
+    if (window.analytics && typeof window.analytics.trackGameOver === 'function') {
         window.analytics.trackGameOver(
             survivalTime,
             gameState.level,
@@ -287,218 +304,434 @@ function endGame() {
     console.log('🎮 Game Over! Survival time:', formatTime(survivalTime));
 }
 
-// === UPDATED SHARE FUNCTIONALITY ===
-function showShareModal() {
-    const shareModal = document.getElementById('shareModal');
-    const shareTimeValue = document.getElementById('shareTimeValue');
-    const shareLevelValue = document.getElementById('shareLevelValue');
-    const shareTextPreview = document.getElementById('shareTextPreview');
+// === UI HELPER FUNCTIONS ===
+function showGameUI() {
+    const hud = document.getElementById('hud');
+    const powerupIndicators = document.getElementById('powerupIndicators');
+    const flashlightIndicator = document.getElementById('flashlightIndicator');
+    const controlsHint = document.getElementById('controlsHint');
     
-    if (!shareModal) {
-        console.error('Share modal not found');
-        return;
-    }
-    
-    // Get current game stats
-    const finalTime = document.getElementById('finalTime')?.textContent || '0:00';
-    const finalLevel = document.getElementById('finalLevel')?.textContent || '1';
-    
-    // Update share modal content
-    if (shareTimeValue) shareTimeValue.textContent = finalTime;
-    if (shareLevelValue) shareLevelValue.textContent = finalLevel;
-    
-    // Generate time-focused share text
-    const shareText = `I just survived for ${finalTime} in House Head Chase! 🏠👾 Reached level ${finalLevel}. Can you beat my survival time? Play free at: ${window.location.href}`;
-    if (shareTextPreview) shareTextPreview.textContent = shareText;
-    
-    // Show modal
-    hideAllScreens();
-    shareModal.classList.remove('hidden');
-    
-    // Track share modal display
-    if (window.analytics) {
-        const timeInSeconds = getCurrentSurvivalTime();
-        window.analytics.trackEvent('share_modal_opened', {
-            survival_time: timeInSeconds,
-            level: parseInt(finalLevel) || 1,
-            time_formatted: finalTime
-        });
-    }
-    
-    console.log('📤 Share modal displayed');
+    if (hud) hud.classList.remove('hidden');
+    if (powerupIndicators) powerupIndicators.classList.remove('hidden');
+    if (flashlightIndicator) flashlightIndicator.classList.remove('hidden');
+    if (controlsHint) controlsHint.classList.remove('hidden');
 }
 
-// === UPDATED HIGH SCORES DISPLAY ===
-function displayHighScores() {
-    console.log('📊 Displaying survival times...');
+function hideGameUI() {
+    const hud = document.getElementById('hud');
+    const powerupIndicators = document.getElementById('powerupIndicators');
+    const flashlightIndicator = document.getElementById('flashlightIndicator');
+    const controlsHint = document.getElementById('controlsHint');
     
-    const listContainer = document.getElementById('highScoresList');
-    if (!listContainer) {
-        console.error('❌ High scores list container not found');
+    if (hud) hud.classList.add('hidden');
+    if (powerupIndicators) powerupIndicators.classList.add('hidden');
+    if (flashlightIndicator) flashlightIndicator.classList.add('hidden');
+    if (controlsHint) controlsHint.classList.add('hidden');
+}
+
+function hideAllScreens() {
+    const screens = ['startScreen', 'gameOver', 'highScoresModal', 'helpModal', 'shareModal'];
+    screens.forEach(screenId => {
+        const screen = document.getElementById(screenId);
+        if (screen) {
+            screen.classList.add('hidden');
+        }
+    });
+}
+
+function showScreen(screenId) {
+    hideAllScreens();
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.classList.remove('hidden');
+    }
+}
+
+// === PLACEHOLDER FUNCTIONS (to be implemented) ===
+function setupCanvas() {
+    if (!gameState.canvas || !gameState.ctx) return;
+    
+    // Basic canvas setup
+    const canvas = gameState.canvas;
+    canvas.width = 800;
+    canvas.height = 600;
+    
+    // Set canvas styles
+    canvas.style.background = '#000';
+    canvas.style.border = '2px solid #333';
+}
+
+function setupEventListeners() {
+    if (!gameState.canvas) return;
+    
+    // Basic event listeners - implement full touch/mouse handling
+    gameState.canvas.addEventListener('mousedown', handleMouseDown);
+    gameState.canvas.addEventListener('mousemove', handleMouseMove);
+    gameState.canvas.addEventListener('mouseup', handleMouseUp);
+    
+    // Touch events
+    gameState.canvas.addEventListener('touchstart', handleTouchStart);
+    gameState.canvas.addEventListener('touchmove', handleTouchMove);
+    gameState.canvas.addEventListener('touchend', handleTouchEnd);
+    
+    // Double click/tap for flashlight
+    gameState.canvas.addEventListener('dblclick', toggleFlashlight);
+}
+
+// === BASIC EVENT HANDLERS ===
+function handleMouseDown(e) {
+    const rect = gameState.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+    
+    // Check if clicking near player
+    const dx = x - gameState.player.x;
+    const dy = y - gameState.player.y;
+    const distance = Math.sqrt(dx * dx + dy * dy);
+    
+    if (distance < 50) {
+        gameState.player.isDragging = true;
+        gameState.player.dragOffset = { x: dx, y: dy };
+    }
+}
+
+function handleMouseMove(e) {
+    if (!gameState.player.isDragging) return;
+    
+    const rect = gameState.canvas.getBoundingClientRect();
+    const x = e.clientX - rect.left - gameState.player.dragOffset.x;
+    const y = e.clientY - rect.top - gameState.player.dragOffset.y;
+    
+    // Keep player in bounds
+    gameState.player.x = Math.max(gameState.player.size, Math.min(gameState.canvas.width - gameState.player.size, x));
+    gameState.player.y = Math.max(gameState.player.size, Math.min(gameState.canvas.height - gameState.player.size, y));
+}
+
+function handleMouseUp(e) {
+    gameState.player.isDragging = false;
+}
+
+function handleTouchStart(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('mousedown', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    gameState.canvas.dispatchEvent(mouseEvent);
+}
+
+function handleTouchMove(e) {
+    e.preventDefault();
+    const touch = e.touches[0];
+    const mouseEvent = new MouseEvent('mousemove', {
+        clientX: touch.clientX,
+        clientY: touch.clientY
+    });
+    gameState.canvas.dispatchEvent(mouseEvent);
+}
+
+function handleTouchEnd(e) {
+    e.preventDefault();
+    const mouseEvent = new MouseEvent('mouseup', {});
+    gameState.canvas.dispatchEvent(mouseEvent);
+}
+
+function toggleFlashlight() {
+    gameState.flashlight.on = !gameState.flashlight.on;
+    console.log('🔦 Flashlight:', gameState.flashlight.on ? 'ON' : 'OFF');
+}
+
+// === BASIC GAME LOOP ===
+function gameLoop() {
+    if (!gameState.running) return;
+    
+    updateGame();
+    render();
+}
+
+function updateGame() {
+    const currentTime = Date.now();
+    
+    // Update player effects
+    updatePlayerEffects();
+    
+    // Update flashlight
+    updateFlashlight();
+    
+    // Update level progression
+    updateLevelProgression(currentTime);
+    
+    // Basic enemy spawning
+    if (currentTime - gameState.lastEnemySpawn > gameState.spawnRate) {
+        spawnEnemy();
+        gameState.lastEnemySpawn = currentTime;
+    }
+    
+    // Check game over
+    if (gameState.player.health <= 0) {
+        endGame();
         return;
     }
     
-    try {
-        const config = window.GameConfig;
-        const storageKey = config ? config.utils.getStorageKey('highScores') : 'houseHeadChase_highScores';
+    // Update UI
+    updateUI();
+}
+
+function render() {
+    if (!gameState.ctx || !gameState.canvas) return;
+    
+    const ctx = gameState.ctx;
+    const canvas = gameState.canvas;
+    
+    // Clear canvas
+    ctx.fillStyle = '#000';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    
+    // Draw player
+    ctx.fillStyle = '#4af';
+    ctx.beginPath();
+    ctx.arc(gameState.player.x, gameState.player.y, gameState.player.size, 0, Math.PI * 2);
+    ctx.fill();
+    
+    // Draw flashlight effect
+    if (gameState.flashlight.on && gameState.flashlight.intensity > 0) {
+        const gradient = ctx.createRadialGradient(
+            gameState.player.x, gameState.player.y, 0,
+            gameState.player.x, gameState.player.y, gameState.flashlight.radius * gameState.flashlight.intensity
+        );
+        gradient.addColorStop(0, 'rgba(255, 255, 200, 0.3)');
+        gradient.addColorStop(0.5, 'rgba(255, 255, 200, 0.1)');
+        gradient.addColorStop(1, 'rgba(255, 255, 200, 0)');
         
+        ctx.fillStyle = gradient;
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+    }
+}
+
+// === BASIC UPDATE FUNCTIONS ===
+function updatePlayerEffects() {
+    // Update shield time
+    if (gameState.player.shieldTime > 0) {
+        gameState.player.shieldTime -= 16;
+    }
+    
+    // Update speed boost time
+    if (gameState.player.speedBoostTime > 0) {
+        gameState.player.speedBoostTime -= 16;
+        gameState.player.speed = gameState.player.baseSpeed * 2;
+    } else {
+        gameState.player.speed = gameState.player.baseSpeed;
+    }
+    
+    // Update invulnerability
+    if (gameState.player.invulnerabilityTime > 0) {
+        gameState.player.invulnerabilityTime -= 16;
+    }
+}
+
+function updateFlashlight() {
+    const target = gameState.flashlight.on ? 1 : 0;
+    const current = gameState.flashlight.intensity;
+    
+    if (Math.abs(current - target) > 0.01) {
+        gameState.flashlight.intensity += (target - current) * gameState.flashlight.fadeSpeed;
+    } else {
+        gameState.flashlight.intensity = target;
+    }
+}
+
+function spawnEnemy() {
+    // Basic enemy spawning - implement full enemy system later
+    console.log('👾 Enemy spawned (placeholder)');
+}
+
+function updatePowerupIndicators() {
+    const container = document.getElementById('powerupIndicators');
+    if (!container) return;
+    
+    // Clear existing indicators
+    container.innerHTML = '';
+    
+    // Show active powerups
+    if (gameState.player.shieldTime > 0) {
+        const shield = document.createElement('div');
+        shield.className = 'powerup-indicator';
+        shield.innerHTML = '🛡️';
+        container.appendChild(shield);
+    }
+    
+    if (gameState.player.speedBoostTime > 0) {
+        const speed = document.createElement('div');
+        speed.className = 'powerup-indicator';
+        speed.innerHTML = '⚡';
+        container.appendChild(speed);
+    }
+}
+
+function showLevelUpEffect() {
+    console.log('🎊 Level up effect (placeholder)');
+}
+
+function showTimeMilestone(survivalTimeSeconds) {
+    const minutes = Math.floor(survivalTimeSeconds / 60);
+    
+    if (minutes === 0) return;
+    
+    console.log(`🏆 Time milestone: ${minutes} minutes survived!`);
+    
+    // Create simple milestone notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 20px;
+        right: 20px;
+        background: #ffaa44;
+        color: white;
+        padding: 10px 20px;
+        border-radius: 5px;
+        font-weight: bold;
+        z-index: 9999;
+    `;
+    notification.textContent = `${minutes} minute${minutes > 1 ? 's' : ''} survived! 🏆`;
+    
+    document.body.appendChild(notification);
+    
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 3000);
+}
+
+// === HIGH SCORE FUNCTIONS ===
+function saveHighScore(survivalTime, level) {
+    try {
+        const storageKey = 'houseHeadChase_highScores';
         let highScores = [];
+        
         try {
             const stored = localStorage.getItem(storageKey);
             if (stored) {
                 highScores = JSON.parse(stored);
             }
         } catch (e) {
-            console.error('Error loading high scores for display:', e);
+            console.error('Error loading existing high scores:', e);
         }
         
-        if (highScores.length === 0) {
-            listContainer.innerHTML = `
-                <div style="text-align: center; padding: 40px; color: #888;">
-                    <div style="font-size: 48px; margin-bottom: 16px;">⏰</div>
-                    <h3>No Survival Times Yet!</h3>
-                    <p>Be the first to set a record.<br>Survive as long as you can!</p>
-                </div>
-            `;
-            return;
+        const newScore = {
+            score: survivalTime,
+            level: level,
+            date: new Date().toISOString().split('T')[0],
+            timestamp: Date.now()
+        };
+        
+        highScores.push(newScore);
+        highScores.sort((a, b) => b.score - a.score);
+        highScores = highScores.slice(0, 10); // Keep top 10
+        
+        localStorage.setItem(storageKey, JSON.stringify(highScores));
+        
+        // Check if this is a new high score
+        if (highScores[0].score === survivalTime) {
+            showNewHighScoreEffect(survivalTime);
         }
         
-        let html = '<div style="display: flex; flex-direction: column; gap: 8px;">';
-        
-        highScores.forEach((record, index) => {
-            const date = new Date(record.date);
-            const dateStr = date.toLocaleDateString();
-            const timeStr = date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            
-            const medals = ['🥇', '🥈', '🥉'];
-            const medal = index < 3 ? medals[index] : `#${index + 1}`;
-            
-            const isRecent = Date.now() - record.timestamp < 24 * 60 * 60 * 1000; // Last 24 hours
-            const survivalTimeFormatted = formatTime(record.score);
-            
-            html += `
-                <div class="high-score-item survival-time-item ${isRecent ? 'recent-score' : ''}" style="
-                    display: flex; 
-                    justify-content: space-between; 
-                    align-items: center; 
-                    padding: 12px 16px; 
-                    background: ${isRecent ? 'rgba(255, 170, 68, 0.15)' : 'rgba(255, 170, 68, 0.08)'}; 
-                    border: 1px solid rgba(255, 170, 68, 0.3); 
-                    border-radius: 8px;
-                    transition: all 0.3s ease;
-                    ${isRecent ? 'box-shadow: 0 0 15px rgba(255, 170, 68, 0.3);' : ''}
-                ">
-                    <div style="display: flex; align-items: center; gap: 12px;">
-                        <span style="font-size: 20px; min-width: 35px; text-align: center;">${medal}</span>
-                        <div>
-                            <div class="survival-time-value" style="font-weight: bold; color: #ffaa44; font-size: 16px;">
-                                ${survivalTimeFormatted}
-                                ${isRecent ? '<span style="color: #ff6644; font-size: 12px; margin-left: 8px;">NEW!</span>' : ''}
-                            </div>
-                            <div style="font-size: 11px; color: #888; margin-top: 2px;">
-                                Level ${record.level} • ${dateStr} ${timeStr}
-                            </div>
-                        </div>
-                    </div>
-                    <div style="text-align: right; font-size: 12px; color: #666;">
-                        <div>${survivalTimeFormatted}</div>
-                        <div>L${record.level}</div>
-                    </div>
-                </div>
-            `;
-        });
-        
-        html += '</div>';
-        
-        // Add clear scores button if there are scores
-        html += `
-            <div style="text-align: center; margin-top: 20px; padding-top: 15px; border-top: 1px solid rgba(255, 255, 255, 0.1);">
-                <button id="clearScoresBtn" class="btn secondary" style="font-size: 12px; min-width: auto; padding: 6px 12px;" 
-                        onclick="clearHighScores()">
-                    🗑️ Clear All Times
-                </button>
-            </div>
-        `;
-        
-        listContainer.innerHTML = html;
-        
-        // Track high scores viewed
-        if (window.analytics) {
-            window.analytics.trackEvent('survival_times_viewed', {
-                total_records: highScores.length,
-                user_best_time: highScores[0]?.score || 0
-            });
-        }
-        
+        console.log('💾 High score saved:', formatTime(survivalTime));
     } catch (error) {
-        console.error('❌ Error displaying survival times:', error);
-        listContainer.innerHTML = `
-            <div style="text-align: center; padding: 20px; color: #ff4444;">
-                <p>❌ Error loading survival times</p>
-                <button onclick="displayHighScores()" class="btn secondary" style="margin-top: 10px;">
-                    Try Again
-                </button>
-            </div>
-        `;
+        console.error('Error saving high score:', error);
     }
 }
 
-// === UPDATED NEW HIGH SCORE EFFECT ===
 function showNewHighScoreEffect(survivalTimeSeconds) {
-    // Create achievement notification
-    const achievement = document.createElement('div');
-    achievement.className = 'achievement-notification';
-    const timeFormatted = formatTime(survivalTimeSeconds);
+    console.log('🏆 New high score effect:', formatTime(survivalTimeSeconds));
     
-    achievement.innerHTML = `
-        <div class="achievement-content">
-            <span class="achievement-icon">🏆</span>
-            <div>
-                <div style="font-weight: bold; color: #ffaa44;">NEW BEST TIME!</div>
-                <div style="font-size: 14px;">${timeFormatted} survived</div>
-            </div>
-        </div>
+    // Simple high score notification
+    const notification = document.createElement('div');
+    notification.style.cssText = `
+        position: fixed;
+        top: 50%;
+        left: 50%;
+        transform: translate(-50%, -50%);
+        background: linear-gradient(45deg, #ffaa44, #ff6644);
+        color: white;
+        padding: 20px 30px;
+        border-radius: 15px;
+        font-weight: bold;
+        z-index: 9000;
+        text-align: center;
+        box-shadow: 0 8px 32px rgba(255, 170, 68, 0.6);
+    `;
+    notification.innerHTML = `
+        <h3 style="margin: 0 0 10px 0;">🏆 NEW BEST TIME! 🏆</h3>
+        <p style="margin: 0; font-size: 18px;">${formatTime(survivalTimeSeconds)}</p>
     `;
     
-    // Add to achievement notification area or create floating element
-    const gameOverScreen = document.getElementById('gameOver');
-    const achievementContainer = gameOverScreen?.querySelector('#achievementNotification');
+    document.body.appendChild(notification);
     
-    if (achievementContainer) {
-        achievementContainer.innerHTML = '';
-        achievementContainer.appendChild(achievement);
-        achievementContainer.classList.remove('hidden');
-    } else {
-        // Create floating achievement
-        achievement.style.cssText = `
-            position: fixed;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: linear-gradient(45deg, #ffaa44, #ff6644);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            font-weight: bold;
-            z-index: 9000;
-            box-shadow: 0 8px 32px rgba(255, 170, 68, 0.6);
-            animation: achievementBounce 0.8s ease-out;
-        `;
-        
-        document.body.appendChild(achievement);
-        
-        setTimeout(() => {
-            if (document.body.contains(achievement)) {
-                document.body.removeChild(achievement);
-            }
-        }, 3000);
-    }
-    
-    // Play celebration sound
-    soundSystem.play('levelup', 440, 0.8, 0.4);
-    
-    console.log('🏆 New best time celebration displayed!');
+    setTimeout(() => {
+        if (document.body.contains(notification)) {
+            document.body.removeChild(notification);
+        }
+    }, 3000);
 }
 
-// This represents the key changes needed - the complete file would include all the 
-// previous functionality but with these time-focused updates integrated throughout
+// === NAVIGATION FUNCTIONS ===
+function restartGame() {
+    startGame();
+}
+
+function goToStartScreen() {
+    gameState.running = false;
+    if (gameState.gameLoopId) {
+        clearInterval(gameState.gameLoopId);
+        gameState.gameLoopId = null;
+    }
+    hideAllScreens();
+    showScreen('startScreen');
+}
+
+// === INITIALIZATION ===
+document.addEventListener('DOMContentLoaded', function() {
+    console.log('🎮 House Head Chase - Initializing...');
+    
+    // Initialize game when DOM is ready
+    setupEventBindings();
+    
+    // Show start screen
+    showScreen('startScreen');
+    
+    console.log('✅ Game initialized successfully!');
+});
+
+function setupEventBindings() {
+    // Start game button
+    const startBtn = document.getElementById('startGameBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+    }
+    
+    // Restart game button
+    const restartBtn = document.getElementById('restartGameBtn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', restartGame);
+    }
+    
+    // Go to start screen button
+    const homeBtn = document.getElementById('showStartScreenBtn');
+    if (homeBtn) {
+        homeBtn.addEventListener('click', goToStartScreen);
+    }
+    
+    // Audio toggle
+    const audioBtn = document.getElementById('audioToggle');
+    if (audioBtn) {
+        audioBtn.addEventListener('click', function() {
+            if (window.soundSystem && typeof window.soundSystem.toggle === 'function') {
+                window.soundSystem.toggle();
+            }
+        });
+    }
+    
+    console.log('🎮 Event bindings setup complete');
+}
