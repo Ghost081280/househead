@@ -1314,37 +1314,66 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Setup button event listeners
+    // Setup all button event listeners with comprehensive error handling
     const buttons = {
+        // Game flow buttons
         'startGameBtn': startGame,
         'restartGameBtn': restartGame,
         'showStartScreenBtn': showStartScreen,
+        
+        // Modal buttons
         'showHighScoresBtn': showHighScores,
         'closeHighScoresBtn': closeHighScores,
         'closeHighScoresFooterBtn': closeHighScores,
         'showHelpBtn': showHelp,
         'closeHelpBtn': closeHelp,
         'closeHelpFooterBtn': closeHelp,
+        
+        // Share buttons
+        'shareScoreBtn': showShareModal,
+        'closeShareBtn': closeShareModal,
+        'closeShareFooterBtn': closeShareModal,
+        'shareTwitterBtn': () => shareScore('twitter'),
+        'shareFacebookBtn': () => shareScore('facebook'),
+        'copyScoreBtn': () => shareScore('copy'),
+        
+        // PWA install buttons
+        'installAppBtn': installPWA,
+        'dismissInstallBtn': hideInstallPrompt,
+        
+        // Audio toggle
         'audioToggle': () => soundSystem.toggle()
     };
 
+    // Attach all button listeners
     for (const [id, handler] of Object.entries(buttons)) {
         const element = document.getElementById(id);
         if (element) {
-            element.addEventListener('click', handler);
+            element.addEventListener('click', (e) => {
+                e.preventDefault();
+                try {
+                    handler();
+                } catch (error) {
+                    console.error(`❌ Error in ${id} handler:`, error);
+                }
+            });
             console.log(`✅ ${id} button attached`);
         } else {
             console.warn(`⚠️ Button ${id} not found`);
         }
     }
     
+    // Setup window event listeners
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
+    
+    // Initialize PWA features
+    setupPWAInstall();
     
     // Make sure start screen is visible initially
     showStartScreen();
     
-    console.log('🎮 COMPLETE FIXED GAME READY TO PLAY!');
+    console.log('🎮 COMPLETE FIXED GAME WITH FULL FEATURES READY!');
 });
 
-console.log('✅ COMPLETE FIXED Game script loaded successfully!');
+console.log('✅ COMPLETE FIXED Game script with all features loaded successfully!');
