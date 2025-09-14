@@ -353,7 +353,8 @@
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
             <div class="loading-house">
-                <img src="./images/HouseHead.clear.svg?v=1" alt="House Head" class="loading-house-image">
+                <!-- Removed broken image reference -->
+                <div class="loading-house-placeholder">🏠</div>
             </div>
             <h2>Loading House Head Chase...</h2>
             <div class="loading-bar">
@@ -445,7 +446,7 @@
             }, 100);
         }
         
-        // Share modal functions - Enhanced for better compatibility
+        // Enhanced share modal functions
         function showShareModal() {
             console.log('📤 Showing share modal...');
             
@@ -600,15 +601,6 @@ Play now: https://www.househeadchase.com`;
                     }, 500);
                 }, 1500);
             }
-            
-            // Force update button text in case of caching issues
-            setTimeout(() => {
-                const helpBtn = document.getElementById('showHelpBtn');
-                if (helpBtn && helpBtn.textContent.includes('HOW TO PLAY')) {
-                    helpBtn.innerHTML = '❓ HELP';
-                    console.log('🔧 Force updated help button text');
-                }
-            }, 100);
         });
         
         // Performance tracking
