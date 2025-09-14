@@ -94,9 +94,9 @@ const PowerupTypes = {
         emoji: '💚',
         color: '#44ff44',
         effect: 'health',
-        value: 30,
+        value: 35,
         duration: 0,
-        spawnWeight: 0.4
+        spawnWeight: 0.5
     },
     SHIELD: {
         name: 'Shield',
@@ -104,7 +104,7 @@ const PowerupTypes = {
         color: '#4488ff',
         effect: 'shield',
         value: 0,
-        duration: 5000,
+        duration: 6000,
         spawnWeight: 0.3
     },
     SPEED: {
@@ -112,9 +112,9 @@ const PowerupTypes = {
         emoji: '⚡',
         color: '#ffaa44',
         effect: 'speed',
-        value: 2,
-        duration: 8000,
-        spawnWeight: 0.3
+        value: 1.8,
+        duration: 10000,
+        spawnWeight: 0.2
     }
 };
 
@@ -267,11 +267,11 @@ const gameState = {
     player: {
         x: 400,
         y: 300,
-        size: 15,
+        size: 18,
         health: 100,
         maxHealth: 100,
-        speed: 3,
-        baseSpeed: 3,
+        speed: 3.5,
+        baseSpeed: 3.5,
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
@@ -293,8 +293,8 @@ const gameState = {
     lastEnemySpawn: 0,
     lastPowerupSpawn: 0,
     lastScoreUpdate: 0,
-    spawnRate: 3000,
-    powerupSpawnRate: 12000,
+    spawnRate: 4000,
+    powerupSpawnRate: 10000,
     input: {
         lastTap: 0,
         doubleTapDelay: 300
@@ -313,22 +313,22 @@ const EnemyTypes = {
     SMALL: {
         name: 'Small House',
         size: 25,
-        speed: 1.0,
-        damage: 15,
+        speed: 0.8,
+        damage: 12,
         spawnWeight: 0.7,
         color: '#4a3a2a',
-        activationTime: 2000,
+        activationTime: 2500,
         wanderRadius: 100,
         huntRadius: 180
     },
     BIG: {
         name: 'Big House',
         size: 40,
-        speed: 0.6,
-        damage: 25,
+        speed: 0.5,
+        damage: 20,
         spawnWeight: 0.3,
         color: '#3a2a1a',
-        activationTime: 3000,
+        activationTime: 3500,
         wanderRadius: 80,
         huntRadius: 200
     }
@@ -649,7 +649,7 @@ class Enemy {
 
     damagePlayer() {
         const currentTime = Date.now();
-        if (currentTime - this.lastDamageTime > 1000) {
+        if (currentTime - this.lastDamageTime > 1500) {
             gameState.player.health -= this.damage;
             this.lastDamageTime = currentTime;
             gameState.camera.shake = 10;
@@ -953,7 +953,7 @@ function spawnEnemy() {
     gameState.totalEnemiesSpawned++;
     gameState.lastEnemySpawn = currentTime;
     
-    gameState.spawnRate = Math.max(1500, 3500 - (gameState.level - 1) * 150);
+    gameState.spawnRate = Math.max(2000, 4000 - (gameState.level - 1) * 150);
     
     console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
 }
@@ -1005,7 +1005,7 @@ function spawnPowerup() {
     gameState.powerups.push(powerup);
     gameState.lastPowerupSpawn = currentTime;
     
-    gameState.powerupSpawnRate = Math.max(8000, 12000 - (gameState.level - 1) * 200);
+    gameState.powerupSpawnRate = Math.max(8000, 10000 - (gameState.level - 1) * 200);
     
     console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
 }
@@ -1051,7 +1051,7 @@ function updateGame() {
     const newLevel = Math.floor(gameState.score / 45) + 1;
     if (newLevel > gameState.level) {
         gameState.level = newLevel;
-        gameState.difficulty = 1 + (gameState.level - 1) * 0.15;
+        gameState.difficulty = 1 + (gameState.level - 1) * 0.1;
         soundSystem.play('levelup');
         showLevelUpEffect();
         console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)})`);
@@ -1454,6 +1454,11 @@ function saveHighScore(survivalTime, level) {
     } catch (e) {
         console.error('Error saving high scores:', e);
     }
+
+    // Submit to global leaderboard if signed in
+    if (window.firebaseManager && window.firebaseManager.user) {
+        window.firebaseManager.submitScore(survivalTime, level, survivalTime);
+    }
 }
 
 function displayHighScores() {
@@ -1476,7 +1481,7 @@ function displayHighScores() {
     }
     
     if (highScores.length === 0) {
-        listContainer.innerHTML = '<p style="color: #888; text-align: center;">No high scores yet. Play to set your first record!</p>';
+        listContainer.innerHTML = '<p style="color: #888; text-align: center;">No local scores yet. Play to set your first record!</p>';
         return;
     }
     
@@ -1503,87 +1508,6 @@ function displayHighScores() {
     html += '</div>';
     
     listContainer.innerHTML = html;
-}
-
-// === SHARE SYSTEM ===
-function showShareModal() {
-    console.log('📤 Showing share modal...');
-    
-    if (!document.getElementById('shareModal')) {
-        createShareModal();
-    }
-    
-    const survivalTime = getCurrentSurvivalTime();
-    const shareTimeEl = document.getElementById('shareTimeValue');
-    const shareLevelEl = document.getElementById('shareLevelValue');
-    
-    if (shareTimeEl) shareTimeEl.textContent = formatTime(survivalTime);
-    if (shareLevelEl) shareLevelEl.textContent = gameState.level;
-    
-    showScreen('shareModal');
-}
-
-function closeShareModal() {
-    console.log('🚫 Closing share modal...');
-    showScreen('gameOver');
-}
-
-function createShareModal() {
-    const modalHTML = `
-        <div id="shareModal" class="modal-overlay hidden">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h2>📤 SHARE YOUR SCORE</h2>
-                    <button class="close-btn" id="closeShareBtn">×</button>
-                </div>
-                <div class="modal-body">
-                    <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">
-                        🏆 You survived for <strong id="shareTimeValue">0:00</strong> and reached level <strong id="shareLevelValue">1</strong>!
-                    </p>
-                    <div class="button-container">
-                        <button class="btn secondary" id="shareTwitterBtn">🐦 Twitter</button>
-                        <button class="btn secondary" id="shareFacebookBtn">📘 Facebook</button>
-                        <button class="btn primary" id="copyScoreBtn">📋 Copy Score</button>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button class="btn secondary" id="closeShareFooterBtn">Close</button>
-                </div>
-            </div>
-        </div>
-    `;
-    
-    document.body.insertAdjacentHTML('beforeend', modalHTML);
-    
-    document.getElementById('closeShareBtn').addEventListener('click', closeShareModal);
-    document.getElementById('closeShareFooterBtn').addEventListener('click', closeShareModal);
-    document.getElementById('shareTwitterBtn').addEventListener('click', () => shareScore('twitter'));
-    document.getElementById('shareFacebookBtn').addEventListener('click', () => shareScore('facebook'));
-    document.getElementById('copyScoreBtn').addEventListener('click', () => shareScore('copy'));
-}
-
-function shareScore(platform) {
-    const survivalTime = getCurrentSurvivalTime();
-    const level = gameState.level;
-    const gameUrl = window.location.origin;
-    const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
-    const messageWithUrl = `${message}\n\nPlay now: ${gameUrl}`;
-    
-    switch (platform) {
-        case 'twitter':
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(gameUrl)}`, '_blank');
-            break;
-        case 'facebook':
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}&quote=${encodeURIComponent(message)}`, '_blank');
-            break;
-        case 'copy':
-            navigator.clipboard.writeText(messageWithUrl).then(() => {
-                alert('Score and game link copied to clipboard!');
-            }).catch(() => {
-                alert('Could not copy score. Please try again.');
-            });
-            break;
-    }
 }
 
 // === PWA FUNCTIONS ===
@@ -1734,11 +1658,11 @@ function startGame() {
     gameState.player = {
         x: gameState.canvas.width / 2,
         y: gameState.canvas.height / 2,
-        size: 15,
+        size: 18,
         health: 100,
         maxHealth: 100,
-        speed: 3,
-        baseSpeed: 3,
+        speed: 3.5,
+        baseSpeed: 3.5,
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
@@ -1790,6 +1714,20 @@ function endGame() {
     
     document.getElementById('finalTime').textContent = formatTime(survivalTime);
     document.getElementById('finalLevel').textContent = gameState.level;
+    
+    // Show global rank if available
+    if (window.firebaseManager && window.firebaseManager.user) {
+        window.firebaseManager.getUserRank().then(rankInfo => {
+            if (rankInfo) {
+                const globalRankInfo = document.getElementById('globalRankInfo');
+                const globalRank = document.getElementById('globalRank');
+                if (globalRankInfo && globalRank) {
+                    globalRank.textContent = `#${rankInfo.rank}`;
+                    globalRankInfo.classList.remove('hidden');
+                }
+            }
+        });
+    }
     
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('powerupIndicators').classList.add('hidden');
@@ -1859,9 +1797,13 @@ window.showHighScores = showHighScores;
 window.closeHighScores = closeHighScores;
 window.showHelp = showHelp;
 window.closeHelp = closeHelp;
-window.showShareModal = showShareModal;
-window.closeShareModal = closeShareModal;
 window.soundSystem = soundSystem;
+window.gameState = gameState; // Expose for share modal
+window.getCurrentSurvivalTime = getCurrentSurvivalTime;
+window.formatTime = formatTime;
+window.displayHighScores = displayHighScores;
+window.installPWA = installPWA;
+window.hideInstallPrompt = hideInstallPrompt;
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -1888,7 +1830,13 @@ document.addEventListener('DOMContentLoaded', () => {
         'showHelpBtn': showHelp,
         'closeHelpBtn': closeHelp,
         'closeHelpFooterBtn': closeHelp,
-        'shareScoreBtn': showShareModal,
+        'shareScoreBtn': () => {
+            if (typeof window.showShareModal === 'function') {
+                window.showShareModal();
+            } else {
+                console.log('Share modal not available');
+            }
+        },
         'audioToggle': () => soundSystem.toggle()
     };
     
