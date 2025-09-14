@@ -920,14 +920,32 @@ body.high-contrast {
 }
 
 .loading-house {
-    font-size: 60px;
-    margin-bottom: 20px;
+    width: 80px;
+    height: 80px;
+    margin: 0 auto 20px;
     animation: loadingFloat 2s ease-in-out infinite;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.loading-house-image {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.5));
 }
 
 @keyframes loadingFloat {
-    0%, 100% { transform: translateY(0px) rotate(0deg); }
-    50% { transform: translateY(-20px) rotate(5deg); }
+    0%, 100% { 
+        transform: translateY(0px) rotate(0deg); 
+        filter: drop-shadow(0 0 10px rgba(255, 68, 68, 0.5));
+    }
+    50% { 
+        transform: translateY(-20px) rotate(5deg); 
+        filter: drop-shadow(0 5px 15px rgba(255, 68, 68, 0.8));
+    }
+}
 }
 
 .loading-content h2 {
