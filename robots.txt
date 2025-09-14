@@ -1,0 +1,62 @@
+User-agent: *
+Allow: /
+
+# Game assets
+Allow: /icons/
+Allow: /styles.css
+Allow: /game.js
+Allow: /config.js
+Allow: /analytics.js
+Allow: /manifest.json
+Allow: /sw.js
+
+# SEO files
+Allow: /sitemap.xml
+Allow: /browserconfig.xml
+
+# Block unnecessary paths
+Disallow: /firebase.json
+Disallow: /.firebaserc
+Disallow: /README.md
+Disallow: /*.log
+Disallow: /node_modules/
+Disallow: /src/
+Disallow: /tests/
+Disallow: /.git/
+Disallow: /.github/
+
+# Crawl delay for respectful crawling
+Crawl-delay: 1
+
+# Sitemap location
+Sitemap: https://house-head-chase.web.app/sitemap.xml
+
+# Additional instructions for game crawlers
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+User-agent: Bingbot  
+Allow: /
+Crawl-delay: 2
+
+User-agent: DuckDuckBot
+Allow: /
+Crawl-delay: 1
+
+# Game-specific crawlers
+User-agent: GameBot
+Allow: /
+
+User-agent: SteamBot
+Allow: /
+
+# Block aggressive crawlers
+User-agent: MJ12bot
+Disallow: /
+
+User-agent: AhrefsBot
+Disallow: /
+
+User-agent: SemrushBot
+Crawl-delay: 10
