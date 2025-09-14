@@ -1817,6 +1817,7 @@ function startGame() {
     gameState.lastPowerupSpawn = 0;
     gameState.flashlight.on = false;
     gameState.flashlight.intensity = 0;
+    gameState.freezeTime = 0;
     gameState.camera.shake = 0;
     gameState.camera.intensity = 0;
     gameState.totalEnemiesSpawned = 0;
