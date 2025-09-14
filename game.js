@@ -128,7 +128,7 @@ class Enemy {
         this.velocity = { x: 0, y: 0 };
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
-        this.isVisible = false;
+        this.isVisible = true; // Always visible for debugging
         
         // AI properties
         this.wanderTarget = { x: this.x, y: this.y };
@@ -271,7 +271,7 @@ class Enemy {
         if (gameState.flashlight.on && gameState.flashlight.intensity > 0.3) {
             this.isVisible = distance < gameState.flashlight.radius;
         } else {
-            this.isVisible = distance < 60;
+            this.isVisible = distance < 60 || this.state === 'spawning';
         }
     }
     
@@ -306,8 +306,7 @@ class Enemy {
     }
     
     render(ctx) {
-        if (!this.isVisible && this.state !== 'spawning') return;
-        
+        // Always render for debugging - remove isVisible check temporarily
         ctx.save();
         ctx.translate(this.x, this.y);
         
@@ -652,11 +651,15 @@ function setupCanvas() {
     if (!canvas) return;
     
     function resizeCanvas() {
-        // Mobile-first: full screen on mobile, contained on desktop
+        // Mobile-first: full screen always
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
         canvas.style.width = '100vw';
         canvas.style.height = '100vh';
+        
+        // Remove borders on mobile
+        canvas.style.border = 'none';
+        canvas.style.borderRadius = '0';
         
         // Reposition player if needed
         if (gameState.running && gameState.player) {
@@ -820,8 +823,10 @@ function startGame() {
     hideAllScreens();
     showGameUI();
     
+    // CRITICAL FIX: Ensure canvas can receive input
     gameState.canvas.classList.add('active');
     gameState.canvas.style.pointerEvents = 'auto';
+    gameState.canvas.style.zIndex = '1';
     
     if (!gameState.gameLoopId) {
         gameState.gameLoopId = requestAnimationFrame(gameLoop);
@@ -931,7 +936,7 @@ function spawnEnemy() {
     const enemy = new Enemy(x, y, type);
     gameState.enemies.push(enemy);
     
-    console.log(`👾 Enemy spawned: ${type}`);
+    console.log(`👾 Enemy spawned: ${type}. Total enemies: ${gameState.enemies.length}`);
 }
 
 function spawnPowerup() {
