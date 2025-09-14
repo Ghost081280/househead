@@ -299,4 +299,4 @@ self.addEventListener('appinstalled', event => {
   });
 });
 
-console.log('🏠 House Head Chase Service Worker v2.0.1 loaded successfully!');
+console.log('🏠 House Head Chase Service Worker v2.0.2 loaded successfully!');
