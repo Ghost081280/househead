@@ -63,93 +63,173 @@
     <link rel="apple-touch-icon" sizes="180x180" href="icons/apple-icon-180x180.png">
     <link rel="apple-touch-icon" href="icons/apple-icon.png">
     
-    <!-- Preload critical resources -->
-    <link rel="preload" href="styles.css" as="style">
-    <link rel="preload" href="game.js" as="script">
-    <link rel="preload" href="config.js" as="script">
-    <link rel="dns-prefetch" href="//fonts.googleapis.com">
-    <link rel="dns-prefetch" href="//fonts.gstatic.com">
-    <link rel="dns-prefetch" href="//www.google-analytics.com">
-    
     <!-- Critical CSS -->
-    <link rel="stylesheet" href="styles.css">
-    
-    <!-- Structured Data for SEO (Dynamic URL - will be set by JavaScript) -->
-    <script type="application/ld+json">
-    {
-        "@context": "https://schema.org",
-        "@type": "Game",
-        "name": "House Head Chase",
-        "description": "Survive as long as you can while avoiding terrifying walking House Heads! Use your flashlight strategically in this thrilling survival game with power-ups and increasing difficulty.",
-        "url": "",
-        "image": "",
-        "genre": ["Survival Horror", "Action", "Arcade"],
-        "gamePlatform": ["Web Browser", "Mobile Web", "PWA"],
-        "operatingSystem": ["Windows", "MacOS", "Linux", "iOS", "Android"],
-        "applicationCategory": "Game",
-        "offers": {
-            "@type": "Offer",
-            "price": "0",
-            "priceCurrency": "USD",
-            "availability": "https://schema.org/InStock"
-        },
-        "publisher": {
-            "@type": "Organization",
-            "name": "House Head Chase Games"
-        },
-        "datePublished": "2025-01-01",
-        "dateModified": "2025-01-15",
-        "inLanguage": "en-US",
-        "isAccessibleForFree": true,
-        "educationalUse": "entertainment",
-        "interactivityType": "active",
-        "learningResourceType": "game",
-        "typicalAgeRange": "8-99"
-    }
-    </script>
-    
-    <!-- Performance Monitoring -->
-    <script>
-        // Mark the start of loading
-        window.performanceMarks = {
-            navigationStart: performance.now(),
-            loadStart: Date.now()
-        };
-    </script>
+    <style>
+        /* Critical inline styles for faster loading */
+        body {
+            margin: 0;
+            padding: 0;
+            font-family: 'Arial', sans-serif;
+            background: #000;
+            color: #fff;
+            overflow: hidden;
+        }
+        
+        .hidden {
+            display: none !important;
+        }
+        
+        .game-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: linear-gradient(135deg, #1a1a2e, #16213e);
+            z-index: 100;
+        }
+        
+        .btn {
+            padding: 12px 24px;
+            border: none;
+            border-radius: 8px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        
+        .btn.primary {
+            background: linear-gradient(45deg, #ff4444, #ff6644);
+            color: white;
+        }
+        
+        .btn.primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(255, 68, 68, 0.4);
+        }
+        
+        .loading-screen {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+            transition: opacity 0.5s ease;
+        }
+        
+        #gameCanvas {
+            border: 2px solid #333;
+            cursor: crosshair;
+            touch-action: none;
+        }
+        
+        /* HUD Styles */
+        #hud {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            right: 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            background: rgba(0, 0, 0, 0.7);
+            padding: 10px 15px;
+            border-radius: 10px;
+            backdrop-filter: blur(10px);
+        }
+        
+        .hud-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 4px;
+        }
+        
+        .hud-label {
+            font-size: 11px;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: 600;
+        }
+        
+        .hud-value {
+            font-size: 16px;
+            color: #fff;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+        }
+        
+        #healthBar {
+            width: 100px;
+            height: 8px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        
+        #healthFill {
+            height: 100%;
+            background: linear-gradient(90deg, #ff4444, #ffaa44);
+            width: 100%;
+            transition: width 0.3s ease;
+        }
+        
+        /* Time-focused styling */
+        .hud-time .hud-value {
+            font-size: 18px;
+            color: #ffaa44;
+            text-shadow: 0 0 10px rgba(255, 170, 68, 0.5);
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        
+        .hud-time .hud-label {
+            color: #ffaa44;
+            font-weight: 600;
+        }
+    </style>
 </head>
 <body>
     <!-- Skip to main content for accessibility -->
-    <a href="#main-content" class="skip-link" tabindex="1">Skip to main content</a>
+    <a href="#main-content" class="skip-link" tabindex="1" style="position: absolute; top: -40px; left: 0; background: #000; color: #fff; padding: 8px; text-decoration: none; z-index: 10000;">Skip to main content</a>
     
     <!-- Error Boundary Container -->
-    <div id="errorBoundary" class="hidden" role="alert" aria-live="assertive">
-        <div class="error-content">
-            <h2>🚨 Oops! Something went wrong</h2>
-            <p id="errorMessage">The game encountered an unexpected error.</p>
+    <div id="errorBoundary" class="hidden" role="alert" aria-live="assertive" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9998; display: flex; align-items: center; justify-content: center;">
+        <div class="error-content" style="background: #222; padding: 30px; border-radius: 10px; text-align: center; max-width: 400px;">
+            <h2 style="color: #ff4444; margin: 0 0 15px 0;">🚨 Oops! Something went wrong</h2>
+            <p id="errorMessage" style="color: #ccc; margin-bottom: 20px;">The game encountered an unexpected error.</p>
             <div class="error-actions">
-                <button class="btn primary" onclick="window.location.reload()">🔄 Reload Game</button>
-                <button class="btn secondary" onclick="reportError()">📧 Report Issue</button>
+                <button class="btn primary" onclick="window.location.reload()" style="margin: 5px;">🔄 Reload Game</button>
+                <button class="btn secondary" onclick="reportError()" style="margin: 5px; background: #666; color: white;">📧 Report Issue</button>
             </div>
         </div>
     </div>
     
     <!-- Game Container -->
-    <div id="gameContainer">
+    <div id="gameContainer" style="position: relative; width: 100vw; height: 100vh; display: flex; align-items: center; justify-content: center;">
         <canvas id="gameCanvas" 
+                width="800" 
+                height="600"
                 aria-label="House Head Chase Game Canvas" 
                 role="application"
-                tabindex="0">
+                tabindex="0"
+                style="max-width: 100%; max-height: 100%; background: #000;">
             Your browser doesn't support HTML5 Canvas. Please upgrade to a modern browser to play House Head Chase!
         </canvas>
-        
-        <!-- Ad Placement Zones (Ready for future monetization) -->
-        <div id="topAdZone" class="ad-zone top-ad hidden" aria-hidden="true">
-            <!-- Top banner ad placement -->
-        </div>
-        
-        <div id="bottomAdZone" class="ad-zone bottom-ad hidden" aria-hidden="true">
-            <!-- Bottom banner ad placement -->
-        </div>
         
         <!-- HUD - Game Interface -->
         <div id="hud" class="hidden" role="toolbar" aria-label="Game HUD">
@@ -163,7 +243,7 @@
                      aria-label="Player health">
                     <div id="healthFill"></div>
                 </div>
-                <span id="health" aria-live="polite">100</span>
+                <span id="health" class="hud-value" aria-live="polite">100</span>
             </div>
             
             <div class="hud-item hud-time">
@@ -179,20 +259,23 @@
             <button id="audioToggle" 
                     class="audio-btn" 
                     aria-label="Toggle game audio" 
-                    title="Toggle Sound">🔊</button>
+                    title="Toggle Sound"
+                    style="background: transparent; border: 1px solid #666; color: #fff; padding: 8px; border-radius: 4px; cursor: pointer;">🔊</button>
         </div>
         
         <!-- Active Power-ups Display -->
         <div id="powerupIndicators" 
              class="hidden" 
              aria-live="polite" 
-             aria-label="Active power-ups">
+             aria-label="Active power-ups"
+             style="position: fixed; top: 100px; right: 20px; display: flex; flex-direction: column; gap: 10px; z-index: 1001;">
         </div>
         
         <!-- Flashlight Status -->
         <div id="flashlightIndicator" 
              class="hidden" 
-             aria-live="polite">
+             aria-live="polite"
+             style="position: fixed; bottom: 20px; left: 20px; background: rgba(0,0,0,0.7); padding: 8px 12px; border-radius: 6px; color: #ffaa44;">
             <span class="flashlight-icon" aria-hidden="true">🔦</span>
             <span class="flashlight-text">LIGHT ON</span>
         </div>
@@ -200,12 +283,13 @@
         <!-- Tutorial Hints -->
         <div id="controlsHint" 
              class="controls-hint hidden" 
-             role="tooltip">
+             role="tooltip"
+             style="position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,0.8); padding: 10px 20px; border-radius: 8px; font-size: 14px; text-align: center;">
             🔦 DOUBLE TAP for flashlight • 📱 Drag blue dot to move • 💡 Use light strategically!
         </div>
         
         <!-- Performance Monitor (Development) -->
-        <div id="performanceMonitor" class="hidden dev-only">
+        <div id="performanceMonitor" class="hidden dev-only" style="position: fixed; top: 10px; right: 10px; font-size: 12px; color: #666;">
             FPS: <span id="fpsCounter">60</span> | 
             Enemies: <span id="enemyCount">0</span> |
             Memory: <span id="memoryUsage">0MB</span>
@@ -214,45 +298,48 @@
     
     <!-- Start Screen -->
     <div id="startScreen" class="game-screen" role="main" id="main-content">
-        <header class="start-header">
-            <h1>🏠 HOUSE HEAD CHASE</h1>
-            <p class="tagline">Survival Horror Game!</p>
+        <header class="start-header" style="text-align: center; margin-bottom: 30px;">
+            <h1 style="font-size: 3em; margin: 0; background: linear-gradient(45deg, #ff4444, #ffaa44); -webkit-background-clip: text; -webkit-text-fill-color: transparent; background-clip: text;">🏠 HOUSE HEAD CHASE</h1>
+            <p class="tagline" style="font-size: 1.2em; color: #ff6644; margin: 10px 0;">Survival Horror Game!</p>
         </header>
         
-        <div class="game-preview">
-            <div class="preview-icon">🏠</div>
+        <div class="game-preview" style="text-align: center; margin: 30px 0;">
+            <div class="preview-icon" style="font-size: 4em; margin-bottom: 15px;">🏠</div>
             <p class="preview-text">
-                <strong>FREE TO PLAY!</strong><br>
-                Survive the walking houses!
+                <strong style="color: #ffaa44;">FREE TO PLAY!</strong><br>
+                <span style="color: #ccc;">Survive the walking houses!</span>
             </p>
         </div>
         
-        <div class="instructions">
+        <div class="instructions" style="max-width: 500px; text-align: center; margin: 20px;">
             <div class="instruction-group">
-                <h3>🎯 HOW TO SURVIVE:</h3>
-                <p>🔵 <strong>You are the blue dot</strong> - Stay alive!</p>
-                <p>📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
-                <p>🏠 <strong>House Heads</strong> spawn and hunt you down!</p>
-                <p>⚡ <strong>Collect power-ups</strong> for special abilities!</p>
-                <p>🔦 <strong>Use your flashlight wisely</strong> - it attracts enemies!</p>
+                <h3 style="color: #ffaa44; margin-bottom: 15px;">🎯 HOW TO SURVIVE:</h3>
+                <p style="margin: 8px 0; line-height: 1.4;">🔵 <strong>You are the blue dot</strong> - Stay alive!</p>
+                <p style="margin: 8px 0; line-height: 1.4;">📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
+                <p style="margin: 8px 0; line-height: 1.4;">🏠 <strong>House Heads</strong> spawn and hunt you down!</p>
+                <p style="margin: 8px 0; line-height: 1.4;">⚡ <strong>Collect power-ups</strong> for special abilities!</p>
+                <p style="margin: 8px 0; line-height: 1.4;">🔦 <strong>Use your flashlight wisely</strong> - it attracts enemies!</p>
             </div>
         </div>
         
-        <div class="button-container">
+        <div class="button-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px; margin-top: 30px;">
             <button class="btn primary pulse" 
                     id="startGameBtn" 
-                    aria-label="Start new game">
+                    aria-label="Start new game"
+                    style="font-size: 18px; padding: 15px 30px; animation: pulse 2s infinite;">
                 🎮 START GAME
             </button>
-            <div class="secondary-buttons">
+            <div class="secondary-buttons" style="display: flex; gap: 15px;">
                 <button class="btn secondary" 
                         id="showHighScoresBtn" 
-                        aria-label="View high scores">
+                        aria-label="View high scores"
+                        style="background: #333; color: white; padding: 10px 20px;">
                     🏆 SCORES
                 </button>
                 <button class="btn secondary" 
                         id="showHelpBtn" 
-                        aria-label="Show game instructions">
+                        aria-label="Show game instructions"
+                        style="background: #333; color: white; padding: 10px 20px;">
                     ❓ HELP
                 </button>
             </div>
@@ -261,242 +348,141 @@
     
     <!-- Game Over Screen -->
     <div id="gameOver" class="game-screen hidden" role="dialog" aria-labelledby="gameOverTitle">
-        <h2 id="gameOverTitle">💀 GAME OVER!</h2>
-        <p class="game-over-message">🏠 The House Heads got you!</p>
+        <h2 id="gameOverTitle" style="color: #ff4444; font-size: 2.5em; margin-bottom: 10px;">💀 GAME OVER!</h2>
+        <p class="game-over-message" style="color: #ccc; font-size: 1.2em; margin-bottom: 30px;">🏠 The House Heads got you!</p>
         
-        <div class="stats-container">
-            <div class="stats" role="group" aria-label="Final game statistics">
-                <div class="stat-item stat-primary">
-                    <span class="stat-label">⏰ SURVIVED</span>
-                    <span class="stat-value" id="finalTime">0:00</span>
+        <div class="stats-container" style="background: rgba(255, 255, 255, 0.05); padding: 20px; border-radius: 10px; margin-bottom: 30px;">
+            <div class="stats" role="group" aria-label="Final game statistics" style="display: flex; justify-content: center; align-items: center; gap: 30px;">
+                <div class="stat-item stat-primary" style="text-align: center; background: rgba(255, 170, 68, 0.15); border: 2px solid rgba(255, 170, 68, 0.4); border-radius: 8px; padding: 15px 20px;">
+                    <span class="stat-label" style="display: block; color: #ffaa44; font-weight: 700; font-size: 12px; margin-bottom: 8px;">⏰ SURVIVED</span>
+                    <span class="stat-value" id="finalTime" style="display: block; font-size: 24px; color: #ffaa44; text-shadow: 0 0 10px rgba(255, 170, 68, 0.5); font-weight: 900;">0:00</span>
                 </div>
-                <div class="stat-item">
-                    <span class="stat-label">📊 LEVEL</span>
-                    <span class="stat-value" id="finalLevel">1</span>
+                <div class="stat-item" style="text-align: center; padding: 15px 20px;">
+                    <span class="stat-label" style="display: block; color: #ccc; font-weight: 600; font-size: 12px; margin-bottom: 8px;">📊 LEVEL</span>
+                    <span class="stat-value" id="finalLevel" style="display: block; font-size: 20px; color: #fff; font-weight: bold;">1</span>
                 </div>
             </div>
             
             <!-- Achievement Notification Area -->
-            <div id="achievementNotification" class="achievement-notification hidden">
-                <div class="achievement-content">
+            <div id="achievementNotification" class="achievement-notification hidden" style="margin-top: 15px; text-align: center;">
+                <div class="achievement-content" style="background: linear-gradient(45deg, #ffaa44, #ff6644); color: white; padding: 10px 20px; border-radius: 8px; display: inline-flex; align-items: center; gap: 10px;">
                     <span class="achievement-icon">🏅</span>
                     <span class="achievement-text">New Personal Best!</span>
                 </div>
             </div>
         </div>
         
-        <div class="button-container">
+        <div class="button-container" style="display: flex; flex-direction: column; align-items: center; gap: 15px;">
             <button class="btn primary pulse" 
                     id="restartGameBtn" 
-                    aria-label="Play again">
+                    aria-label="Play again"
+                    style="font-size: 18px; padding: 15px 30px;">
                 🔄 PLAY AGAIN
             </button>
-            <div class="secondary-buttons">
+            <div class="secondary-buttons" style="display: flex; gap: 15px;">
                 <button class="btn secondary" 
                         id="shareScoreBtn" 
-                        aria-label="Share your score">
+                        aria-label="Share your score"
+                        style="background: #333; color: white; padding: 10px 20px;">
                     📤 SHARE
                 </button>
                 <button class="btn secondary" 
                         id="showStartScreenBtn" 
-                        aria-label="Return to main menu">
+                        aria-label="Return to main menu"
+                        style="background: #333; color: white; padding: 10px 20px;">
                     🏠 MENU
                 </button>
             </div>
         </div>
     </div>
     
-    <!-- High Scores Modal -->
-    <div id="highScoresModal" class="modal-overlay hidden" role="dialog" aria-labelledby="highScoresTitle">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="highScoresTitle">🏆 SURVIVAL TIMES</h2>
-                <button class="close-btn" 
-                        id="closeHighScoresBtn" 
-                        aria-label="Close high scores">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="leaderboard-tabs">
-                    <button class="tab-btn active" data-tab="local">📱 Local Times</button>
-                    <button class="tab-btn" data-tab="global">🌍 Global Leaders</button>
-                </div>
-                <div id="highScoresList" role="list" aria-label="High scores list">
-                    <p>Loading survival times...</p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" id="clearScoresBtn">🗑️ Clear Local Times</button>
-                <button class="btn primary" id="closeHighScoresFooterBtn">Close</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Help Modal -->
-    <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-labelledby="helpTitle">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="helpTitle">❓ HOW TO PLAY</h2>
-                <button class="close-btn" 
-                        id="closeHelpBtn" 
-                        aria-label="Close help">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="help-section">
-                    <h3>🎯 OBJECTIVE</h3>
-                    <p>Survive as long as possible while avoiding House Heads! The longer you survive, the better your time.</p>
-                </div>
-                
-                <div class="help-section">
-                    <h3>🎮 CONTROLS</h3>
-                    <div class="control-grid">
-                        <div class="control-item">
-                            <strong>📱 Mobile:</strong> Touch and drag the blue dot to move around
-                        </div>
-                        <div class="control-item">
-                            <strong>🖱️ Desktop:</strong> Click and drag with your mouse
-                        </div>
-                        <div class="control-item">
-                            <strong>🔦 Flashlight:</strong> Double tap/click anywhere to turn on/off
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="help-section">
-                    <h3>🏠 ENEMY TYPES</h3>
-                    <div class="enemy-grid">
-                        <div class="enemy-item">
-                            <strong>🏠 Small Houses:</strong> Fast but deal less damage (15 HP)
-                        </div>
-                        <div class="enemy-item">
-                            <strong>🏘️ Big Houses:</strong> Slower but deal more damage (25 HP)
-                        </div>
-                    </div>
-                    <p><em>Houses spawn → stay dormant → grow legs → hunt you down!</em></p>
-                </div>
-                
-                <div class="help-section">
-                    <h3>⚡ POWER-UPS</h3>
-                    <div class="powerup-grid">
-                        <div class="powerup-item">
-                            <strong>💚 Health Pack:</strong> Restores 30 health points
-                        </div>
-                        <div class="powerup-item">
-                            <strong>🛡️ Shield:</strong> Temporary invincibility for 5 seconds
-                        </div>
-                        <div class="powerup-item">
-                            <strong>⚡ Speed Boost:</strong> Move 2x faster for 8 seconds
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="help-section">
-                    <h3>🔦 FLASHLIGHT STRATEGY</h3>
-                    <div class="strategy-tips">
-                        <div class="tip-item good">
-                            <strong>💡 Light ON:</strong> See all nearby enemies clearly
-                        </div>
-                        <div class="tip-item warning">
-                            <strong>⚠️ BUT:</strong> Enemies will hunt you aggressively!
-                        </div>
-                        <div class="tip-item good">
-                            <strong>🌙 Light OFF:</strong> Enemies wander randomly
-                        </div>
-                        <div class="tip-item warning">
-                            <strong>⚠️ BUT:</strong> You can only see enemies when very close!
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="help-section">
-                    <h3>💡 PRO TIPS</h3>
-                    <ul class="tips-list">
-                        <li>Use the flashlight strategically - not constantly!</li>
-                        <li>Houses bounce off each other - use this to your advantage!</li>
-                        <li>Stay away from areas where houses are spawning</li>
-                        <li>Collect power-ups to survive longer, especially health packs</li>
-                        <li>Higher levels mean smarter, faster enemies - be ready!</li>
-                        <li>Practice your movement - smooth controls save lives!</li>
-                    </ul>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn primary" id="closeHelpFooterBtn">🎮 Got It - Let's Play!</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Share Modal -->
-    <div id="shareModal" class="modal-overlay hidden" role="dialog" aria-labelledby="shareTitle">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2 id="shareTitle">📤 SHARE YOUR TIME</h2>
-                <button class="close-btn" 
-                        id="closeShareBtn" 
-                        aria-label="Close share modal">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="share-score-display">
-                    <h3>⏰ You Survived: <span id="shareTimeValue">0:00</span></h3>
-                    <p>📊 Level Reached: <span id="shareLevelValue">1</span></p>
-                </div>
-                
-                <div class="share-buttons">
-                    <button class="btn secondary share-btn" id="shareTwitter">
-                        🐦 Twitter
-                    </button>
-                    <button class="btn secondary share-btn" id="shareFacebook">
-                        📘 Facebook
-                    </button>
-                    <button class="btn secondary share-btn" id="shareReddit">
-                        🤖 Reddit
-                    </button>
-                    <button class="btn secondary share-btn" id="copyScore">
-                        📋 Copy Text
-                    </button>
-                </div>
-                
-                <div class="share-preview">
-                    <p><em>Share text preview:</em></p>
-                    <div id="shareTextPreview" class="share-text">
-                        I just survived for 0:00 in House Head Chase! 🏠👾 Can you beat my time? Play free at: [URL]
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn primary" id="closeShareFooterBtn">Close</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- PWA Install Prompt -->
-    <div id="installPrompt" class="install-prompt hidden" role="dialog">
-        <div class="install-content">
-            <div class="install-icon">📱</div>
-            <h3>Install House Head Chase</h3>
-            <p>Add to your home screen for the best experience! Play offline, faster loading, and native app feel.</p>
-            <div class="install-benefits">
-                <span class="benefit">⚡ Instant loading</span>
-                <span class="benefit">🌐 Works offline</span>
-                <span class="benefit">📱 Full screen</span>
-            </div>
-            <div class="install-actions">
-                <button class="btn primary" onclick="installPWA()" aria-label="Install app">Install App</button>
-                <button class="btn secondary" onclick="hideInstallPrompt()" aria-label="Maybe later">Maybe Later</button>
-            </div>
-        </div>
-    </div>
-    
     <!-- Loading Screen -->
     <div id="loadingScreen" class="loading-screen">
-        <div class="loading-content">
-            <div class="loading-house">🏠</div>
-            <h2>Loading House Head Chase...</h2>
-            <div class="loading-bar">
-                <div class="loading-fill"></div>
+        <div class="loading-content" style="text-align: center;">
+            <div class="loading-house" style="font-size: 4em; margin-bottom: 20px; animation: bounce 1s infinite;">🏠</div>
+            <h2 style="color: #fff; margin-bottom: 20px;">Loading House Head Chase...</h2>
+            <div class="loading-bar" style="width: 200px; height: 4px; background: #333; border-radius: 2px; overflow: hidden; margin: 20px auto;">
+                <div class="loading-fill" style="height: 100%; background: linear-gradient(90deg, #ff4444, #ffaa44); width: 0%; animation: loadingAnimation 2s ease-in-out infinite;"></div>
             </div>
-            <p class="loading-text">Preparing your survival experience...</p>
+            <p class="loading-text" style="color: #999; font-size: 14px;">Preparing your survival experience...</p>
         </div>
     </div>
+    
+    <!-- CSS Animations -->
+    <style>
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+        }
+        
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        
+        @keyframes loadingAnimation {
+            0% { width: 0%; }
+            50% { width: 70%; }
+            100% { width: 100%; }
+        }
+        
+        .powerup-indicator {
+            background: rgba(0, 0, 0, 0.7);
+            border: 2px solid #ffaa44;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px;
+            animation: pulse 1s infinite;
+        }
+        
+        /* Responsive design */
+        @media (max-width: 800px) {
+            #gameCanvas {
+                width: 100vw !important;
+                height: 100vh !important;
+                max-width: none !important;
+                max-height: none !important;
+            }
+            
+            #hud {
+                top: 10px;
+                left: 10px;
+                right: 10px;
+                padding: 8px 10px;
+            }
+            
+            .hud-item {
+                font-size: 14px;
+            }
+            
+            .hud-value {
+                font-size: 14px;
+            }
+            
+            .hud-time .hud-value {
+                font-size: 16px;
+            }
+        }
+        
+        @media (max-width: 600px) {
+            .stats {
+                flex-direction: row !important;
+                gap: 15px;
+            }
+            
+            .stat-primary {
+                flex: 2;
+            }
+            
+            .stat-item:not(.stat-primary) {
+                flex: 1;
+            }
+        }
+    </style>
     
     <!-- Analytics & Performance Tracking -->
     <script>
@@ -507,18 +493,13 @@
             const imageUrl = new URL('icons/social-preview.png', currentUrl).href;
             
             // Update meta tags with current URL
-            document.querySelector('meta[property="og:url"]').content = currentUrl;
-            document.querySelector('meta[property="og:image"]').content = imageUrl;
-            document.querySelector('meta[name="twitter:image"]').content = imageUrl;
+            const ogUrlMeta = document.querySelector('meta[property="og:url"]');
+            const ogImageMeta = document.querySelector('meta[property="og:image"]');
+            const twitterImageMeta = document.querySelector('meta[name="twitter:image"]');
             
-            // Update structured data
-            const structuredData = document.querySelector('script[type="application/ld+json"]');
-            if (structuredData) {
-                const data = JSON.parse(structuredData.textContent);
-                data.url = currentUrl;
-                data.image = imageUrl;
-                structuredData.textContent = JSON.stringify(data, null, 2);
-            }
+            if (ogUrlMeta) ogUrlMeta.content = currentUrl;
+            if (ogImageMeta) ogImageMeta.content = imageUrl;
+            if (twitterImageMeta) twitterImageMeta.content = imageUrl;
             
             // Performance tracking
             const timing = performance.timing;
@@ -543,19 +524,19 @@
                     setTimeout(() => {
                         loadingScreen.style.display = 'none';
                     }, 500);
-                }, 1500);
+                }, 1000);
             }
         });
         
         // Global error handler
         window.addEventListener('error', (event) => {
             console.error('Global error:', event.error);
-            showErrorBoundary(event.error.message || 'Unknown error occurred');
+            showErrorBoundary(event.error?.message || 'Unknown error occurred');
             
             // Track errors
             if (window.gtag) {
                 gtag('event', 'exception', {
-                    'description': event.error.message,
+                    'description': event.error?.message || 'Unknown error',
                     'fatal': false
                 });
             }
@@ -590,11 +571,14 @@
             announcement.setAttribute('aria-live', 'polite');
             announcement.setAttribute('aria-atomic', 'true');
             announcement.className = 'sr-only';
+            announcement.style.cssText = 'position: absolute; left: -10000px; width: 1px; height: 1px; overflow: hidden;';
             announcement.textContent = message;
             document.body.appendChild(announcement);
             
             setTimeout(() => {
-                document.body.removeChild(announcement);
+                if (document.body.contains(announcement)) {
+                    document.body.removeChild(announcement);
+                }
             }, 1000);
         }
         
