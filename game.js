@@ -1942,6 +1942,7 @@ window.formatTime = formatTime;
 window.displayHighScores = displayHighScores;
 window.installPWA = installPWA;
 window.hideInstallPrompt = hideInstallPrompt;
+window.forceShowInstallPrompt = forceShowInstallPrompt; // For testing
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -1975,6 +1976,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.entries(buttons).forEach(([buttonId, handler]) => {
         const button = document.getElementById(buttonId);
         if (button) {
+            // Don't modify button text, just attach event listeners
             button.onclick = null;
             button.addEventListener('click', (e) => {
                 e.preventDefault();
