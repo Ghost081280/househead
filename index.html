@@ -79,9 +79,9 @@
             <p>💔 <strong>Avoid contact or take damage!</strong></p>
         </div>
         <div class="button-container">
-            <button class="btn" onclick="startGame()">🎮 START GAME</button>
-            <button class="btn" onclick="showHighScores()">🏆 HIGH SCORES</button>
-            <button class="btn" onclick="showHelp()">❓ HOW TO PLAY</button>
+            <button class="btn" id="startGameBtn">🎮 START GAME</button>
+            <button class="btn" id="showHighScoresBtn">🏆 HIGH SCORES</button>
+            <button class="btn" id="showHelpBtn">❓ HOW TO PLAY</button>
         </div>
     </div>
     
@@ -93,9 +93,9 @@
         <p>⏰ Time: <span id="finalTime">0</span>s</p>
         <p>📊 Level: <span id="finalLevel">1</span></p>
         <div class="button-container">
-            <button class="btn" onclick="restartGame()">🔄 PLAY AGAIN</button>
-            <button class="btn" onclick="shareScore()">📤 SHARE SCORE</button>
-            <button class="btn" onclick="showStartScreen()">🏠 MENU</button>
+            <button class="btn" id="restartGameBtn">🔄 PLAY AGAIN</button>
+            <button class="btn" id="shareScoreBtn">📤 SHARE SCORE</button>
+            <button class="btn" id="showStartScreenBtn">🏠 MENU</button>
         </div>
     </div>
     
@@ -104,11 +104,11 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🏆 HIGH SCORES</h2>
-                <button class="close-btn" onclick="closeHighScores()">×</button>
+                <button class="close-btn" id="closeHighScoresBtn">×</button>
             </div>
             <div id="highScoresList"></div>
             <div class="modal-footer">
-                <button class="btn" onclick="closeHighScores()">Close</button>
+                <button class="btn" id="closeHighScoresFooterBtn">Close</button>
             </div>
         </div>
     </div>
@@ -118,7 +118,7 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>❓ HOW TO PLAY</h2>
-                <button class="close-btn" onclick="closeHelp()">×</button>
+                <button class="close-btn" id="closeHelpBtn">×</button>
             </div>
             <div class="help-content">
                 <div class="help-section">
@@ -153,7 +153,7 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn" onclick="closeHelp()">Got It!</button>
+                <button class="btn" id="closeHelpFooterBtn">Got It!</button>
             </div>
         </div>
     </div>
@@ -163,18 +163,18 @@
         <div class="modal-content">
             <div class="modal-header">
                 <h2>📤 SHARE YOUR SCORE</h2>
-                <button class="close-btn" onclick="closeShare()">×</button>
+                <button class="close-btn" id="closeShareBtn">×</button>
             </div>
             <div class="share-content">
                 <p>I survived <span id="shareScore">0</span> seconds in House Head Chase! 🏠💀</p>
                 <div class="share-buttons">
-                    <button class="share-btn twitter" onclick="shareTwitter()">🐦 Twitter</button>
-                    <button class="share-btn facebook" onclick="shareFacebook()">📘 Facebook</button>
-                    <button class="share-btn copy" onclick="copyScore()">📋 Copy Link</button>
+                    <button class="share-btn twitter" id="shareTwitterBtn">🐦 Twitter</button>
+                    <button class="share-btn facebook" id="shareFacebookBtn">📘 Facebook</button>
+                    <button class="share-btn copy" id="copyScoreBtn">📋 Copy Link</button>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn" onclick="closeShare()">Close</button>
+                <button class="btn" id="closeShareFooterBtn">Close</button>
             </div>
         </div>
     </div>
@@ -185,8 +185,8 @@
             <h3>📱 Install House Head Chase</h3>
             <p>Add to your home screen for the best experience!</p>
             <div class="install-buttons">
-                <button class="btn" onclick="installApp()">Install App</button>
-                <button class="btn-secondary" onclick="dismissInstall()">Maybe Later</button>
+                <button class="btn" id="installAppBtn">Install App</button>
+                <button class="btn-secondary" id="dismissInstallBtn">Maybe Later</button>
             </div>
         </div>
     </div>
