@@ -594,6 +594,11 @@ body.high-contrast {
     border-bottom-color: var(--primary-color);
 }
 
+.tab-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
 /* === LEADERBOARD STYLES === */
 .global-scores {
     display: flex;
@@ -652,6 +657,78 @@ body.high-contrast {
     margin-left: 8px;
     min-width: 40px;
     text-align: right;
+}
+
+/* === SHARE MODAL STYLES === */
+.share-stats {
+    text-align: center;
+    margin-bottom: 20px;
+    padding: 15px;
+    background: rgba(255, 68, 68, 0.1);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 68, 68, 0.3);
+}
+
+.share-stats p {
+    font-size: 16px;
+    color: var(--text-light);
+    margin: 0;
+}
+
+.share-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+
+.share-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    font-size: 14px;
+    transition: all var(--transition-normal);
+    min-width: 100%;
+}
+
+.share-btn .share-icon {
+    font-size: 18px;
+    font-weight: bold;
+}
+
+.share-btn:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+}
+
+.copy-preview {
+    margin-top: 15px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.5);
+    border-radius: var(--border-radius);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.copy-label {
+    font-size: 11px;
+    color: var(--text-dark);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+.copy-text {
+    font-family: 'Exo 2', sans-serif;
+    font-size: 12px;
+    color: var(--text-gray);
+    line-height: 1.4;
+    white-space: pre-line;
+    background: rgba(255, 255, 255, 0.05);
+    padding: 8px;
+    border-radius: 4px;
+    border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 /* === HELP CONTENT === */
@@ -841,8 +918,12 @@ body.high-contrast {
     
     .btn {
         font-size: 12px;
-        min-width: 140px;
-        padding: 10px 20px;
+        min-width: 100%;
+        padding: 14px 20px;
+    }
+    
+    .button-container {
+        gap: 8px;
     }
     
     #hud {
@@ -909,6 +990,24 @@ body.high-contrast {
         font-size: 10px;
         padding: 4px 8px;
     }
+    
+    /* Share modal mobile optimizations */
+    .share-buttons {
+        gap: 8px;
+    }
+    
+    .share-btn {
+        font-size: 12px;
+        padding: 10px 16px;
+    }
+    
+    .share-stats p {
+        font-size: 14px;
+    }
+    
+    .copy-text {
+        font-size: 11px;
+    }
 }
 
 @media (max-width: 400px) {
@@ -968,6 +1067,7 @@ body.high-contrast {
         padding: 4px 8px;
         left: 5px;
         right: 5px;
+        transform: none;
     }
     
     /* Ultra-mobile share modal */
@@ -990,7 +1090,15 @@ body.high-contrast {
     }
     
     .tab-btn {
-        padding: 12px 6px;
+        padding: 6px 8px;
+        font-size: 10px;
+    }
+    
+    .copy-preview {
+        padding: 8px;
+    }
+    
+    .copy-label {
         font-size: 10px;
     }
 }
