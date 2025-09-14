@@ -173,11 +173,6 @@
         <div class="button-container">
             <button class="btn primary" id="startGameBtn" onclick="startGame()" 
                     aria-label="Start new game">🎮 START GAME</button>
-            
-            <!-- Mobile Sign In Button -->
-            <button class="btn secondary mobile-sign-in-btn" id="mobileSignInBtn" onclick="showSignInModal()" 
-                    aria-label="Sign in with Google">🌍 COMPETE GLOBALLY</button>
-            
             <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()" 
                     aria-label="View high scores">🏆 HIGH SCORES</button>
             <button class="btn secondary" id="showHelpBtn" onclick="showHelp()" 
@@ -205,11 +200,6 @@
                     aria-label="Play again">🔄 PLAY AGAIN</button>
             <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()" 
                     aria-label="Share your score">📤 SHARE SCORE</button>
-            
-            <!-- Mobile Sign In Button (Game Over) -->
-            <button class="btn secondary mobile-sign-in-btn" id="gameOverMobileSignInBtn" onclick="showSignInModal()" 
-                    aria-label="Sign in to save score">🌍 SAVE TO GLOBAL LEADERBOARD</button>
-            
             <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()" 
                     aria-label="Return to main menu">🏠 MAIN MENU</button>
         </div>
@@ -285,6 +275,43 @@
                     <button class="tab-btn active" onclick="showLocalScores()">📱 Local Scores</button>
                     <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab">🌍 Global Scores</button>
                 </div>
+                
+                <!-- Global Authentication Section -->
+                <div id="globalAuthSection" class="global-auth-section hidden">
+                    <!-- When not signed in -->
+                    <div id="authPrompt" class="auth-prompt">
+                        <div class="global-auth-title">
+                            🌍 <span>Join Global Competition</span>
+                        </div>
+                        <p class="global-auth-description">
+                            Sign in with Google to compete with players worldwide and save your scores to the cloud!
+                        </p>
+                        <button class="global-sign-in-btn" onclick="handleGoogleSignIn()" 
+                                aria-label="Sign in with Google for global leaderboard">
+                            <span class="google-icon">🌍</span>
+                            <span>Sign In with Google</span>
+                        </button>
+                    </div>
+                    
+                    <!-- When signed in -->
+                    <div id="userSignedIn" class="user-signed-in hidden">
+                        <div class="global-auth-title signed-in-title">
+                            ✅ <span>Global Competition Active</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-avatar">👤</span>
+                            <span class="user-name" id="globalUserName">Player</span>
+                        </div>
+                        <p class="global-auth-description">
+                            Your scores are automatically saved to the global leaderboard!
+                        </p>
+                        <button class="sign-out-btn" onclick="handleSignOut()" 
+                                aria-label="Sign out from global leaderboard">
+                            👋 Sign Out
+                        </button>
+                    </div>
+                </div>
+                
                 <div id="highScoresList" role="list" aria-label="High scores list">
                     <p>Loading scores...</p>
                 </div>
@@ -386,7 +413,7 @@
                     <p>• Stay away from areas where houses are spawning</p>
                     <p>• Collect power-ups to survive longer</p>
                     <p>• Higher levels = smarter, faster enemies</p>
-                    <p>• Sign in with Google to compete globally!</p>
+                    <p>• Check the High Scores for global competition!</p>
                 </div>
                 <div class="help-section support-info">
                     <h3>📞 NEED MORE HELP?</h3>
@@ -472,8 +499,7 @@
                 const success = await window.firebaseManager.signInWithGoogle();
                 if (success) {
                     console.log('✅ Signed in successfully');
-                    showGlobalFeatures();
-                    updateMobileAuthButtons();
+                    updateGlobalAuthUI();
                     if (typeof showGlobalLeaderboard === 'function') {
                         showGlobalLeaderboard();
                     }
@@ -487,47 +513,33 @@
             if (window.firebaseManager) {
                 await window.firebaseManager.signOut();
                 console.log('👋 Signed out');
-                hideGlobalFeatures();
-                updateMobileAuthButtons();
+                updateGlobalAuthUI();
             }
         }
         
-        function updateMobileAuthButtons() {
+        function updateGlobalAuthUI() {
             const isSignedIn = window.firebaseManager && window.firebaseManager.user;
-            const mobileSignInBtn = document.getElementById('mobileSignInBtn');
-            const gameOverMobileSignInBtn = document.getElementById('gameOverMobileSignInBtn');
+            const authPrompt = document.getElementById('authPrompt');
+            const userSignedIn = document.getElementById('userSignedIn');
+            const globalUserName = document.getElementById('globalUserName');
             
-            if (mobileSignInBtn) {
-                if (isSignedIn) {
-                    mobileSignInBtn.style.display = 'none';
-                } else {
-                    mobileSignInBtn.style.display = 'inline-flex';
+            if (isSignedIn) {
+                if (authPrompt) authPrompt.classList.add('hidden');
+                if (userSignedIn) userSignedIn.classList.remove('hidden');
+                if (globalUserName && window.firebaseManager.user) {
+                    globalUserName.textContent = window.firebaseManager.user.displayName || 'Player';
                 }
+            } else {
+                if (authPrompt) authPrompt.classList.remove('hidden');
+                if (userSignedIn) userSignedIn.classList.add('hidden');
             }
-            
-            if (gameOverMobileSignInBtn) {
-                if (isSignedIn) {
-                    gameOverMobileSignInBtn.style.display = 'none';
-                } else {
-                    gameOverMobileSignInBtn.style.display = 'inline-flex';
-                }
-            }
-        }
-        
-        function showGlobalFeatures() {
-            const globalTab = document.getElementById('globalScoresTab');
-            if (globalTab) globalTab.disabled = false;
-        }
-        
-        function hideGlobalFeatures() {
-            const globalTab = document.getElementById('globalScoresTab');
-            if (globalTab) globalTab.disabled = true;
         }
         
         // Score tab switching
         function showLocalScores() {
             document.getElementById('highScoresList').style.display = 'block';
             document.getElementById('globalLeaderboardList').style.display = 'none';
+            document.getElementById('globalAuthSection').classList.add('hidden');
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
             if (typeof displayHighScores === 'function') {
@@ -538,8 +550,10 @@
         function showGlobalScores() {
             document.getElementById('highScoresList').style.display = 'none';
             document.getElementById('globalLeaderboardList').style.display = 'block';
+            document.getElementById('globalAuthSection').classList.remove('hidden');
             document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
             event.target.classList.add('active');
+            updateGlobalAuthUI();
             if (window.firebaseManager) {
                 window.firebaseManager.updateGlobalLeaderboard();
             }
@@ -690,10 +704,10 @@ Play now: https://www.househeadchase.com`;
             return 0;
         }
         
-        // Update mobile auth buttons when Firebase is ready
+        // Update auth UI when Firebase is ready
         window.addEventListener('configReady', () => {
             setTimeout(() => {
-                updateMobileAuthButtons();
+                updateGlobalAuthUI();
             }, 1000);
         });
         
