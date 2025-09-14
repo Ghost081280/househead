@@ -246,9 +246,9 @@ body.high-contrast {
     color: var(--secondary-color); 
 }
 
-.powerup-indicator.speed { 
-    border-color: var(--warning-color); 
-    color: var(--warning-color); 
+.powerup-indicator.freeze { 
+    border-color: #88ddff; 
+    color: #88ddff; 
 }
 
 @keyframes powerupPulse {
