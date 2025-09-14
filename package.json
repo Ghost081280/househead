@@ -1,0 +1,144 @@
+{
+  "name": "house-head-chase",
+  "version": "2.0.0",
+  "description": "🏠 House Head Chase - A thrilling survival horror game where you avoid walking House Heads!",
+  "main": "index.html",
+  "private": true,
+  "keywords": [
+    "game",
+    "survival",
+    "horror",
+    "browser-game",
+    "pwa",
+    "javascript",
+    "canvas",
+    "mobile-game",
+    "arcade",
+    "action"
+  ],
+  "author": {
+    "name": "House Head Chase Team",
+    "email": "dev@househeadchase.com",
+    "url": "https://house-head-chase.web.app"
+  },
+  "license": "MIT",
+  "homepage": "https://house-head-chase.web.app",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/househeadchase/house-head-chase.git"
+  },
+  "bugs": {
+    "url": "https://github.com/househeadchase/house-head-chase/issues",
+    "email": "support@househeadchase.com"
+  },
+  "scripts": {
+    "start": "npx http-server . -p 3000 -c-1 --cors",
+    "dev": "npm start",
+    "build": "npm run build:icons && npm run build:optimize",
+    "build:icons": "node scripts/generate-icons.js",
+    "build:optimize": "node scripts/optimize-assets.js",
+    "test": "npm run test:lighthouse && npm run test:pwa",
+    "test:lighthouse": "lighthouse http://localhost:3000 --output html --output-path ./reports/lighthouse.html --chrome-flags=\"--headless\"",
+    "test:pwa": "pwa-test-tool --url http://localhost:3000",
+    "lint": "eslint *.js --fix",
+    "lint:css": "stylelint styles.css --fix",
+    "validate": "npm run validate:html && npm run validate:manifest",
+    "validate:html": "html-validator --file=index.html --verbose",
+    "validate:manifest": "web-app-manifest-validator --manifest=manifest.json",
+    "deploy:staging": "firebase deploy --only hosting:staging",
+    "deploy:production": "firebase deploy --only hosting:main",
+    "deploy": "npm run build && npm run deploy:production",
+    "serve:firebase": "firebase serve --only hosting",
+    "emulate": "firebase emulators:start",
+    "analyze": "npm run analyze:bundle && npm run analyze:lighthouse",
+    "analyze:bundle": "node scripts/analyze-bundle.js",
+    "analyze:lighthouse": "lighthouse http://localhost:3000 --view",
+    "precommit": "npm run lint && npm run validate",
+    "prepare": "npm run build",
+    "clean": "rimraf reports/ dist/ .cache/",
+    "compress": "node scripts/compress-assets.js",
+    "generate-sitemap": "node scripts/generate-sitemap.js",
+    "check-links": "broken-link-checker http://localhost:3000",
+    "security-scan": "npm audit --audit-level moderate",
+    "performance-test": "node scripts/performance-test.js",
+    "accessibility-test": "pa11y http://localhost:3000"
+  },
+  "devDependencies": {
+    "@firebase/app": "^0.10.5",
+    "@firebase/hosting": "^1.0.0",
+    "broken-link-checker": "^0.7.8",
+    "eslint": "^8.57.0",
+    "firebase-tools": "^13.0.0",
+    "html-validator": "^6.0.1",
+    "http-server": "^14.1.1",
+    "lighthouse": "^11.4.0",
+    "pa11y": "^8.0.0",
+    "pwa-test-tool": "^1.0.0",
+    "rimraf": "^5.0.5",
+    "sharp": "^0.33.2",
+    "stylelint": "^16.1.0",
+    "web-app-manifest-validator": "^1.0.0"
+  },
+  "dependencies": {
+    "canvas": "^2.11.2",
+    "jimp": "^0.22.12"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions",
+    "not dead",
+    "not ie <= 11"
+  ],
+  "pwa": {
+    "name": "House Head Chase",
+    "short_name": "HouseHeadChase",
+    "description": "Survival horror game - avoid the walking houses!",
+    "theme_color": "#ff4444",
+    "background_color": "#000000",
+    "display": "standalone",
+    "orientation": "any"
+  },
+  "firebase": {
+    "project": "house-head-chase",
+    "hosting": {
+      "public": "./",
+      "target": "main"
+    }
+  },
+  "gameConfig": {
+    "title": "House Head Chase",
+    "version": "2.0.0",
+    "genre": "Survival Horror",
+    "rating": "E10+",
+    "platforms": ["Web", "PWA", "Mobile"],
+    "features": [
+      "Offline Play",
+      "Touch Controls", 
+      "Responsive Design",
+      "High Score Tracking",
+      "Progressive Web App"
+    ]
+  },
+  "seo": {
+    "title": "House Head Chase - Survival Horror Game | Play Free Online",
+    "description": "Survive as long as you can while avoiding terrifying walking House Heads! Free browser game with offline support, touch controls, and addictive gameplay.",
+    "keywords": "house head chase, survival game, horror game, browser game, free game, pwa, mobile game, offline game",
+    "canonical": "https://house-head-chase.web.app/",
+    "ogImage": "https://house-head-chase.web.app/icons/social-preview.png"
+  },
+  "analytics": {
+    "googleAnalytics": "G-XXXXXXXXXX",
+    "trackingEvents": [
+      "game_start",
+      "game_over", 
+      "level_up",
+      "high_score",
+      "pwa_install",
+      "share_score"
+    ]
+  }
+}
