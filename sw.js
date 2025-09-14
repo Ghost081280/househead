@@ -1,25 +1,29 @@
-// House Head Chase - Service Worker
-// Version 1.0.0
+// House Head Chase - Enhanced Service Worker for Better PWA Experience
+// Version 2.0.0
 
-const CACHE_NAME = 'house-head-chase-v1.0.0';
-const OFFLINE_URL = '/offline.html';
+const CACHE_NAME = 'house-head-chase-v2.0.0';
+const OFFLINE_URL = './offline.html';
 
 // Files to cache for offline functionality
 const CACHE_URLS = [
-  '/',
-  '/index.html',
-  '/styles.css',
-  '/game.js',
-  '/manifest.json',
-  '/offline.html',
-  '/icons/icon-72.png',
-  '/icons/icon-96.png',
-  '/icons/icon-128.png',
-  '/icons/icon-144.png',
-  '/icons/icon-152.png',
-  '/icons/icon-192.png',
-  '/icons/icon-384.png',
-  '/icons/icon-512.png',
+  './',
+  './index.html',
+  './styles.css',
+  './game.js',
+  './manifest.json',
+  './offline.html',
+  './icons/icon-16.png',
+  './icons/icon-32.png',
+  './icons/icon-72.png',
+  './icons/icon-96.png',
+  './icons/icon-128.png',
+  './icons/icon-144.png',
+  './icons/icon-152.png',
+  './icons/icon-180.png',
+  './icons/icon-192.png',
+  './icons/icon-256.png',
+  './icons/icon-384.png',
+  './icons/icon-512.png',
   'https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap'
 ];
 
@@ -73,6 +77,11 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // Skip Chrome extension requests
+  if (event.request.url.startsWith('chrome-extension://')) {
+    return;
+  }
+
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -103,6 +112,14 @@ self.addEventListener('fetch', event => {
             if (event.request.destination === 'document') {
               return caches.match(OFFLINE_URL);
             }
+            
+            // For images, return a placeholder
+            if (event.request.destination === 'image') {
+              return new Response(
+                '<svg width="200" height="200" xmlns="http://www.w3.org/2000/svg"><rect width="100%" height="100%" fill="#ddd"/><text x="50%" y="50%" text-anchor="middle" dy=".3em">🏠</text></svg>',
+                { headers: { 'Content-Type': 'image/svg+xml' } }
+              );
+            }
           });
       })
   );
@@ -122,8 +139,8 @@ self.addEventListener('push', event => {
   
   const options = {
     body: event.data ? event.data.text() : 'New House Head Chase update available!',
-    icon: '/icons/icon-192.png',
-    badge: '/icons/icon-72.png',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-72.png',
     vibrate: [100, 50, 100],
     data: {
       dateOfArrival: Date.now(),
@@ -133,14 +150,18 @@ self.addEventListener('push', event => {
       {
         action: 'explore',
         title: 'Play Now',
-        icon: '/icons/icon-192.png'
+        icon: './icons/icon-192.png'
       },
       {
         action: 'close',
         title: 'Close',
-        icon: '/icons/icon-192.png'
+        icon: './icons/icon-192.png'
       }
-    ]
+    ],
+    tag: 'house-head-chase',
+    renotify: true,
+    requireInteraction: false,
+    silent: false
   };
 
   event.waitUntil(
@@ -156,7 +177,17 @@ self.addEventListener('notificationclick', event => {
 
   if (event.action === 'explore') {
     event.waitUntil(
-      clients.openWindow('/')
+      clients.openWindow('./')
+    );
+  } else {
+    // Default click action
+    event.waitUntil(
+      clients.matchAll().then(clients => {
+        if (clients.length > 0) {
+          return clients[0].focus();
+        }
+        return clients.openWindow('./');
+      })
     );
   }
 });
@@ -166,6 +197,12 @@ async function syncHighScores() {
   try {
     // This would sync with a server in a real implementation
     console.log('📊 High scores synced successfully');
+    
+    // For now, just validate local storage
+    const scores = localStorage.getItem('houseHeadChaseHighScores');
+    if (scores) {
+      JSON.parse(scores); // Validate JSON
+    }
   } catch (error) {
     console.error('❌ Failed to sync high scores:', error);
     throw error;
@@ -180,7 +217,7 @@ self.addEventListener('message', event => {
   }
 });
 
-// Error handling
+// Improved error handling
 self.addEventListener('error', event => {
   console.error('💥 Service Worker error:', event.error);
 });
@@ -190,4 +227,25 @@ self.addEventListener('unhandledrejection', event => {
   event.preventDefault();
 });
 
-console.log('🏠 House Head Chase Service Worker loaded successfully!');
+// PWA install prompt enhancement
+self.addEventListener('appinstalled', event => {
+  console.log('✅ App was installed successfully');
+  
+  // Show welcome notification after install
+  self.registration.showNotification('🏠 Welcome to House Head Chase!', {
+    body: 'The app is now installed and ready to play offline!',
+    icon: './icons/icon-192.png',
+    badge: './icons/icon-72.png',
+    tag: 'welcome',
+    requireInteraction: false,
+    actions: [
+      {
+        action: 'play',
+        title: 'Start Playing',
+        icon: './icons/icon-192.png'
+      }
+    ]
+  });
+});
+
+console.log('🏠 House Head Chase Service Worker v2.0.0 loaded successfully!');
