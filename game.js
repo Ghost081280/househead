@@ -1314,53 +1314,201 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Setup all button event listeners with comprehensive error handling
-    const buttons = {
-        // Game flow buttons
-        'startGameBtn': startGame,
-        'restartGameBtn': restartGame,
-        'showStartScreenBtn': showStartScreen,
-        
-        // Modal buttons
-        'showHighScoresBtn': showHighScores,
-        'closeHighScoresBtn': closeHighScores,
-        'closeHighScoresFooterBtn': closeHighScores,
-        'showHelpBtn': showHelp,
-        'closeHelpBtn': closeHelp,
-        'closeHelpFooterBtn': closeHelp,
-        
-        // Share buttons
-        'shareScoreBtn': showShareModal,
-        'closeShareBtn': closeShareModal,
-        'closeShareFooterBtn': closeShareModal,
-        'shareTwitterBtn': () => shareScore('twitter'),
-        'shareFacebookBtn': () => shareScore('facebook'),
-        'copyScoreBtn': () => shareScore('copy'),
-        
-        // PWA install buttons
-        'installAppBtn': installPWA,
-        'dismissInstallBtn': hideInstallPrompt,
-        
-        // Audio toggle
-        'audioToggle': () => soundSystem.toggle()
-    };
-
-    // Attach all button listeners
-    for (const [id, handler] of Object.entries(buttons)) {
-        const element = document.getElementById(id);
-        if (element) {
-            element.addEventListener('click', (e) => {
-                e.preventDefault();
-                try {
-                    handler();
-                } catch (error) {
-                    console.error(`❌ Error in ${id} handler:`, error);
-                }
-            });
-            console.log(`✅ ${id} button attached`);
-        } else {
-            console.warn(`⚠️ Button ${id} not found`);
-        }
+    // Simple, direct button event listeners - no complex mapping
+    console.log('🔗 Setting up button listeners...');
+    
+    // Start game button
+    const startBtn = document.getElementById('startGameBtn');
+    if (startBtn) {
+        startBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🎮 Start game clicked');
+            startGame();
+        });
+        console.log('✅ Start game button attached');
+    } else {
+        console.error('❌ Start game button not found!');
+    }
+    
+    // Restart game button
+    const restartBtn = document.getElementById('restartGameBtn');
+    if (restartBtn) {
+        restartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔄 Restart game clicked');
+            restartGame();
+        });
+        console.log('✅ Restart game button attached');
+    }
+    
+    // Show start screen button
+    const showStartBtn = document.getElementById('showStartScreenBtn');
+    if (showStartBtn) {
+        showStartBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🏠 Show start screen clicked');
+            showStartScreen();
+        });
+        console.log('✅ Show start screen button attached');
+    }
+    
+    // High scores buttons
+    const showHighScoresBtn = document.getElementById('showHighScoresBtn');
+    if (showHighScoresBtn) {
+        showHighScoresBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🏆 Show high scores clicked');
+            showHighScores();
+        });
+        console.log('✅ Show high scores button attached');
+    } else {
+        console.error('❌ Show high scores button not found!');
+    }
+    
+    const closeHighScoresBtn = document.getElementById('closeHighScoresBtn');
+    if (closeHighScoresBtn) {
+        closeHighScoresBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close high scores clicked');
+            closeHighScores();
+        });
+        console.log('✅ Close high scores button attached');
+    }
+    
+    const closeHighScoresFooterBtn = document.getElementById('closeHighScoresFooterBtn');
+    if (closeHighScoresFooterBtn) {
+        closeHighScoresFooterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close high scores footer clicked');
+            closeHighScores();
+        });
+        console.log('✅ Close high scores footer button attached');
+    }
+    
+    // Help buttons
+    const showHelpBtn = document.getElementById('showHelpBtn');
+    if (showHelpBtn) {
+        showHelpBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('❓ Show help clicked');
+            showHelp();
+        });
+        console.log('✅ Show help button attached');
+    } else {
+        console.error('❌ Show help button not found!');
+    }
+    
+    const closeHelpBtn = document.getElementById('closeHelpBtn');
+    if (closeHelpBtn) {
+        closeHelpBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close help clicked');
+            closeHelp();
+        });
+        console.log('✅ Close help button attached');
+    }
+    
+    const closeHelpFooterBtn = document.getElementById('closeHelpFooterBtn');
+    if (closeHelpFooterBtn) {
+        closeHelpFooterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close help footer clicked');
+            closeHelp();
+        });
+        console.log('✅ Close help footer button attached');
+    }
+    
+    // Share buttons
+    const shareScoreBtn = document.getElementById('shareScoreBtn');
+    if (shareScoreBtn) {
+        shareScoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('📤 Share score clicked');
+            showShareModal();
+        });
+        console.log('✅ Share score button attached');
+    }
+    
+    const closeShareBtn = document.getElementById('closeShareBtn');
+    if (closeShareBtn) {
+        closeShareBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close share clicked');
+            closeShareModal();
+        });
+        console.log('✅ Close share button attached');
+    }
+    
+    const closeShareFooterBtn = document.getElementById('closeShareFooterBtn');
+    if (closeShareFooterBtn) {
+        closeShareFooterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🚫 Close share footer clicked');
+            closeShareModal();
+        });
+        console.log('✅ Close share footer button attached');
+    }
+    
+    const shareTwitterBtn = document.getElementById('shareTwitterBtn');
+    if (shareTwitterBtn) {
+        shareTwitterBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🐦 Share Twitter clicked');
+            shareScore('twitter');
+        });
+        console.log('✅ Share Twitter button attached');
+    }
+    
+    const shareFacebookBtn = document.getElementById('shareFacebookBtn');
+    if (shareFacebookBtn) {
+        shareFacebookBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('📘 Share Facebook clicked');
+            shareScore('facebook');
+        });
+        console.log('✅ Share Facebook button attached');
+    }
+    
+    const copyScoreBtn = document.getElementById('copyScoreBtn');
+    if (copyScoreBtn) {
+        copyScoreBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('📋 Copy score clicked');
+            shareScore('copy');
+        });
+        console.log('✅ Copy score button attached');
+    }
+    
+    // Audio toggle
+    const audioToggle = document.getElementById('audioToggle');
+    if (audioToggle) {
+        audioToggle.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('🔊 Audio toggle clicked');
+            soundSystem.toggle();
+        });
+        console.log('✅ Audio toggle button attached');
+    }
+    
+    // PWA install buttons
+    const installAppBtn = document.getElementById('installAppBtn');
+    if (installAppBtn) {
+        installAppBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('📱 Install app clicked');
+            installPWA();
+        });
+        console.log('✅ Install app button attached');
+    }
+    
+    const dismissInstallBtn = document.getElementById('dismissInstallBtn');
+    if (dismissInstallBtn) {
+        dismissInstallBtn.addEventListener('click', function(e) {
+            e.preventDefault();
+            console.log('❌ Dismiss install clicked');
+            hideInstallPrompt();
+        });
+        console.log('✅ Dismiss install button attached');
     }
     
     // Setup window event listeners
@@ -1373,7 +1521,11 @@ document.addEventListener('DOMContentLoaded', () => {
     // Make sure start screen is visible initially
     showStartScreen();
     
-    console.log('🎮 COMPLETE FIXED GAME WITH FULL FEATURES READY!');
+    console.log('🎮 ALL BUTTONS ATTACHED - GAME READY!');
+    
+    // Debug: Log all buttons found
+    const allButtons = document.querySelectorAll('button');
+    console.log(`🔍 Found ${allButtons.length} buttons total:`, Array.from(allButtons).map(btn => btn.id || btn.className));
 });
 
-console.log('✅ COMPLETE FIXED Game script with all features loaded successfully!');
+console.log('✅ COMPLETE FIXED Game script with direct button handlers loaded!');
