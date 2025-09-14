@@ -442,12 +442,13 @@ function spawnPowerup() {
 
     let x, y;
     let attempts = 0;
+    let playerDistance = 0;
 
     do {
         x = 80 + Math.random() * (gameState.canvas.width - 160);
         y = 120 + Math.random() * (gameState.canvas.height - 200);
 
-        const playerDistance = Math.sqrt(
+        playerDistance = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
 
@@ -459,7 +460,7 @@ function spawnPowerup() {
     gameState.powerups.push(powerup);
     gameState.lastPowerupSpawn = currentTime;
 
-    console.log(`⚡ Powerup spawned: ${powerupType}`);
+    console.log(`⚡ Powerup spawned: ${powerupType} at (${Math.floor(x)}, ${Math.floor(y)})`);
 }
 
 function updateGame() {
