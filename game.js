@@ -1528,7 +1528,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupPWAInstall();
     
     // Make sure start screen is visible initially
-    showStartScreen();
+    goToStartScreen();
     
     console.log('🎮 ALL BUTTONS ATTACHED - GAME READY!');
     
