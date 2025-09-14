@@ -1151,6 +1151,12 @@ body.high-contrast {
     
     .game-screen header h1 {
         font-size: 18px;
+        gap: 6px;
+    }
+    
+    .title-house-image {
+        width: 24px;
+        height: 24px;
     }
     
     .btn {
