@@ -1,5 +1,5 @@
 // House Head Chase - Main Game Logic
-// Senior Game Designer, UI/UX Expert & Senior Engineer Implementation
+// Complete Fix for all issues
 
 console.log('🏠 House Head Chase - Loading...');
 
@@ -1063,7 +1063,7 @@ function showPowerupMessage(message) {
                 font-weight: bold;
                 font-size: 20px;
                 pointer-events: none;
-                z-index: 6000;
+                z-index: 8000;
                 animation: powerupMessageFloat 1.5s ease-out forwards;
                 font-family: 'Orbitron', monospace;
                 text-shadow: 0 0 10px #44ff44;
@@ -1129,7 +1129,7 @@ function showDamageIndicator(damage) {
                 font-weight: bold;
                 font-size: 18px;
                 pointer-events: none;
-                z-index: 6000;
+                z-index: 8000;
                 animation: damageFloat 0.8s ease-out forwards;
                 font-family: 'Orbitron', monospace;
                 text-shadow: 0 0 8px #ff4444;
@@ -1178,7 +1178,7 @@ function showLevelUpEffect() {
                 text-align: center;
                 font-family: 'Orbitron', monospace;
                 font-weight: bold;
-                z-index: 6000;
+                z-index: 8000;
                 animation: levelUpPulse 2s ease-out;
                 backdrop-filter: blur(10px);
                 border: 2px solid #ff4444;
@@ -1254,13 +1254,26 @@ function displayHighScores() {
     ).join('');
 }
 
-// Modal Management - Fix z-index conflicts
+// MODAL MANAGEMENT - FIXED Z-INDEX CONFLICTS
 function hideAllModals() {
-    const modals = ['highScoresModal', 'helpModal', 'shareModal'];
-    modals.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) modal.classList.add('hidden');
+    // Use higher specificity to ensure modals are properly hidden
+    const modals = document.querySelectorAll('.modal');
+    modals.forEach(modal => {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
     });
+    
+    // Also hide individual modal IDs
+    const modalIds = ['highScoresModal', 'helpModal', 'shareModal'];
+    modalIds.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) {
+            modal.style.display = 'none';
+            modal.classList.add('hidden');
+        }
+    });
+    
+    console.log('🚫 All modals hidden');
 }
 
 // Social Sharing
@@ -1270,7 +1283,10 @@ function shareScore() {
     const shareModalEl = document.getElementById('shareModal');
     
     if (shareScoreEl) shareScoreEl.textContent = gameState.score;
-    if (shareModalEl) shareModalEl.classList.remove('hidden');
+    if (shareModalEl) {
+        shareModalEl.style.display = 'flex';
+        shareModalEl.classList.remove('hidden');
+    }
 }
 
 function shareTwitter() {
@@ -1301,7 +1317,10 @@ function copyScore() {
 
 function closeShare() {
     const shareModalEl = document.getElementById('shareModal');
-    if (shareModalEl) shareModalEl.classList.add('hidden');
+    if (shareModalEl) {
+        shareModalEl.style.display = 'none';
+        shareModalEl.classList.add('hidden');
+    }
 }
 
 // PWA Install
@@ -1340,11 +1359,11 @@ function dismissInstall() {
     }
 }
 
-// Game Functions
+// GAME FUNCTIONS - FIXED INITIALIZATION ORDER
 function startGame() {
     console.log('🎮 Starting House Head Chase...');
     
-    // Hide all UI elements first
+    // Hide all UI elements first with force
     hideAllModals();
     
     // Get canvas and context
@@ -1363,70 +1382,75 @@ function startGame() {
     // Set canvas size FIRST
     resizeCanvas();
     
-    // Wait for canvas to be ready, then initialize game
+    // ENSURE GAME IS INITIALIZED IMMEDIATELY
+    // Initialize game state
+    gameState.running = true;
+    gameState.startTime = Date.now();
+    gameState.lastScoreUpdate = Date.now();
+    
+    // Reset game state with proper player positioning
+    gameState.player = {
+        x: gameState.canvas.width / 2,
+        y: gameState.canvas.height / 2,
+        size: 15,
+        health: 100,
+        maxHealth: 100,
+        speed: 3,
+        baseSpeed: 3,
+        isDragging: false,
+        dragOffset: { x: 0, y: 0 },
+        shieldTime: 0,
+        speedBoostTime: 0
+    };
+    
+    gameState.enemies = [];
+    gameState.powerups = [];
+    gameState.activePowerups = [];
+    gameState.score = 0;
+    gameState.level = 1;
+    gameState.difficulty = 1;
+    gameState.lastEnemySpawn = 0;
+    gameState.lastPowerupSpawn = 0;
+    gameState.flashlight.on = false;
+    gameState.flashlight.intensity = 0;
+    gameState.camera.shake = 0;
+    gameState.camera.intensity = 0;
+    gameState.totalEnemiesSpawned = 0;
+    
+    console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
+    
+    // Hide screens with force
+    const startScreen = document.getElementById('startScreen');
+    const gameOver = document.getElementById('gameOver');
+    if (startScreen) {
+        startScreen.style.display = 'none';
+        startScreen.classList.add('hidden');
+    }
+    if (gameOver) {
+        gameOver.style.display = 'none';
+        gameOver.classList.add('hidden');
+    }
+    
+    // Show controls hint
     setTimeout(() => {
-        // Initialize game state
-        gameState.running = true;
-        gameState.startTime = Date.now();
-        gameState.lastScoreUpdate = Date.now();
-        
-        // Reset game state
-        gameState.player = {
-            x: gameState.canvas.width / 2,
-            y: gameState.canvas.height / 2,
-            size: 15,
-            health: 100,
-            maxHealth: 100,
-            speed: 3,
-            baseSpeed: 3,
-            isDragging: false,
-            dragOffset: { x: 0, y: 0 },
-            shieldTime: 0,
-            speedBoostTime: 0
-        };
-        
-        gameState.enemies = [];
-        gameState.powerups = [];
-        gameState.activePowerups = [];
-        gameState.score = 0;
-        gameState.level = 1;
-        gameState.difficulty = 1;
-        gameState.lastEnemySpawn = 0;
-        gameState.lastPowerupSpawn = 0;
-        gameState.flashlight.on = false;
-        gameState.flashlight.intensity = 0;
-        gameState.camera.shake = 0;
-        gameState.camera.intensity = 0;
-        gameState.totalEnemiesSpawned = 0;
-        
-        console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
-        
-        // Hide screens
-        const startScreen = document.getElementById('startScreen');
-        const gameOver = document.getElementById('gameOver');
-        if (startScreen) startScreen.classList.add('hidden');
-        if (gameOver) gameOver.classList.add('hidden');
-        
-        // Show controls hint
-        setTimeout(() => {
-            const hint = document.getElementById('controlsHint');
-            if (hint) hint.style.display = 'block';
-        }, 1000);
-        
-        // Hide hint after 5 seconds
-        setTimeout(() => {
-            const hint = document.getElementById('controlsHint');
-            if (hint) hint.style.display = 'none';
-        }, 6000);
-        
-        // Setup input handlers
-        setupInputHandlers();
-        
-        // Start game loop
-        gameLoop();
-        
-        console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
-    }, 100); // Small delay to ensure canvas is ready
+        const hint = document.getElementById('controlsHint');
+        if (hint) hint.style.display = 'block';
+    }, 1000);
+    
+    // Hide hint after 5 seconds
+    setTimeout(() => {
+        const hint = document.getElementById('controlsHint');
+        if (hint) hint.style.display = 'none';
+    }, 6000);
+    
+    // Setup input handlers
+    setupInputHandlers();
+    
+    // Start game loop IMMEDIATELY
+    gameLoop();
+    
+    console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
+    console.log(`🔵 Player visible at: (${gameState.player.x}, ${gameState.player.y})`);
 }
 
 function endGame() {
@@ -1445,7 +1469,10 @@ function endGame() {
     if (finalScoreEl) finalScoreEl.textContent = survivalTime;
     if (finalTimeEl) finalTimeEl.textContent = survivalTime;
     if (finalLevelEl) finalLevelEl.textContent = gameState.level;
-    if (gameOverEl) gameOverEl.classList.remove('hidden');
+    if (gameOverEl) {
+        gameOverEl.style.display = 'block';
+        gameOverEl.classList.remove('hidden');
+    }
     
     // Hide controls hint
     const hint = document.getElementById('controlsHint');
@@ -1455,16 +1482,24 @@ function endGame() {
 }
 
 function restartGame() {
+    console.log('🔄 Restarting game...');
     startGame();
 }
 
 function showStartScreen() {
+    console.log('🏠 Showing start screen...');
     hideAllModals();
     const startScreen = document.getElementById('startScreen');
     const gameOver = document.getElementById('gameOver');
     
-    if (startScreen) startScreen.classList.remove('hidden');
-    if (gameOver) gameOver.classList.add('hidden');
+    if (startScreen) {
+        startScreen.style.display = 'block';
+        startScreen.classList.remove('hidden');
+    }
+    if (gameOver) {
+        gameOver.style.display = 'none';
+        gameOver.classList.add('hidden');
+    }
     gameState.running = false;
     
     // Hide controls hint
@@ -1473,26 +1508,42 @@ function showStartScreen() {
 }
 
 function showHighScores() {
+    console.log('🏆 Showing high scores...');
     hideAllModals();
     displayHighScores();
     const modal = document.getElementById('highScoresModal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+    }
 }
 
 function closeHighScores() {
+    console.log('🚫 Closing high scores...');
     const modal = document.getElementById('highScoresModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+    }
 }
 
 function showHelp() {
+    console.log('❓ Showing help...');
     hideAllModals();
     const modal = document.getElementById('helpModal');
-    if (modal) modal.classList.remove('hidden');
+    if (modal) {
+        modal.style.display = 'flex';
+        modal.classList.remove('hidden');
+    }
 }
 
 function closeHelp() {
+    console.log('🚫 Closing help...');
     const modal = document.getElementById('helpModal');
-    if (modal) modal.classList.add('hidden');
+    if (modal) {
+        modal.style.display = 'none';
+        modal.classList.add('hidden');
+    }
 }
 
 // Canvas Management
@@ -1518,7 +1569,7 @@ function resizeCanvas() {
     }
 }
 
-// Initialize everything
+// FIXED INITIALIZATION - PROPER EVENT HANDLER ATTACHMENT
 window.addEventListener('load', () => {
     console.log('🏠 House Head Chase - PWA Loaded!');
     
@@ -1527,7 +1578,120 @@ window.addEventListener('load', () => {
     if (canvas) {
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
         console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
+    }
+    
+    // ATTACH ALL EVENT HANDLERS PROPERLY TO NEW IDs
+    const startBtn = document.getElementById('startGameBtn');
+    const restartBtn = document.getElementById('restartGameBtn');
+    const showStartBtn = document.getElementById('showStartScreenBtn');
+    const showHighScoresBtn = document.getElementById('showHighScoresBtn');
+    const showHelpBtn = document.getElementById('showHelpBtn');
+    const shareScoreBtn = document.getElementById('shareScoreBtn');
+    
+    // Main game buttons
+    if (startBtn) {
+        startBtn.addEventListener('click', startGame);
+        console.log('✅ Start button event attached');
+    }
+    
+    if (restartBtn) {
+        restartBtn.addEventListener('click', restartGame);
+        console.log('✅ Restart button event attached');
+    }
+    
+    if (showStartBtn) {
+        showStartBtn.addEventListener('click', showStartScreen);
+        console.log('✅ Show start button event attached');
+    }
+    
+    if (showHighScoresBtn) {
+        showHighScoresBtn.addEventListener('click', showHighScores);
+        console.log('✅ High scores button event attached');
+    }
+    
+    if (showHelpBtn) {
+        showHelpBtn.addEventListener('click', showHelp);
+        console.log('✅ Help button event attached');
+    }
+    
+    if (shareScoreBtn) {
+        shareScoreBtn.addEventListener('click', shareScore);
+        console.log('✅ Share score button event attached');
+    }
+    
+    // Modal close buttons
+    const closeHighScoresBtn = document.getElementById('closeHighScoresBtn');
+    const closeHighScoresFooterBtn = document.getElementById('closeHighScoresFooterBtn');
+    const closeHelpBtn = document.getElementById('closeHelpBtn');
+    const closeHelpFooterBtn = document.getElementById('closeHelpFooterBtn');
+    const closeShareBtn = document.getElementById('closeShareBtn');
+    const closeShareFooterBtn = document.getElementById('closeShareFooterBtn');
+    
+    if (closeHighScoresBtn) {
+        closeHighScoresBtn.addEventListener('click', closeHighScores);
+        console.log('✅ Close high scores header button attached');
+    }
+    
+    if (closeHighScoresFooterBtn) {
+        closeHighScoresFooterBtn.addEventListener('click', closeHighScores);
+        console.log('✅ Close high scores footer button attached');
+    }
+    
+    if (closeHelpBtn) {
+        closeHelpBtn.addEventListener('click', closeHelp);
+        console.log('✅ Close help header button attached');
+    }
+    
+    if (closeHelpFooterBtn) {
+        closeHelpFooterBtn.addEventListener('click', closeHelp);
+        console.log('✅ Close help footer button attached');
+    }
+    
+    if (closeShareBtn) {
+        closeShareBtn.addEventListener('click', closeShare);
+        console.log('✅ Close share header button attached');
+    }
+    
+    if (closeShareFooterBtn) {
+        closeShareFooterBtn.addEventListener('click', closeShare);
+        console.log('✅ Close share footer button attached');
+    }
+    
+    // Share buttons
+    const shareTwitterBtn = document.getElementById('shareTwitterBtn');
+    const shareFacebookBtn = document.getElementById('shareFacebookBtn');
+    const copyScoreBtn = document.getElementById('copyScoreBtn');
+    
+    if (shareTwitterBtn) {
+        shareTwitterBtn.addEventListener('click', shareTwitter);
+        console.log('✅ Share Twitter button attached');
+    }
+    
+    if (shareFacebookBtn) {
+        shareFacebookBtn.addEventListener('click', shareFacebook);
+        console.log('✅ Share Facebook button attached');
+    }
+    
+    if (copyScoreBtn) {
+        copyScoreBtn.addEventListener('click', copyScore);
+        console.log('✅ Copy score button attached');
+    }
+    
+    // Install buttons
+    const installAppBtn = document.getElementById('installAppBtn');
+    const dismissInstallBtn = document.getElementById('dismissInstallBtn');
+    
+    if (installAppBtn) {
+        installAppBtn.addEventListener('click', installApp);
+        console.log('✅ Install app button attached');
+    }
+    
+    if (dismissInstallBtn) {
+        dismissInstallBtn.addEventListener('click', dismissInstall);
+        console.log('✅ Dismiss install button attached');
     }
     
     // Register service worker
@@ -1566,10 +1730,13 @@ window.addEventListener('load', () => {
     const hint = document.getElementById('controlsHint');
     if (hint) hint.style.display = 'none';
     
+    // Ensure all modals are hidden on load
+    hideAllModals();
+    
     console.log('🎮 Game ready to play!');
 });
 
-// Make functions globally available
+// Make functions globally available for any remaining onclick attributes
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.showStartScreen = showStartScreen;
