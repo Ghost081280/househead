@@ -1,4 +1,4 @@
-// House Head Chase - COMPLETE FIXED VERSION
+// House Head Chase - COMPLETE FIXED VERSION WITH NAVIGATION
 console.log('🏠 House Head Chase - Loading COMPLETE FIXED VERSION...');
 
 // === SOUND SYSTEM ===
@@ -1126,22 +1126,262 @@ function showLevelUpEffect() {
     }, 2000);
 }
 
-// === SCREEN MANAGEMENT - FIXED ===
+// === SCREEN MANAGEMENT - COMPLETE NAVIGATION FIX ===
 function hideAllScreens() {
+    console.log('🚫 Hiding all screens...');
     document.getElementById('startScreen').classList.add('hidden');
     document.getElementById('gameOver').classList.add('hidden');
     document.getElementById('highScoresModal').classList.add('hidden');
     document.getElementById('helpModal').classList.add('hidden');
+    
+    // Also hide share modal if it exists
+    const shareModal = document.getElementById('shareModal');
+    if (shareModal) shareModal.classList.add('hidden');
 }
 
 function showScreen(screenId) {
+    console.log(`📺 Showing screen: ${screenId}`);
     hideAllScreens();
-    document.getElementById(screenId).classList.remove('hidden');
+    const screen = document.getElementById(screenId);
+    if (screen) {
+        screen.classList.remove('hidden');
+    } else {
+        console.error(`❌ Screen not found: ${screenId}`);
+    }
+}
+
+// === HIGH SCORES SYSTEM ===
+function saveHighScore(score, level) {
+    console.log(`💾 Saving high score: ${score}, level ${level}`);
+    
+    let highScores = [];
+    try {
+        const stored = localStorage.getItem('houseHeadChaseHighScores');
+        if (stored) {
+            highScores = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error('Error loading high scores:', e);
+    }
+    
+    const newScore = {
+        score: score,
+        level: level,
+        date: new Date().toISOString(),
+        timestamp: Date.now()
+    };
+    
+    highScores.push(newScore);
+    highScores.sort((a, b) => b.score - a.score);
+    highScores = highScores.slice(0, 10); // Keep top 10
+    
+    try {
+        localStorage.setItem('houseHeadChaseHighScores', JSON.stringify(highScores));
+        console.log('✅ High score saved');
+    } catch (e) {
+        console.error('Error saving high scores:', e);
+    }
+}
+
+function displayHighScores() {
+    console.log('📊 Displaying high scores...');
+    
+    const listContainer = document.getElementById('highScoresList');
+    if (!listContainer) {
+        console.error('❌ High scores list container not found');
+        return;
+    }
+    
+    let highScores = [];
+    try {
+        const stored = localStorage.getItem('houseHeadChaseHighScores');
+        if (stored) {
+            highScores = JSON.parse(stored);
+        }
+    } catch (e) {
+        console.error('Error loading high scores:', e);
+    }
+    
+    if (highScores.length === 0) {
+        listContainer.innerHTML = '<p style="color: #888; text-align: center;">No high scores yet. Play to set your first record!</p>';
+        return;
+    }
+    
+    let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
+    highScores.forEach((score, index) => {
+        const date = new Date(score.date);
+        const dateStr = date.toLocaleDateString();
+        const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
+        
+        html += `
+            <div style="display: flex; justify-content: space-between; align-items: center; 
+                        padding: 10px; background: rgba(255, 68, 68, 0.1); 
+                        border: 1px solid rgba(255, 68, 68, 0.3); border-radius: 8px;">
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <span style="font-size: 20px; min-width: 30px;">${medal}</span>
+                    <div>
+                        <div style="font-weight: bold; color: #ff4444;">Score: ${score.score}s</div>
+                        <div style="font-size: 12px; color: #888;">Level ${score.level} • ${dateStr}</div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+    html += '</div>';
+    
+    listContainer.innerHTML = html;
+}
+
+// === SHARE SYSTEM ===
+function showShareModal() {
+    console.log('📤 Showing share modal...');
+    
+    // Create share modal if it doesn't exist
+    if (!document.getElementById('shareModal')) {
+        createShareModal();
+    }
+    
+    const shareScore = document.getElementById('shareScore');
+    if (shareScore) {
+        shareScore.textContent = gameState.score;
+    }
+    
+    showScreen('shareModal');
+}
+
+function closeShareModal() {
+    console.log('🚫 Closing share modal...');
+    showScreen('gameOver');
+}
+
+function createShareModal() {
+    const modalHTML = `
+        <div id="shareModal" class="modal-overlay hidden">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h2>📤 SHARE YOUR SCORE</h2>
+                    <button class="close-btn" id="closeShareBtn">×</button>
+                </div>
+                <div class="modal-body">
+                    <p style="text-align: center; font-size: 18px; margin-bottom: 20px;">
+                        🏆 You survived for <strong id="shareScore">0</strong> seconds!
+                    </p>
+                    <div class="button-container">
+                        <button class="btn secondary" id="shareTwitterBtn">🐦 Twitter</button>
+                        <button class="btn secondary" id="shareFacebookBtn">📘 Facebook</button>
+                        <button class="btn primary" id="copyScoreBtn">📋 Copy Score</button>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn secondary" id="closeShareFooterBtn">Close</button>
+                </div>
+            </div>
+        </div>
+    `;
+    
+    document.body.insertAdjacentHTML('beforeend', modalHTML);
+    
+    // Re-attach event listeners for new buttons
+    document.getElementById('closeShareBtn').addEventListener('click', closeShareModal);
+    document.getElementById('closeShareFooterBtn').addEventListener('click', closeShareModal);
+    document.getElementById('shareTwitterBtn').addEventListener('click', () => shareScore('twitter'));
+    document.getElementById('shareFacebookBtn').addEventListener('click', () => shareScore('facebook'));
+    document.getElementById('copyScoreBtn').addEventListener('click', () => shareScore('copy'));
+}
+
+function shareScore(platform) {
+    const score = gameState.score;
+    const level = gameState.level;
+    const message = `🏠 I survived ${score} seconds and reached level ${level} in House Head Chase! Can you beat my score?`;
+    const url = window.location.href;
+    
+    switch (platform) {
+        case 'twitter':
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`, '_blank');
+            break;
+        case 'facebook':
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`, '_blank');
+            break;
+        case 'copy':
+            navigator.clipboard.writeText(message).then(() => {
+                alert('Score copied to clipboard!');
+            }).catch(() => {
+                alert('Could not copy score. Please try again.');
+            });
+            break;
+    }
+}
+
+// === PWA FUNCTIONS ===
+let deferredPrompt;
+
+function setupPWAInstall() {
+    console.log('📱 Setting up PWA install...');
+    
+    window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        
+        const installPrompt = document.getElementById('installPrompt');
+        if (installPrompt) {
+            installPrompt.classList.remove('hidden');
+        }
+    });
+    
+    window.addEventListener('appinstalled', () => {
+        console.log('✅ PWA installed');
+        hideInstallPrompt();
+    });
+}
+
+function installPWA() {
+    if (!deferredPrompt) {
+        console.log('❌ Install prompt not available');
+        return;
+    }
+    
+    deferredPrompt.prompt();
+    deferredPrompt.userChoice.then((choiceResult) => {
+        if (choiceResult.outcome === 'accepted') {
+            console.log('✅ User accepted install prompt');
+        } else {
+            console.log('❌ User dismissed install prompt');
+        }
+        deferredPrompt = null;
+        hideInstallPrompt();
+    });
+}
+
+function hideInstallPrompt() {
+    const installPrompt = document.getElementById('installPrompt');
+    if (installPrompt) {
+        installPrompt.classList.add('hidden');
+    }
+}
+
+// === NAVIGATION HELPER FUNCTIONS ===
+function goToStartScreen() {
+    console.log('🏠 Going to start screen...');
+    gameState.running = false;
+    
+    // Hide all game elements
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('powerupIndicators').classList.add('hidden');
+    document.getElementById('flashlightIndicator').classList.add('hidden');
+    document.getElementById('controlsHint').classList.add('hidden');
+    
+    // Show start screen
+    showScreen('startScreen');
+}
+
+function closeModalReturnToStart() {
+    console.log('🏠 Closing modal and returning to start...');
+    showScreen('startScreen');
 }
 
 // === MAIN GAME FUNCTIONS ===
 function startGame() {
-    console.log('🎮 Starting FIXED House Head Chase...');
+    console.log('🎮 Starting House Head Chase...');
     
     // Hide all screens first
     hideAllScreens();
@@ -1218,7 +1458,7 @@ function startGame() {
     // Start game loop
     gameLoop();
     
-    console.log(`🎮 FIXED Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
+    console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
 }
 
 function endGame() {
@@ -1256,17 +1496,7 @@ function restartGame() {
 }
 
 function showStartScreen() {
-    console.log('🏠 Showing start screen...');
-    gameState.running = false;
-    
-    // Hide all game elements
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('powerupIndicators').classList.add('hidden');
-    document.getElementById('flashlightIndicator').classList.add('hidden');
-    document.getElementById('controlsHint').classList.add('hidden');
-    
-    // Show start screen
-    showScreen('startScreen');
+    goToStartScreen();
 }
 
 function showHighScores() {
@@ -1312,7 +1542,7 @@ function resizeCanvas() {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🏠 COMPLETE FIXED House Head Chase - DOM Ready!');
+    console.log('🏠 House Head Chase - DOM Ready!');
     
     const canvas = document.getElementById('gameCanvas');
     if (canvas) {
@@ -1320,204 +1550,135 @@ document.addEventListener('DOMContentLoaded', () => {
         canvas.height = window.innerHeight;
         canvas.style.width = window.innerWidth + 'px';
         canvas.style.height = window.innerHeight + 'px';
-        console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
+        console.log('🎯 Canvas initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Simple, direct button event listeners - no complex mapping
-    console.log('🔗 Setting up button listeners...');
+    // Setup all button event listeners
+    console.log('🔗 Setting up navigation system...');
     
     // Start game button
     const startBtn = document.getElementById('startGameBtn');
     if (startBtn) {
-        startBtn.addEventListener('click', function(e) {
+        startBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🎮 Start game clicked');
             startGame();
         });
-        console.log('✅ Start game button attached');
-    } else {
-        console.error('❌ Start game button not found!');
     }
     
     // Restart game button
     const restartBtn = document.getElementById('restartGameBtn');
     if (restartBtn) {
-        restartBtn.addEventListener('click', function(e) {
+        restartBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🔄 Restart game clicked');
             restartGame();
         });
-        console.log('✅ Restart game button attached');
     }
     
-    // Show start screen button
+    // Show start screen button (from game over)
     const showStartBtn = document.getElementById('showStartScreenBtn');
     if (showStartBtn) {
-        showStartBtn.addEventListener('click', function(e) {
+        showStartBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🏠 Show start screen clicked');
             goToStartScreen();
         });
-        console.log('✅ Show start screen button attached');
     }
     
     // High scores buttons
     const showHighScoresBtn = document.getElementById('showHighScoresBtn');
     if (showHighScoresBtn) {
-        showHighScoresBtn.addEventListener('click', function(e) {
+        showHighScoresBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🏆 Show high scores clicked');
             showHighScores();
         });
-        console.log('✅ Show high scores button attached');
-    } else {
-        console.error('❌ Show high scores button not found!');
     }
     
     const closeHighScoresBtn = document.getElementById('closeHighScoresBtn');
     if (closeHighScoresBtn) {
-        closeHighScoresBtn.addEventListener('click', function(e) {
+        closeHighScoresBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚫 Close high scores clicked');
             closeHighScores();
         });
-        console.log('✅ Close high scores button attached');
     }
     
     const closeHighScoresFooterBtn = document.getElementById('closeHighScoresFooterBtn');
     if (closeHighScoresFooterBtn) {
-        closeHighScoresFooterBtn.addEventListener('click', function(e) {
+        closeHighScoresFooterBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚫 Close high scores footer clicked');
             closeHighScores();
         });
-        console.log('✅ Close high scores footer button attached');
     }
     
     // Help buttons
     const showHelpBtn = document.getElementById('showHelpBtn');
     if (showHelpBtn) {
-        showHelpBtn.addEventListener('click', function(e) {
+        showHelpBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('❓ Show help clicked');
             showHelp();
         });
-        console.log('✅ Show help button attached');
-    } else {
-        console.error('❌ Show help button not found!');
     }
     
     const closeHelpBtn = document.getElementById('closeHelpBtn');
     if (closeHelpBtn) {
-        closeHelpBtn.addEventListener('click', function(e) {
+        closeHelpBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚫 Close help clicked');
             closeHelp();
         });
-        console.log('✅ Close help button attached');
     }
     
     const closeHelpFooterBtn = document.getElementById('closeHelpFooterBtn');
     if (closeHelpFooterBtn) {
-        closeHelpFooterBtn.addEventListener('click', function(e) {
+        closeHelpFooterBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🚫 Close help footer clicked');
             closeHelp();
         });
-        console.log('✅ Close help footer button attached');
     }
     
     // Share buttons
     const shareScoreBtn = document.getElementById('shareScoreBtn');
     if (shareScoreBtn) {
-        shareScoreBtn.addEventListener('click', function(e) {
+        shareScoreBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('📤 Share score clicked');
             showShareModal();
         });
-        console.log('✅ Share score button attached');
-    }
-    
-    const closeShareBtn = document.getElementById('closeShareBtn');
-    if (closeShareBtn) {
-        closeShareBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🚫 Close share clicked');
-            closeShareModal();
-        });
-        console.log('✅ Close share button attached');
-    }
-    
-    const closeShareFooterBtn = document.getElementById('closeShareFooterBtn');
-    if (closeShareFooterBtn) {
-        closeShareFooterBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🚫 Close share footer clicked');
-            closeShareModal();
-        });
-        console.log('✅ Close share footer button attached');
-    }
-    
-    const shareTwitterBtn = document.getElementById('shareTwitterBtn');
-    if (shareTwitterBtn) {
-        shareTwitterBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('🐦 Share Twitter clicked');
-            shareScore('twitter');
-        });
-        console.log('✅ Share Twitter button attached');
-    }
-    
-    const shareFacebookBtn = document.getElementById('shareFacebookBtn');
-    if (shareFacebookBtn) {
-        shareFacebookBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('📘 Share Facebook clicked');
-            shareScore('facebook');
-        });
-        console.log('✅ Share Facebook button attached');
-    }
-    
-    const copyScoreBtn = document.getElementById('copyScoreBtn');
-    if (copyScoreBtn) {
-        copyScoreBtn.addEventListener('click', function(e) {
-            e.preventDefault();
-            console.log('📋 Copy score clicked');
-            shareScore('copy');
-        });
-        console.log('✅ Copy score button attached');
     }
     
     // Audio toggle
     const audioToggle = document.getElementById('audioToggle');
     if (audioToggle) {
-        audioToggle.addEventListener('click', function(e) {
+        audioToggle.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('🔊 Audio toggle clicked');
             soundSystem.toggle();
         });
-        console.log('✅ Audio toggle button attached');
     }
     
     // PWA install buttons
     const installAppBtn = document.getElementById('installAppBtn');
     if (installAppBtn) {
-        installAppBtn.addEventListener('click', function(e) {
+        installAppBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('📱 Install app clicked');
             installPWA();
         });
-        console.log('✅ Install app button attached');
     }
     
     const dismissInstallBtn = document.getElementById('dismissInstallBtn');
     if (dismissInstallBtn) {
-        dismissInstallBtn.addEventListener('click', function(e) {
+        dismissInstallBtn.addEventListener('click', (e) => {
             e.preventDefault();
             console.log('❌ Dismiss install clicked');
             hideInstallPrompt();
         });
-        console.log('✅ Dismiss install button attached');
     }
     
     // Setup window event listeners
@@ -1527,14 +1688,17 @@ document.addEventListener('DOMContentLoaded', () => {
     // Initialize PWA features
     setupPWAInstall();
     
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => console.log('✅ Service Worker registered'))
+            .catch(error => console.log('❌ Service Worker registration failed:', error));
+    }
+    
     // Make sure start screen is visible initially
     goToStartScreen();
     
-    console.log('🎮 ALL BUTTONS ATTACHED - GAME READY!');
-    
-    // Debug: Log all buttons found
-    const allButtons = document.querySelectorAll('button');
-    console.log(`🔍 Found ${allButtons.length} buttons total:`, Array.from(allButtons).map(btn => btn.id || btn.className));
+    console.log('✅ Navigation system initialized successfully!');
 });
 
-console.log('✅ COMPLETE FIXED Game script with direct button handlers loaded!');
+console.log('✅ COMPLETE Game script loaded with fixed navigation!
