@@ -30,7 +30,6 @@ body {
     overflow: hidden;
     touch-action: none;
     height: 100vh;
-    height: 100dvh;
     position: fixed;
     width: 100%;
     color: var(--text-light);
@@ -41,7 +40,6 @@ body {
     position: relative;
     width: 100vw;
     height: 100vh;
-    height: 100dvh;
     display: flex;
     justify-content: center;
     align-items: center;
@@ -54,6 +52,10 @@ body {
     touch-action: none;
     cursor: crosshair;
     display: block;
+    position: absolute;
+    top: 0;
+    left: 0;
+    z-index: 1;
 }
 
 /* === HUD === */
@@ -235,10 +237,10 @@ body {
 
 /* === GAME SCREENS === */
 .game-screen {
-    position: fixed !important;
-    top: 50% !important;
-    left: 50% !important;
-    transform: translate(-50%, -50%) !important;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.96) 0%, rgba(20, 0, 0, 0.96) 100%);
     color: var(--primary-color);
     padding: 30px;
@@ -246,12 +248,13 @@ body {
     text-align: center;
     border: 2px solid var(--primary-color);
     box-shadow: 0 0 40px var(--shadow-color);
-    z-index: 9999 !important;
+    z-index: 5000;
     backdrop-filter: blur(15px);
     max-width: 90vw;
     max-height: 85vh;
     overflow-y: auto;
     width: 400px;
+    display: block;
 }
 
 #startScreen h1 {
@@ -353,18 +356,18 @@ body {
 
 /* === MODALS === */
 .modal-overlay {
-    position: fixed !important;
-    top: 0 !important;
-    left: 0 !important;
-    width: 100% !important;
-    height: 100% !important;
-    background: rgba(0, 0, 0, 0.9) !important;
-    display: flex !important;
-    justify-content: center !important;
-    align-items: center !important;
-    z-index: 9000 !important;
-    backdrop-filter: blur(10px) !important;
-    padding: 20px !important;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.9);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 6000;
+    backdrop-filter: blur(10px);
+    padding: 20px;
 }
 
 .modal-content {
@@ -428,32 +431,6 @@ body {
     flex-shrink: 0;
 }
 
-/* === HIGH SCORES === */
-#highScoresList {
-    color: var(--text-gray);
-}
-
-.high-score-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 0;
-    border-bottom: 1px solid rgba(255, 255, 255, 0.1);
-    font-size: 14px;
-}
-
-.high-score-rank {
-    color: var(--primary-color);
-    font-weight: bold;
-    font-family: 'Orbitron', monospace;
-    min-width: 30px;
-}
-
-.high-score-date {
-    color: var(--text-dark);
-    font-size: 12px;
-}
-
 /* === HELP CONTENT === */
 .help-section {
     margin-bottom: 15px;
@@ -476,92 +453,9 @@ body {
     font-size: 12px;
 }
 
-/* === SHARE CONTENT === */
-.share-content {
-    text-align: center;
-}
-
-.share-buttons {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-    margin: 15px 0;
-}
-
-.share-btn {
-    padding: 10px 16px;
-    border: none;
-    border-radius: 8px;
-    cursor: pointer;
-    font-weight: bold;
-    transition: all 0.3s ease;
-    font-size: 12px;
-}
-
-.share-btn.twitter {
-    background: #1DA1F2;
-    color: white;
-}
-
-.share-btn.facebook {
-    background: #4267B2;
-    color: white;
-}
-
-.share-btn.copy {
-    background: var(--text-dark);
-    color: white;
-}
-
-.share-btn:hover {
-    transform: scale(1.02);
-    opacity: 0.9;
-}
-
-/* === INSTALL PROMPT === */
-.install-prompt {
-    position: fixed;
-    bottom: 20px;
-    left: 20px;
-    right: 20px;
-    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 0, 0.95) 100%);
-    border: 2px solid var(--primary-color);
-    border-radius: 12px;
-    padding: 15px;
-    z-index: 2500;
-    backdrop-filter: blur(10px);
-    box-shadow: 0 0 25px var(--shadow-color);
-}
-
-.install-content {
-    text-align: center;
-    color: var(--text-gray);
-}
-
-.install-content h3 {
-    color: var(--primary-color);
-    margin-bottom: 8px;
-    font-family: 'Orbitron', monospace;
-    font-size: 14px;
-}
-
-.install-content p {
-    font-size: 12px;
-    margin-bottom: 10px;
-}
-
-.install-buttons {
-    display: flex;
-    gap: 10px;
-    justify-content: center;
-}
-
 /* === UTILITY CLASSES === */
 .hidden {
     display: none !important;
-    visibility: hidden !important;
-    opacity: 0 !important;
-    pointer-events: none !important;
 }
 
 /* === RESPONSIVE DESIGN === */
@@ -618,90 +512,5 @@ body {
     .controls-hint {
         font-size: 11px;
         bottom: 15px;
-    }
-    
-    .share-buttons {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .share-btn {
-        min-width: 100px;
-        font-size: 11px;
-    }
-}
-
-@media (min-width: 768px) {
-    .game-screen {
-        width: 450px;
-    }
-    
-    .instructions {
-        font-size: 15px;
-        line-height: 1.6;
-    }
-    
-    .help-section p {
-        font-size: 13px;
-        line-height: 1.5;
-    }
-    
-    .share-buttons {
-        flex-direction: row;
-        justify-content: center;
-    }
-    
-    .share-btn {
-        min-width: 120px;
-        font-size: 13px;
-    }
-}
-
-/* === LANDSCAPE MOBILE === */
-@media (max-height: 500px) and (orientation: landscape) {
-    .game-screen {
-        max-height: 90vh;
-        padding: 15px;
-        width: 350px;
-    }
-    
-    #startScreen h1 {
-        font-size: 18px;
-        margin-bottom: 10px;
-    }
-    
-    .instructions {
-        font-size: 11px;
-        line-height: 1.3;
-        margin: 10px 0;
-    }
-    
-    .button-container {
-        gap: 8px;
-        margin-top: 10px;
-    }
-    
-    .btn {
-        padding: 8px 16px;
-        font-size: 11px;
-        min-width: 120px;
-    }
-    
-    #hud {
-        height: 45px;
-        top: 5px;
-    }
-    
-    #powerupIndicators {
-        top: 55px;
-    }
-    
-    #flashlightIndicator {
-        top: 55px;
-    }
-    
-    .controls-hint {
-        bottom: 10px;
-        font-size: 10px;
     }
 }
