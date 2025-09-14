@@ -1,93 +1,359 @@
-/* === AUTHENTICATION UI === */
-.auth-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 1200;
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-    pointer-events: auto;
+// 🏠 House Head Chase - Game Configuration
+// Version 2.0.0 - Central configuration for all game systems
+
+console.log('⚙️ Loading game configuration...');
+
+// Game Configuration Object
+const GameConfig = {
+    // Game Metadata
+    version: '2.0.0',
+    title: 'House Head Chase',
+    description: 'A fun, kid-friendly survival game where you avoid walking House Heads!',
+    author: 'House Head Chase Team',
+    
+    // Environment Detection
+    isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
+    isProduction: window.location.hostname.includes('firebase') || window.location.hostname.includes('househeadchase'),
+    
+    // Feature Flags
+    features: {
+        globalLeaderboard: true,
+        googleSignIn: true,
+        analytics: true,
+        consoleLogging: true,
+        performanceMonitoring: true,
+        pushNotifications: false, // Disabled for kid-safe experience
+        socialSharing: true,
+        pwaSupportEnabled: true,
+        offlineMode: true
+    },
+    
+    // Firebase Configuration (placeholder - replace with your Firebase config)
+    firebase: {
+        config: {
+            // Replace these with your actual Firebase config values
+            apiKey: "your-api-key-here",
+            authDomain: "house-head-chase.firebaseapp.com",
+            projectId: "house-head-chase",
+            storageBucket: "house-head-chase.appspot.com",
+            messagingSenderId: "123456789",
+            appId: "1:123456789:web:abcdef123456",
+            measurementId: "G-XXXXXXXXXX"
+        },
+        // Firestore collection names
+        collections: {
+            scores: 'globalScores',
+            users: 'users',
+            feedback: 'feedback'
+        }
+    },
+    
+    // Game Balance Settings (Kid-Friendly)
+    gameBalance: {
+        player: {
+            startingHealth: 100,
+            maxHealth: 100,
+            baseSpeed: 3.5,
+            size: 18
+        },
+        enemies: {
+            spawnRate: {
+                base: 4000,        // Slower spawning for kids
+                minimum: 2000,     // Never too overwhelming
+                levelScaling: 0.1  // Gentle difficulty increase
+            },
+            types: {
+                small: {
+                    size: 25,
+                    speed: 0.8,
+                    damage: 12,
+                    spawnWeight: 0.7,
+                    activationTime: 2500
+                },
+                big: {
+                    size: 40,
+                    speed: 0.5,
+                    damage: 20,
+                    spawnWeight: 0.3,
+                    activationTime: 3500
+                }
+            }
+        },
+        powerups: {
+            spawnRate: 10000,     // More frequent power-ups
+            despawnTime: 15000,   // Longer available time
+            types: {
+                health: { 
+                    value: 35, 
+                    spawnWeight: 0.5 
+                },
+                shield: { 
+                    duration: 6000, 
+                    spawnWeight: 0.3 
+                },
+                freeze: { 
+                    duration: 8000, 
+                    spawnWeight: 0.2 
+                }
+            }
+        },
+        scoring: {
+            pointsPerSecond: 1,
+            levelUpThreshold: 45,   // Seconds to next level
+            difficultyScaling: 0.1  // How much harder each level gets
+        }
+    },
+    
+    // Audio Settings
+    audio: {
+        enabled: true,
+        volume: 0.3,
+        sounds: {
+            spawn: { frequency: 180, duration: 0.3 },
+            damage: { frequency: 120, duration: 0.2 },
+            levelup: { frequency: 440, duration: 0.5 },
+            flashlight: { frequency: 300, duration: 0.1 },
+            powerup: { frequency: 660, duration: 0.3 },
+            freeze: { frequency: 440, duration: 0.4 },
+            bounce: { frequency: 200, duration: 0.1 }
+        }
+    },
+    
+    // Analytics Configuration (COPPA Compliant)
+    analytics: {
+        enabled: true,
+        googleAnalytics: {
+            measurementId: "G-XXXXXXXXXX" // Replace with your GA4 measurement ID
+        },
+        events: {
+            gameStart: 'game_start',
+            gameOver: 'game_over',
+            levelUp: 'level_up',
+            powerupCollected: 'powerup_collected',
+            highScore: 'high_score_achieved',
+            pwaInstall: 'pwa_install',
+            shareScore: 'score_shared',
+            errorOccurred: 'error_occurred'
+        },
+        performance: {
+            thresholds: {
+                fps: 30,              // Minimum acceptable FPS
+                memoryUsage: 100      // MB memory usage warning threshold
+            }
+        }
+    },
+    
+    // UI Configuration
+    ui: {
+        theme: {
+            primaryColor: '#ff4444',
+            secondaryColor: '#4488ff',
+            backgroundColor: '#001122',
+            textColor: '#ffffff'
+        },
+        animations: {
+            enabled: true,
+            reducedMotion: false
+        },
+        responsiveBreakpoints: {
+            mobile: 600,
+            tablet: 1024,
+            desktop: 1200
+        }
+    },
+    
+    // PWA Configuration
+    pwa: {
+        name: 'House Head Chase',
+        shortName: 'HouseHeadChase',
+        description: 'Fun survival game for kids - avoid the walking houses!',
+        themeColor: '#ff4444',
+        backgroundColor: '#000000',
+        display: 'standalone',
+        orientation: 'any',
+        scope: './',
+        startUrl: './',
+        iconSizes: [16, 32, 48, 72, 96, 128, 144, 152, 180, 192, 256, 384, 512]
+    },
+    
+    // Privacy & Safety (COPPA Compliant)
+    privacy: {
+        coppaCompliant: true,
+        minimumAge: 8,
+        dataCollection: {
+            personalInfo: false,     // No personal info collected
+            analytics: true,         // Anonymous analytics only
+            crashReporting: true,    // For game improvement
+            userGeneratedContent: false // No user content allowed
+        },
+        contentFiltering: {
+            enabled: true,
+            profanityFilter: true,
+            moderatedChat: false     // No chat features
+        }
+    },
+    
+    // Performance Settings
+    performance: {
+        targetFPS: 60,
+        maxEnemies: 20,
+        maxPowerups: 5,
+        canvasOptimization: true,
+        memoryManagement: true,
+        backgroundSync: true
+    },
+    
+    // Debug Settings
+    debug: {
+        showFPS: false,
+        showMemoryUsage: false,
+        verboseLogging: false,
+        skipIntro: false,
+        godMode: false
+    },
+    
+    // Utility Functions
+    utils: {
+        getStorageKey: (key) => `houseHeadChase_${key}`,
+        formatTime: (seconds) => {
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        },
+        generatePlayerName: () => {
+            const adjectives = ['Brave', 'Quick', 'Smart', 'Swift', 'Clever', 'Bold', 'Fast', 'Bright'];
+            const nouns = ['Runner', 'Player', 'Explorer', 'Hero', 'Champion', 'Survivor', 'Dodger', 'Escape'];
+            const adj = adjectives[Math.floor(Math.random() * adjectives.length)];
+            const noun = nouns[Math.floor(Math.random() * nouns.length)];
+            return `${adj} ${noun}`;
+        },
+        sanitizeInput: (input) => {
+            return input.replace(/[<>&"']/g, '').trim();
+        },
+        isValidEmail: (email) => {
+            return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        }
+    },
+    
+    // Error Messages
+    messages: {
+        errors: {
+            firebaseInit: 'Unable to connect to game services. Playing in offline mode.',
+            authFailed: 'Sign-in failed. Please try again.',
+            networkError: 'Network error. Check your connection.',
+            gameLoadFailed: 'Game failed to load. Please refresh the page.',
+            unsupportedBrowser: 'Your browser is not fully supported. Some features may not work.'
+        },
+        success: {
+            authSuccess: 'Successfully signed in!',
+            scoreSubmitted: 'Score submitted to global leaderboard!',
+            gameInstalled: 'Game installed successfully!'
+        }
+    },
+    
+    // External Links (Kid-Safe)
+    links: {
+        website: 'https://www.househeadchase.com',
+        support: 'support@househeadchase.com',
+        twitter: 'https://x.com/househeadchase',
+        github: 'https://github.com/Ghost081280',
+        privacyPolicy: 'https://www.househeadchase.com/privacy',
+        termsOfService: 'https://www.househeadchase.com/terms'
+    }
+};
+
+// Environment-specific overrides
+if (GameConfig.isDevelopment) {
+    GameConfig.debug.showFPS = true;
+    GameConfig.debug.verboseLogging = true;
+    GameConfig.features.analytics = false; // Disable analytics in development
+    console.log('🔧 Development mode enabled');
+} else if (GameConfig.isProduction) {
+    GameConfig.debug = { ...GameConfig.debug, showFPS: false, verboseLogging: false };
+    console.log('🚀 Production mode enabled');
 }
 
-.auth-container .btn {
-    min-width: 160px;
-    font-size: 12px;
-    padding: 8px 16px;
+// Feature detection and browser compatibility
+const checkBrowserSupport = () => {
+    const required = {
+        canvas: !!window.HTMLCanvasElement,
+        localStorage: !!window.localStorage,
+        requestAnimationFrame: !!window.requestAnimationFrame,
+        touchEvents: 'ontouchstart' in window,
+        webAudio: !!(window.AudioContext || window.webkitAudioContext),
+        serviceWorker: 'serviceWorker' in navigator
+    };
+    
+    GameConfig.browserSupport = required;
+    
+    // Check for critical missing features
+    const critical = ['canvas', 'localStorage', 'requestAnimationFrame'];
+    const missing = critical.filter(feature => !required[feature]);
+    
+    if (missing.length > 0) {
+        console.error('❌ Missing critical browser features:', missing);
+        GameConfig.isSupported = false;
+    } else {
+        GameConfig.isSupported = true;
+        console.log('✅ Browser compatibility check passed');
+    }
+    
+    return GameConfig.isSupported;
+};
+
+// Initialize configuration
+const initializeConfig = () => {
+    // Check browser support
+    checkBrowserSupport();
+    
+    // Set up reduced motion preference
+    if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) {
+        GameConfig.ui.animations.reducedMotion = true;
+        document.body.classList.add('reduced-motion');
+        console.log('🎭 Reduced motion enabled');
+    }
+    
+    // Set up high contrast preference
+    if (window.matchMedia && window.matchMedia('(prefers-contrast: high)').matches) {
+        document.body.classList.add('high-contrast');
+        console.log('🎨 High contrast mode enabled');
+    }
+    
+    // Mobile detection
+    GameConfig.isMobile = /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+    GameConfig.isTablet = /iPad|Android/i.test(navigator.userAgent) && window.innerWidth > 600;
+    GameConfig.isDesktop = !GameConfig.isMobile && !GameConfig.isTablet;
+    
+    // Device-specific optimizations
+    if (GameConfig.isMobile) {
+        GameConfig.performance.maxEnemies = 15; // Reduce for mobile performance
+        GameConfig.gameBalance.enemies.spawnRate.base = 5000; // Slower spawning on mobile
+    }
+    
+    console.log(`📱 Device: ${GameConfig.isMobile ? 'Mobile' : GameConfig.isTablet ? 'Tablet' : 'Desktop'}`);
+    
+    // Make config available globally
+    window.GameConfig = GameConfig;
+    
+    // Dispatch ready event
+    const event = new CustomEvent('configReady', { detail: GameConfig });
+    window.dispatchEvent(event);
+    
+    console.log('⚙️ Game configuration loaded successfully');
+    console.log('🎮 Version:', GameConfig.version);
+    console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
+};
+
+// Initialize when DOM is ready
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initializeConfig);
+} else {
+    initializeConfig();
 }
 
-.user-profile {
-    background: rgba(0, 0, 0, 0.8);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    border-radius: 20px;
-    padding: 8px 12px;
-    color: #ffffff;
-    font-size: 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    backdrop-filter: blur(10px);
+// Export for ES6 modules
+if (typeof module !== 'undefined' && module.exports) {
+    module.exports = GameConfig;
 }
 
-.user-avatar {
-    font-size: 16px;
-}
-
-.user-name {
-    font-family: 'Orbitron', monospace;
-    font-weight: bold;
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-/* Global leaderboard styles */
-.global-scores {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.global-score-item {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    padding: 8px 12px;
-    background: rgba(255, 68, 68, 0.1);
-    border: 1px solid rgba(255, 68, 68, 0.3);
-    border-radius: 8px;
-    font-size: 12px;
-}
-
-.global-score-item.current-user {
-    background: rgba(68, 136, 255, 0.2);
-    border-color: rgba(68, 136, 255, 0.5);
-    box-shadow: 0 0 10px rgba(68, 136, 255, 0.3);
-}
-
-.global-score-item .rank {
-    font-size: 16px;
-    min-width: 30px;
-}
-
-.global-score-item .player-name {
-    flex: 1;
-    margin: 0 10px;
-    font-weight: bold;
-    color: #ffffff;
-}
-
-.global-score-item .score {
-    font-family: 'Orbitron', monospace;
-    color: #ff6666;
-    font-weight: bold;
-}
-
-.global-score-item .level {
-    font-size: 10px;
-    color: #888;
-    margin-left: 8px;
-}
-
-/* === UTILITY CLASSES === */
+console.log('✅ Config module loaded');
