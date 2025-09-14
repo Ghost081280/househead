@@ -399,16 +399,12 @@
         }
         
         function showGlobalFeatures() {
-            const globalBtn = document.getElementById('showGlobalLeaderboardBtn');
             const globalTab = document.getElementById('globalScoresTab');
-            if (globalBtn) globalBtn.style.display = 'block';
             if (globalTab) globalTab.disabled = false;
         }
         
         function hideGlobalFeatures() {
-            const globalBtn = document.getElementById('showGlobalLeaderboardBtn');
             const globalTab = document.getElementById('globalScoresTab');
-            if (globalBtn) globalBtn.style.display = 'none';
             if (globalTab) globalTab.disabled = true;
         }
         
