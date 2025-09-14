@@ -709,6 +709,7 @@ function spawnPowerup() {
     let x, y;
     let attempts = 0;
     let playerDistance = 0;
+    let tooCloseToEnemy = false;
     
     do {
         x = 80 + Math.random() * (gameState.canvas.width - 160);
@@ -718,7 +719,7 @@ function spawnPowerup() {
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
         
-        let tooCloseToEnemy = false;
+        tooCloseToEnemy = false;
         for (const enemy of gameState.enemies) {
             const enemyDistance = Math.sqrt(
                 Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
