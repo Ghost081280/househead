@@ -1356,7 +1356,7 @@ document.addEventListener('DOMContentLoaded', () => {
         showStartBtn.addEventListener('click', function(e) {
             e.preventDefault();
             console.log('🏠 Show start screen clicked');
-            showStartScreen();
+            goToStartScreen();
         });
         console.log('✅ Show start screen button attached');
     }
