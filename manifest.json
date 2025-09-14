@@ -75,24 +75,5 @@
       ]
     }
   ],
-  "screenshots": [
-    {
-      "src": "screenshots/desktop.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "House Head Chase gameplay on desktop"
-    },
-    {
-      "src": "screenshots/mobile.png", 
-      "sizes": "540x960",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "House Head Chase on mobile"
-    }
-  ],
-  "prefer_related_applications": false,
-  "edge_side_panel": {
-    "preferred_width": 400
-  }
+  "prefer_related_applications": false
 }
