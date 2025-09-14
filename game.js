@@ -94,6 +94,89 @@ class SoundSystem {
 // Initialize sound system
 const soundSystem = new SoundSystem();
 
+// === AUTHENTICATION UI MANAGER ===
+class AuthUIManager {
+    constructor() {
+        this.authContainer = document.getElementById('authContainer');
+        this.isFirebaseReady = false;
+        this.shouldShowAuth = true;
+    }
+
+    initialize() {
+        // Wait for Firebase to be ready
+        this.waitForFirebase();
+        console.log('🔐 Auth UI Manager initialized');
+    }
+
+    waitForFirebase() {
+        const checkFirebase = () => {
+            if (window.GameConfig?.features?.googleSignIn && window.firebaseManager) {
+                this.isFirebaseReady = true;
+                this.updateAuthVisibility();
+                console.log('✅ Firebase ready - Auth UI available');
+            } else {
+                setTimeout(checkFirebase, 200);
+            }
+        };
+        checkFirebase();
+
+        // Listen for config ready event
+        window.addEventListener('configReady', () => {
+            setTimeout(() => {
+                if (window.GameConfig?.features?.googleSignIn) {
+                    setTimeout(checkFirebase, 500);
+                }
+            }, 100);
+        });
+    }
+
+    showAuthContainer() {
+        if (this.isFirebaseReady && this.authContainer && this.shouldShowAuth) {
+            this.authContainer.classList.remove('hidden');
+            console.log('👤 Auth container shown');
+        }
+    }
+
+    hideAuthContainer() {
+        if (this.authContainer) {
+            this.authContainer.classList.add('hidden');
+            console.log('👤 Auth container hidden');
+        }
+    }
+
+    updateAuthVisibility() {
+        if (this.shouldShowAuth) {
+            this.showAuthContainer();
+        } else {
+            this.hideAuthContainer();
+        }
+    }
+
+    // Called when game starts
+    onGameStart() {
+        this.shouldShowAuth = false;
+        this.hideAuthContainer();
+    }
+
+    // Called when game ends
+    onGameEnd() {
+        this.shouldShowAuth = true;
+        // Show after a delay so user sees game over screen first
+        setTimeout(() => {
+            this.showAuthContainer();
+        }, 1500);
+    }
+
+    // Called when returning to start screen
+    onStartScreen() {
+        this.shouldShowAuth = true;
+        this.showAuthContainer();
+    }
+}
+
+// Initialize Auth UI Manager
+const authUIManager = new AuthUIManager();
+
 // === POWER-UP TYPES ===
 const PowerupTypes = {
     HEALTH: {
@@ -1861,11 +1944,17 @@ function goToStartScreen() {
     document.getElementById('controlsHint').classList.add('hidden');
     
     showScreen('startScreen');
+    
+    // Show auth UI when returning to start screen
+    authUIManager.onStartScreen();
 }
 
 function closeModalReturnToStart() {
     console.log('🏠 Closing modal and returning to start...');
     showScreen('startScreen');
+    
+    // Show auth UI when returning to start screen
+    authUIManager.onStartScreen();
 }
 
 // === MAIN GAME FUNCTIONS ===
@@ -1941,6 +2030,9 @@ function startGame() {
     setupInputHandlers();
     gameLoop();
     
+    // Hide auth UI when game starts
+    authUIManager.onGameStart();
+    
     console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
 }
 
@@ -1979,6 +2071,9 @@ function endGame() {
     document.getElementById('controlsHint').classList.add('hidden');
     
     showScreen('gameOver');
+    
+    // Show auth UI after game ends (with delay)
+    authUIManager.onGameEnd();
     
     console.log('🎮 Game Over! Survival time:', formatTime(survivalTime));
 }
@@ -2104,6 +2199,9 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupPWAInstall();
     
+    // Initialize Auth UI Manager
+    authUIManager.initialize();
+    
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => console.log('✅ Service Worker registered'))
@@ -2115,4 +2213,4 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Navigation system initialized successfully!');
 });
 
-console.log('✅ ENHANCED Game script loaded with improved AI and collision system!');
+console.log('✅ ENHANCED Game script loaded with improved AI, collision system, and auth UI management!');
