@@ -1,0 +1,21 @@
+{
+  "projects": {
+    "default": "house-head-chase",
+    "staging": "house-head-chase-staging",
+    "production": "house-head-chase"
+  },
+  "targets": {
+    "house-head-chase": {
+      "hosting": {
+        "main": [
+          "house-head-chase"
+        ],
+        "staging": [
+          "house-head-chase-staging"
+        ]
+      }
+    }
+  },
+  "etags": {},
+  "dataconnectEmulatorConfig": {}
+}
