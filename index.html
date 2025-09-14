@@ -241,7 +241,48 @@
         </div>
     </div>
     
-    <!-- Share Modal will be created dynamically by JavaScript -->
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay hidden" role="dialog" aria-labelledby="shareTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="shareTitle">📤 SHARE YOUR SCORE</h2>
+                <button class="close-btn" onclick="closeShareModal()" aria-label="Close share modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-stats">
+                    <p>🏠 Survived: <strong id="shareTimeValue">0:00</strong></p>
+                    <p>📊 Level: <strong id="shareLevelValue">1</strong></p>
+                </div>
+                
+                <div class="share-buttons">
+                    <button class="btn primary share-btn" onclick="shareToX()" aria-label="Share on X (Twitter)">
+                        <span class="share-icon">🐦</span>
+                        Share on X
+                    </button>
+                    <button class="btn secondary share-btn" onclick="shareToFacebook()" aria-label="Share on Facebook">
+                        <span class="share-icon">📘</span>
+                        Share on Facebook
+                    </button>
+                    <button class="btn secondary share-btn" onclick="copyScoreToClipboard()" aria-label="Copy score to clipboard">
+                        <span class="share-icon">📋</span>
+                        Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div class="copy-preview">
+                    <div class="copy-label">Preview:</div>
+                    <div class="copy-text" id="copyPreviewText">
+                        🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
+
+                        Play now: https://www.househeadchase.com
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeShareModal()">Close</button>
+            </div>
+        </div>
+    </div>
     
     <!-- Help Modal -->
     <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-labelledby="helpTitle">
@@ -331,6 +372,8 @@
         window.closeHighScores = window.closeHighScores || function() { console.log('Closing high scores...'); };
         window.showHelp = window.showHelp || function() { console.log('Showing help...'); };
         window.closeHelp = window.closeHelp || function() { console.log('Closing help...'); };
+        window.showShareModal = window.showShareModal || function() { console.log('Showing share modal...'); };
+        window.closeShareModal = window.closeShareModal || function() { console.log('Closing share modal...'); };
         window.soundSystem = window.soundSystem || { toggle: function() { console.log('Toggling sound...'); } };
         window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
         window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
@@ -401,8 +444,10 @@
             }, 100);
         }
         
-        // Share modal functions
+        // Share modal functions - Enhanced for better compatibility
         function showShareModal() {
+            console.log('📤 Showing share modal...');
+            
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const timeFormatted = formatTime(survivalTime);
@@ -420,59 +465,103 @@ Play now: https://www.househeadchase.com`;
             
             if (copyPreview) copyPreview.textContent = copyText;
             
-            document.getElementById('shareModal').classList.remove('hidden');
+            const modal = document.getElementById('shareModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.pointerEvents = 'auto';
+                console.log('✅ Share modal displayed');
+            } else {
+                console.error('⚠️ Share modal not found');
+            }
         }
         
         function closeShareModal() {
+            console.log('🚫 Closing share modal...');
             const modal = document.getElementById('shareModal');
-            if (modal) modal.classList.add('hidden');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.pointerEvents = 'none';
+            }
         }
         
         function shareToX() {
+            console.log('🐦 Sharing to X...');
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
             const url = 'https://www.househeadchase.com';
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`, '_blank');
+            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
         }
         
         function shareToFacebook() {
+            console.log('📘 Sharing to Facebook...');
             const url = 'https://www.househeadchase.com';
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`, '_blank');
+            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
         }
         
         function copyScoreToClipboard() {
+            console.log('📋 Copying to clipboard...');
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
 
 Play now: https://www.househeadchase.com`;
             
-            navigator.clipboard.writeText(message).then(() => {
-                showCopyConfirmation();
-            }).catch(() => {
-                const textArea = document.createElement('textarea');
-                textArea.value = message;
-                document.body.appendChild(textArea);
-                textArea.select();
-                document.execCommand('copy');
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(message).then(() => {
+                    showCopyConfirmation();
+                }).catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(message);
+                });
+            } else {
+                fallbackCopyToClipboard(message);
+            }
+        }
+        
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyConfirmation();
+                } else {
+                    console.error('Fallback copy failed');
+                    alert('Copy failed. Please copy manually.');
+                }
+            } catch (err) {
+                console.error('Fallback copy error:', err);
+                alert('Copy failed. Please copy manually.');
+            } finally {
                 document.body.removeChild(textArea);
-                showCopyConfirmation();
-            });
+            }
         }
         
         function showCopyConfirmation() {
-            const btn = event.target;
-            const originalText = btn.innerHTML;
-            btn.innerHTML = '✅ Copied!';
-            btn.disabled = true;
-            setTimeout(() => {
-                btn.innerHTML = originalText;
-                btn.disabled = false;
-            }, 2000);
+            const btn = event?.target || document.querySelector('.share-btn:last-of-type');
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }
+            console.log('✅ Text copied to clipboard');
         }
         
         function formatTime(seconds) {
