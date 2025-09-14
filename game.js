@@ -1292,19 +1292,20 @@ function createShareModal() {
 function shareScore(platform) {
     const score = gameState.score;
     const level = gameState.level;
+    const gameUrl = 'https://ghost081280.github.io/househead';
     const message = `🏠 I survived ${score} seconds and reached level ${level} in House Head Chase! Can you beat my score?`;
-    const url = window.location.href;
+    const messageWithUrl = `${message}\n\nPlay now: ${gameUrl}`;
     
     switch (platform) {
         case 'twitter':
-            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`, '_blank');
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(gameUrl)}`, '_blank');
             break;
         case 'facebook':
-            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`, '_blank');
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(gameUrl)}&quote=${encodeURIComponent(message)}`, '_blank');
             break;
         case 'copy':
-            navigator.clipboard.writeText(message).then(() => {
-                alert('Score copied to clipboard!');
+            navigator.clipboard.writeText(messageWithUrl).then(() => {
+                alert('Score and game link copied to clipboard!');
             }).catch(() => {
                 alert('Could not copy score. Please try again.');
             });
