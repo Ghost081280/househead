@@ -1063,7 +1063,7 @@ function showPowerupMessage(message) {
                 font-weight: bold;
                 font-size: 20px;
                 pointer-events: none;
-                z-index: 1500;
+                z-index: 6000;
                 animation: powerupMessageFloat 1.5s ease-out forwards;
                 font-family: 'Orbitron', monospace;
                 text-shadow: 0 0 10px #44ff44;
@@ -1129,7 +1129,7 @@ function showDamageIndicator(damage) {
                 font-weight: bold;
                 font-size: 18px;
                 pointer-events: none;
-                z-index: 1500;
+                z-index: 6000;
                 animation: damageFloat 0.8s ease-out forwards;
                 font-family: 'Orbitron', monospace;
                 text-shadow: 0 0 8px #ff4444;
@@ -1178,7 +1178,7 @@ function showLevelUpEffect() {
                 text-align: center;
                 font-family: 'Orbitron', monospace;
                 font-weight: bold;
-                z-index: 2500;
+                z-index: 6000;
                 animation: levelUpPulse 2s ease-out;
                 backdrop-filter: blur(10px);
                 border: 2px solid #ff4444;
@@ -1254,8 +1254,18 @@ function displayHighScores() {
     ).join('');
 }
 
+// Modal Management - Fix z-index conflicts
+function hideAllModals() {
+    const modals = ['highScoresModal', 'helpModal', 'shareModal'];
+    modals.forEach(modalId => {
+        const modal = document.getElementById(modalId);
+        if (modal) modal.classList.add('hidden');
+    });
+}
+
 // Social Sharing
 function shareScore() {
+    hideAllModals();
     const shareScoreEl = document.getElementById('shareScore');
     const shareModalEl = document.getElementById('shareModal');
     
@@ -1334,6 +1344,9 @@ function dismissInstall() {
 function startGame() {
     console.log('🎮 Starting House Head Chase...');
     
+    // Hide all UI elements first
+    hideAllModals();
+    
     // Get canvas and context
     gameState.canvas = document.getElementById('gameCanvas');
     if (!gameState.canvas) {
@@ -1350,67 +1363,70 @@ function startGame() {
     // Set canvas size FIRST
     resizeCanvas();
     
-    // Initialize game state
-    gameState.running = true;
-    gameState.startTime = Date.now();
-    gameState.lastScoreUpdate = Date.now();
-    
-    // Reset game state
-    gameState.player = {
-        x: gameState.canvas.width / 2,
-        y: gameState.canvas.height / 2,
-        size: 15,
-        health: 100,
-        maxHealth: 100,
-        speed: 3,
-        baseSpeed: 3,
-        isDragging: false,
-        dragOffset: { x: 0, y: 0 },
-        shieldTime: 0,
-        speedBoostTime: 0
-    };
-    
-    gameState.enemies = [];
-    gameState.powerups = [];
-    gameState.activePowerups = [];
-    gameState.score = 0;
-    gameState.level = 1;
-    gameState.difficulty = 1;
-    gameState.lastEnemySpawn = 0;
-    gameState.lastPowerupSpawn = 0;
-    gameState.flashlight.on = false;
-    gameState.flashlight.intensity = 0;
-    gameState.camera.shake = 0;
-    gameState.camera.intensity = 0;
-    gameState.totalEnemiesSpawned = 0;
-    
-    console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
-    
-    // Hide screens
-    const startScreen = document.getElementById('startScreen');
-    const gameOver = document.getElementById('gameOver');
-    if (startScreen) startScreen.classList.add('hidden');
-    if (gameOver) gameOver.classList.add('hidden');
-    
-    // Show controls hint
+    // Wait for canvas to be ready, then initialize game
     setTimeout(() => {
-        const hint = document.getElementById('controlsHint');
-        if (hint) hint.style.display = 'block';
-    }, 1000);
-    
-    // Hide hint after 5 seconds
-    setTimeout(() => {
-        const hint = document.getElementById('controlsHint');
-        if (hint) hint.style.display = 'none';
-    }, 6000);
-    
-    // Setup input handlers
-    setupInputHandlers();
-    
-    // Start game loop
-    gameLoop();
-    
-    console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
+        // Initialize game state
+        gameState.running = true;
+        gameState.startTime = Date.now();
+        gameState.lastScoreUpdate = Date.now();
+        
+        // Reset game state
+        gameState.player = {
+            x: gameState.canvas.width / 2,
+            y: gameState.canvas.height / 2,
+            size: 15,
+            health: 100,
+            maxHealth: 100,
+            speed: 3,
+            baseSpeed: 3,
+            isDragging: false,
+            dragOffset: { x: 0, y: 0 },
+            shieldTime: 0,
+            speedBoostTime: 0
+        };
+        
+        gameState.enemies = [];
+        gameState.powerups = [];
+        gameState.activePowerups = [];
+        gameState.score = 0;
+        gameState.level = 1;
+        gameState.difficulty = 1;
+        gameState.lastEnemySpawn = 0;
+        gameState.lastPowerupSpawn = 0;
+        gameState.flashlight.on = false;
+        gameState.flashlight.intensity = 0;
+        gameState.camera.shake = 0;
+        gameState.camera.intensity = 0;
+        gameState.totalEnemiesSpawned = 0;
+        
+        console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
+        
+        // Hide screens
+        const startScreen = document.getElementById('startScreen');
+        const gameOver = document.getElementById('gameOver');
+        if (startScreen) startScreen.classList.add('hidden');
+        if (gameOver) gameOver.classList.add('hidden');
+        
+        // Show controls hint
+        setTimeout(() => {
+            const hint = document.getElementById('controlsHint');
+            if (hint) hint.style.display = 'block';
+        }, 1000);
+        
+        // Hide hint after 5 seconds
+        setTimeout(() => {
+            const hint = document.getElementById('controlsHint');
+            if (hint) hint.style.display = 'none';
+        }, 6000);
+        
+        // Setup input handlers
+        setupInputHandlers();
+        
+        // Start game loop
+        gameLoop();
+        
+        console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
+    }, 100); // Small delay to ensure canvas is ready
 }
 
 function endGame() {
@@ -1443,6 +1459,7 @@ function restartGame() {
 }
 
 function showStartScreen() {
+    hideAllModals();
     const startScreen = document.getElementById('startScreen');
     const gameOver = document.getElementById('gameOver');
     
@@ -1456,6 +1473,7 @@ function showStartScreen() {
 }
 
 function showHighScores() {
+    hideAllModals();
     displayHighScores();
     const modal = document.getElementById('highScoresModal');
     if (modal) modal.classList.remove('hidden');
@@ -1467,6 +1485,7 @@ function closeHighScores() {
 }
 
 function showHelp() {
+    hideAllModals();
     const modal = document.getElementById('helpModal');
     if (modal) modal.classList.remove('hidden');
 }
@@ -1502,6 +1521,14 @@ function resizeCanvas() {
 // Initialize everything
 window.addEventListener('load', () => {
     console.log('🏠 House Head Chase - PWA Loaded!');
+    
+    // Pre-initialize canvas immediately
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
+    }
     
     // Register service worker
     if ('serviceWorker' in navigator) {
@@ -1541,3 +1568,19 @@ window.addEventListener('load', () => {
     
     console.log('🎮 Game ready to play!');
 });
+
+// Make functions globally available
+window.startGame = startGame;
+window.restartGame = restartGame;
+window.showStartScreen = showStartScreen;
+window.showHighScores = showHighScores;
+window.closeHighScores = closeHighScores;
+window.showHelp = showHelp;
+window.closeHelp = closeHelp;
+window.shareScore = shareScore;
+window.shareTwitter = shareTwitter;
+window.shareFacebook = shareFacebook;
+window.copyScore = copyScore;
+window.closeShare = closeShare;
+window.installApp = installApp;
+window.dismissInstall = dismissInstall;
