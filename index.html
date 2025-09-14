@@ -402,10 +402,145 @@
             showHighScores();
             setTimeout(() => {
                 const globalTab = document.getElementById('globalScoresTab');
-                if (globalTab && globalTab.style.display !== 'none') {
+                if (globalTab && !globalTab.disabled) {
                     globalTab.click();
                 }
             }, 100);
+        }
+        
+        // Share modal creation
+        function createShareModal() {
+            if (document.getElementById('shareModal')) return;
+            
+            const modalHTML = `
+                <div id="shareModal" class="modal-overlay hidden">
+                    <div class="modal-content">
+                        <div class="modal-header">
+                            <h2>📤 SHARE YOUR SCORE</h2>
+                            <button class="close-btn" onclick="closeShareModal()">×</button>
+                        </div>
+                        <div class="modal-body">
+                            <div class="share-stats">
+                                <p>🏆 You survived for <strong id="shareTimeValue">0:00</strong> and reached level <strong id="shareLevelValue">1</strong>!</p>
+                            </div>
+                            <div class="share-buttons">
+                                <button class="btn secondary share-btn" onclick="shareToX()">
+                                    <span class="share-icon">𝕏</span> Share on X
+                                </button>
+                                <button class="btn secondary share-btn" onclick="shareToFacebook()">
+                                    📘 Share on Facebook
+                                </button>
+                                <button class="btn primary share-btn" onclick="copyScoreToClipboard()">
+                                    📋 Copy Score
+                                </button>
+                            </div>
+                            <div class="copy-preview">
+                                <p class="copy-label">Text that will be copied:</p>
+                                <div class="copy-text" id="copyPreviewText">
+                                    🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
+                                    
+                                    Play now: https://www.househeadchase.com
+                                </div>
+                            </div>
+                        </div>
+                        <div class="modal-footer">
+                            <button class="btn secondary" onclick="closeShareModal()">Close</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+            
+            document.body.insertAdjacentHTML('beforeend', modalHTML);
+        }
+        
+        function showShareModal() {
+            createShareModal();
+            
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const timeFormatted = formatTime(survivalTime);
+            
+            const shareTimeEl = document.getElementById('shareTimeValue');
+            const shareLevelEl = document.getElementById('shareLevelValue');
+            const copyPreview = document.getElementById('copyPreviewText');
+            
+            if (shareTimeEl) shareTimeEl.textContent = timeFormatted;
+            if (shareLevelEl) shareLevelEl.textContent = level;
+            
+            const copyText = `🏠 I survived ${timeFormatted} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+            
+            if (copyPreview) copyPreview.textContent = copyText;
+            
+            document.getElementById('shareModal').classList.remove('hidden');
+        }
+        
+        function closeShareModal() {
+            const modal = document.getElementById('shareModal');
+            if (modal) modal.classList.add('hidden');
+        }
+        
+        function shareToX() {
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+            const url = 'https://www.househeadchase.com';
+            window.open(`https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`, '_blank');
+        }
+        
+        function shareToFacebook() {
+            const url = 'https://www.househeadchase.com';
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+            window.open(`https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`, '_blank');
+        }
+        
+        function copyScoreToClipboard() {
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+            
+            navigator.clipboard.writeText(message).then(() => {
+                showCopyConfirmation();
+            }).catch(() => {
+                // Fallback for older browsers
+                const textArea = document.createElement('textarea');
+                textArea.value = message;
+                document.body.appendChild(textArea);
+                textArea.select();
+                document.execCommand('copy');
+                document.body.removeChild(textArea);
+                showCopyConfirmation();
+            });
+        }
+        
+        function showCopyConfirmation() {
+            const btn = event.target;
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '✅ Copied!';
+            btn.disabled = true;
+            setTimeout(() => {
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }, 2000);
+        }
+        
+        function formatTime(seconds) {
+            if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function getCurrentSurvivalTime() {
+            if (window.gameState && window.gameState.startTime) {
+                return Math.floor((Date.now() - window.gameState.startTime) / 1000);
+            }
+            return 0;
         }
         
         // Show auth container when Firebase is ready
