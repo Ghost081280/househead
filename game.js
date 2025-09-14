@@ -62,6 +62,13 @@ class SoundSystem {
                 gainNode.gain.setValueAtTime(volume, this.context.currentTime);
                 duration = 0.3;
                 break;
+            case 'freeze':
+                oscillator.type = 'triangle';
+                oscillator.frequency.setValueAtTime(440, this.context.currentTime);
+                oscillator.frequency.exponentialRampToValueAtTime(220, this.context.currentTime + 0.4);
+                gainNode.gain.setValueAtTime(volume, this.context.currentTime);
+                duration = 0.4;
+                break;
             case 'bounce':
                 oscillator.type = 'square';
                 oscillator.frequency.setValueAtTime(200, this.context.currentTime);
@@ -107,13 +114,13 @@ const PowerupTypes = {
         duration: 6000,
         spawnWeight: 0.3
     },
-    SPEED: {
-        name: 'Speed Boost',
-        emoji: '⚡',
-        color: '#ffaa44',
-        effect: 'speed',
-        value: 1.8,
-        duration: 10000,
+    FREEZE: {
+        name: 'House Freeze',
+        emoji: '🧊',
+        color: '#88ddff',
+        effect: 'freeze',
+        value: 0,
+        duration: 8000,
         spawnWeight: 0.2
     }
 };
@@ -177,14 +184,23 @@ class Powerup {
                 console.log(`🛡️ Shield activated for ${this.config.duration/1000}s`);
                 break;
                 
-            case 'speed':
-                gameState.player.speed = gameState.player.baseSpeed * this.config.value;
-                gameState.player.speedBoostTime = this.config.duration;
+            case 'freeze':
+                gameState.freezeTime = this.config.duration;
                 gameState.activePowerups.push({
                     type: this.type,
                     timeLeft: this.config.duration
                 });
-                console.log(`⚡ Speed boost activated for ${this.config.duration/1000}s`);
+                // Convert all active enemies back to frozen state
+                gameState.enemies.forEach(enemy => {
+                    if (enemy.state === 'active') {
+                        enemy.state = 'frozen';
+                        enemy.frozenUntil = Date.now() + this.config.duration;
+                        enemy.velocity.x = 0;
+                        enemy.velocity.y = 0;
+                    }
+                });
+                soundSystem.play('freeze');
+                console.log(`🧊 House Freeze activated for ${this.config.duration/1000}s`);
                 break;
         }
     }
@@ -239,18 +255,16 @@ class Powerup {
                 ctx.closePath();
                 ctx.fill();
                 break;
-            case 'SPEED':
-                ctx.beginPath();
-                ctx.moveTo(-2, -8);
-                ctx.lineTo(4, -2);
-                ctx.lineTo(0, 0);
-                ctx.lineTo(6, 6);
-                ctx.lineTo(0, 8);
-                ctx.lineTo(-4, 2);
-                ctx.lineTo(0, 0);
-                ctx.lineTo(-6, -6);
-                ctx.closePath();
-                ctx.fill();
+            case 'FREEZE':
+                // Draw ice crystal pattern
+                ctx.fillStyle = '#000';
+                ctx.fillRect(-6, -6, 12, 3);
+                ctx.fillRect(-6, -1, 12, 3);
+                ctx.fillRect(-6, 4, 12, 3);
+                // Add ice crystal effect
+                ctx.fillRect(-2, -8, 4, 4);
+                ctx.fillRect(-8, -2, 4, 4);
+                ctx.fillRect(4, -2, 4, 4);
                 break;
         }
         
@@ -287,6 +301,7 @@ const gameState = {
         radius: 200,
         fadeSpeed: 0.1
     },
+    freezeTime: 0,
     score: 0,
     level: 1,
     startTime: 0,
@@ -354,6 +369,7 @@ class Enemy {
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
         this.isVisible = false;
+        this.frozenUntil = 0;
         
         // Enhanced AI properties
         this.aiState = 'wander';
@@ -395,6 +411,12 @@ class Enemy {
             if (currentTime - this.spawnTime > this.activationTime) {
                 this.state = 'active';
                 console.log(`🦵 ${this.config.name} grew legs! Now hunting...`);
+            }
+        } else if (this.state === 'frozen') {
+            // Check if freeze time is over
+            if (currentTime > this.frozenUntil) {
+                this.state = 'active';
+                console.log(`🔥 ${this.config.name} thawed out! Back to hunting...`);
             }
         }
         
@@ -670,6 +692,8 @@ class Enemy {
         
         if (this.state === 'spawning') {
             this.drawSpawning();
+        } else if (this.state === 'frozen') {
+            this.drawFrozenHouse();
         } else {
             this.drawHouse();
             if (this.state === 'active') {
@@ -688,6 +712,86 @@ class Enemy {
         ctx.fillStyle = this.color;
         ctx.globalAlpha = progress;
         ctx.fillRect(-currentSize/2, -currentSize/2, currentSize, currentSize * 0.8);
+        ctx.globalAlpha = 1;
+    }
+
+    drawFrozenHouse() {
+        const ctx = gameState.ctx;
+        const size = this.size;
+        
+        // Draw the house similar to normal but with ice effects
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
+        ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size * 0.8);
+        
+        // Frozen house has blue tint
+        const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
+        gradient.addColorStop(0, '#6699cc'); // Blue tinted
+        gradient.addColorStop(0.5, '#4488bb');
+        gradient.addColorStop(1, '#2266aa');
+        ctx.fillStyle = gradient;
+        ctx.fillRect(-size/2, -size/2, size, size * 0.8);
+        
+        ctx.strokeStyle = '#88ddff';
+        ctx.lineWidth = 2;
+        ctx.strokeRect(-size/2, -size/2, size, size * 0.8);
+        
+        // Frozen roof
+        const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
+        roofGradient.addColorStop(0, '#4488bb');
+        roofGradient.addColorStop(1, '#2266aa');
+        ctx.fillStyle = roofGradient;
+        ctx.beginPath();
+        ctx.moveTo(-size/2 - 4, -size/2);
+        ctx.lineTo(0, -size);
+        ctx.lineTo(size/2 + 4, -size/2);
+        ctx.closePath();
+        ctx.fill();
+        ctx.stroke();
+        
+        // Dim windows (house is "asleep")
+        const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
+        
+        ctx.shadowColor = '#88ddff';
+        ctx.shadowBlur = 4;
+        ctx.fillStyle = 'rgba(136, 221, 255, 0.3)'; // Very dim
+        
+        ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
+        ctx.fillRect(size/6, -size/4, eyeSize, eyeSize);
+        
+        ctx.shadowBlur = 0;
+        
+        ctx.strokeStyle = '#88ddff';
+        ctx.lineWidth = 1;
+        ctx.strokeRect(-size/3, -size/4, eyeSize, eyeSize);
+        ctx.strokeRect(size/6, -size/4, eyeSize, eyeSize);
+        
+        // Frozen door
+        ctx.fillStyle = '#4488bb';
+        const doorWidth = this.type === 'BIG' ? size/3 : size/4;
+        const doorHeight = size/4;
+        ctx.fillRect(-doorWidth/2, size/6, doorWidth, doorHeight);
+        ctx.strokeStyle = '#88ddff';
+        ctx.strokeRect(-doorWidth/2, size/6, doorWidth, doorHeight);
+        
+        ctx.fillStyle = '#88ddff';
+        ctx.beginPath();
+        ctx.arc(doorWidth/3, size/6 + doorHeight/2, 2, 0, Math.PI * 2);
+        ctx.fill();
+        
+        // Add ice crystal effects
+        ctx.fillStyle = '#ffffff';
+        ctx.globalAlpha = 0.7;
+        
+        // Ice crystals on the house
+        const crystalTime = Date.now() * 0.002;
+        for (let i = 0; i < 6; i++) {
+            const angle = (i / 6) * Math.PI * 2 + crystalTime;
+            const x = Math.cos(angle) * (size * 0.3);
+            const y = Math.sin(angle) * (size * 0.2);
+            
+            ctx.fillRect(x - 1, y - 1, 2, 2);
+        }
+        
         ctx.globalAlpha = 1;
     }
 
@@ -1103,7 +1207,7 @@ function spawnPowerup() {
     } else if (rand < PowerupTypes.HEALTH.spawnWeight + PowerupTypes.SHIELD.spawnWeight) {
         powerupType = 'SHIELD';
     } else {
-        powerupType = 'SPEED';
+        powerupType = 'FREEZE';
     }
     
     let x, y;
@@ -1112,8 +1216,10 @@ function spawnPowerup() {
     let tooCloseToEnemy = false;
     
     do {
-        x = 80 + Math.random() * (gameState.canvas.width - 160);
-        y = 120 + Math.random() * (gameState.canvas.height - 200);
+        // Fixed spawn boundaries to keep powerups away from edges and within player reach
+        const margin = 150; // Increased margin significantly 
+        x = margin + Math.random() * (gameState.canvas.width - margin * 2);
+        y = margin + Math.random() * (gameState.canvas.height - margin * 2);
         
         playerDistance = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
@@ -1941,13 +2047,12 @@ window.shareToX = shareToX;
 window.shareToFacebook = shareToFacebook;
 window.copyScoreToClipboard = copyScoreToClipboard;
 window.soundSystem = soundSystem;
-window.gameState = gameState; // Expose for share modal
+window.gameState = gameState;
 window.getCurrentSurvivalTime = getCurrentSurvivalTime;
 window.formatTime = formatTime;
 window.displayHighScores = displayHighScores;
 window.installPWA = installPWA;
 window.hideInstallPrompt = hideInstallPrompt;
-window.forceShowInstallPrompt = forceShowInstallPrompt; // For testing
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
@@ -1981,7 +2086,6 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.entries(buttons).forEach(([buttonId, handler]) => {
         const button = document.getElementById(buttonId);
         if (button) {
-            // Don't modify button text, just attach event listeners
             button.onclick = null;
             button.addEventListener('click', (e) => {
                 e.preventDefault();
