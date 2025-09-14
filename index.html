@@ -166,9 +166,9 @@
                 <span id="health" aria-live="polite">100</span>
             </div>
             
-            <div class="hud-item">
-                <span class="hud-label">Score</span>
-                <span class="hud-value" id="score" aria-live="polite">0</span>
+            <div class="hud-item hud-time">
+                <span class="hud-label">Time</span>
+                <span class="hud-value" id="survivalTime" aria-live="polite">0:00</span>
             </div>
             
             <div class="hud-item">
@@ -229,7 +229,7 @@
         
         <div class="instructions">
             <div class="instruction-group">
-                <h3>🎯 HOW TO PLAY:</h3>
+                <h3>🎯 HOW TO SURVIVE:</h3>
                 <p>🔵 <strong>You are the blue dot</strong> - Stay alive!</p>
                 <p>📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
                 <p>🏠 <strong>House Heads</strong> spawn and hunt you down!</p>
@@ -266,13 +266,9 @@
         
         <div class="stats-container">
             <div class="stats" role="group" aria-label="Final game statistics">
-                <div class="stat-item">
-                    <span class="stat-label">🏆 SCORE</span>
-                    <span class="stat-value" id="finalScore">0</span>
-                </div>
-                <div class="stat-item">
-                    <span class="stat-label">⏰ TIME</span>
-                    <span class="stat-value"><span id="finalTime">0</span>s</span>
+                <div class="stat-item stat-primary">
+                    <span class="stat-label">⏰ SURVIVED</span>
+                    <span class="stat-value" id="finalTime">0:00</span>
                 </div>
                 <div class="stat-item">
                     <span class="stat-label">📊 LEVEL</span>
@@ -314,22 +310,22 @@
     <div id="highScoresModal" class="modal-overlay hidden" role="dialog" aria-labelledby="highScoresTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="highScoresTitle">🏆 HIGH SCORES</h2>
+                <h2 id="highScoresTitle">🏆 SURVIVAL TIMES</h2>
                 <button class="close-btn" 
                         id="closeHighScoresBtn" 
                         aria-label="Close high scores">×</button>
             </div>
             <div class="modal-body">
                 <div class="leaderboard-tabs">
-                    <button class="tab-btn active" data-tab="local">📱 Local Scores</button>
+                    <button class="tab-btn active" data-tab="local">📱 Local Times</button>
                     <button class="tab-btn" data-tab="global">🌍 Global Leaders</button>
                 </div>
                 <div id="highScoresList" role="list" aria-label="High scores list">
-                    <p>Loading high scores...</p>
+                    <p>Loading survival times...</p>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn secondary" id="clearScoresBtn">🗑️ Clear Local Scores</button>
+                <button class="btn secondary" id="clearScoresBtn">🗑️ Clear Local Times</button>
                 <button class="btn primary" id="closeHighScoresFooterBtn">Close</button>
             </div>
         </div>
@@ -347,7 +343,7 @@
             <div class="modal-body">
                 <div class="help-section">
                     <h3>🎯 OBJECTIVE</h3>
-                    <p>Survive as long as possible while avoiding House Heads! The longer you survive, the higher your score gets.</p>
+                    <p>Survive as long as possible while avoiding House Heads! The longer you survive, the better your time.</p>
                 </div>
                 
                 <div class="help-section">
@@ -433,15 +429,14 @@
     <div id="shareModal" class="modal-overlay hidden" role="dialog" aria-labelledby="shareTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2 id="shareTitle">📤 SHARE YOUR SCORE</h2>
+                <h2 id="shareTitle">📤 SHARE YOUR TIME</h2>
                 <button class="close-btn" 
                         id="closeShareBtn" 
                         aria-label="Close share modal">×</button>
             </div>
             <div class="modal-body">
                 <div class="share-score-display">
-                    <h3>🏆 Your Score: <span id="shareScoreValue">0</span> points</h3>
-                    <p>⏰ Survival Time: <span id="shareTimeValue">0</span> seconds</p>
+                    <h3>⏰ You Survived: <span id="shareTimeValue">0:00</span></h3>
                     <p>📊 Level Reached: <span id="shareLevelValue">1</span></p>
                 </div>
                 
@@ -463,7 +458,7 @@
                 <div class="share-preview">
                     <p><em>Share text preview:</em></p>
                     <div id="shareTextPreview" class="share-text">
-                        I just survived for 0 seconds in House Head Chase! 🏠👾 Can you beat my score? Play free at: [URL]
+                        I just survived for 0:00 in House Head Chase! 🏠👾 Can you beat my time? Play free at: [URL]
                     </div>
                 </div>
             </div>
