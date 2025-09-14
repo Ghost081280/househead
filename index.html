@@ -186,14 +186,13 @@
             <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()" 
                     aria-label="View high scores">🏆 HIGH SCORES</button>
             <button class="btn secondary" id="showGlobalLeaderboardBtn" onclick="showGlobalLeaderboard()" 
-                    aria-label="View global leaderboard" style="display: none;">🌍 GLOBAL SCORES</button>
+                    aria-label="View global leaderboard">🌍 GLOBAL SCORES</button>
             <button class="btn secondary" id="showHelpBtn" onclick="showHelp()" 
                     aria-label="Show detailed instructions">❓ HOW TO PLAY</button>
         </div>
         
         <footer class="game-footer">
             <p>🆓 Free to play • 👨‍👩‍👧‍👦 Kid-safe • 📱 No download needed</p>
-            <p>Follow us: <a href="https://x.com/househeadchase" target="_blank" rel="noopener">@househeadchase</a></p>
         </footer>
     </div>
     
@@ -229,7 +228,7 @@
             <div class="modal-body">
                 <div class="score-tabs">
                     <button class="tab-btn active" onclick="showLocalScores()">📱 Local Scores</button>
-                    <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab" style="display: none;">🌍 Global Scores</button>
+                    <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab">🌍 Global Scores</button>
                 </div>
                 <div id="highScoresList" role="list" aria-label="High scores list">
                     <p>Loading scores...</p>
@@ -240,6 +239,43 @@
             </div>
             <div class="modal-footer">
                 <button class="btn secondary" id="closeHighScoresFooterBtn" onclick="closeHighScores()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>📤 SHARE YOUR SCORE</h2>
+                <button class="close-btn" onclick="closeShareModal()">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-stats">
+                    <p>🏆 You survived for <strong id="shareTimeValue">0:00</strong> and reached level <strong id="shareLevelValue">1</strong>!</p>
+                </div>
+                <div class="share-buttons">
+                    <button class="btn secondary share-btn" onclick="shareToX()">
+                        <span class="share-icon">𝕏</span> Share on X
+                    </button>
+                    <button class="btn secondary share-btn" onclick="shareToFacebook()">
+                        📘 Share on Facebook
+                    </button>
+                    <button class="btn primary share-btn" onclick="copyScoreToClipboard()">
+                        📋 Copy Score
+                    </button>
+                </div>
+                <div class="copy-preview">
+                    <p class="copy-label">Text that will be copied:</p>
+                    <div class="copy-text" id="copyPreviewText">
+                        🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
+                        
+                        Play now: https://www.househeadchase.com
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeShareModal()">Close</button>
             </div>
         </div>
     </div>
@@ -366,14 +402,14 @@
             const globalBtn = document.getElementById('showGlobalLeaderboardBtn');
             const globalTab = document.getElementById('globalScoresTab');
             if (globalBtn) globalBtn.style.display = 'block';
-            if (globalTab) globalTab.style.display = 'block';
+            if (globalTab) globalTab.disabled = false;
         }
         
         function hideGlobalFeatures() {
             const globalBtn = document.getElementById('showGlobalLeaderboardBtn');
             const globalTab = document.getElementById('globalScoresTab');
             if (globalBtn) globalBtn.style.display = 'none';
-            if (globalTab) globalTab.style.display = 'none';
+            if (globalTab) globalTab.disabled = true;
         }
         
         // Score tab switching
@@ -408,54 +444,8 @@
             }, 100);
         }
         
-        // Share modal creation
-        function createShareModal() {
-            if (document.getElementById('shareModal')) return;
-            
-            const modalHTML = `
-                <div id="shareModal" class="modal-overlay hidden">
-                    <div class="modal-content">
-                        <div class="modal-header">
-                            <h2>📤 SHARE YOUR SCORE</h2>
-                            <button class="close-btn" onclick="closeShareModal()">×</button>
-                        </div>
-                        <div class="modal-body">
-                            <div class="share-stats">
-                                <p>🏆 You survived for <strong id="shareTimeValue">0:00</strong> and reached level <strong id="shareLevelValue">1</strong>!</p>
-                            </div>
-                            <div class="share-buttons">
-                                <button class="btn secondary share-btn" onclick="shareToX()">
-                                    <span class="share-icon">𝕏</span> Share on X
-                                </button>
-                                <button class="btn secondary share-btn" onclick="shareToFacebook()">
-                                    📘 Share on Facebook
-                                </button>
-                                <button class="btn primary share-btn" onclick="copyScoreToClipboard()">
-                                    📋 Copy Score
-                                </button>
-                            </div>
-                            <div class="copy-preview">
-                                <p class="copy-label">Text that will be copied:</p>
-                                <div class="copy-text" id="copyPreviewText">
-                                    🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
-                                    
-                                    Play now: https://www.househeadchase.com
-                                </div>
-                            </div>
-                        </div>
-                        <div class="modal-footer">
-                            <button class="btn secondary" onclick="closeShareModal()">Close</button>
-                        </div>
-                    </div>
-                </div>
-            `;
-            
-            document.body.insertAdjacentHTML('beforeend', modalHTML);
-        }
-        
+        // Share modal functions
         function showShareModal() {
-            createShareModal();
-            
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const timeFormatted = formatTime(survivalTime);
