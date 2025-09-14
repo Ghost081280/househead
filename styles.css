@@ -123,6 +123,150 @@ body.high-contrast {
     white-space: nowrap;
 }
 
+/* === MOBILE AUTHENTICATION STYLES === */
+/* Desktop-only auth container */
+.desktop-only {
+    display: block;
+}
+
+/* Mobile sign in buttons */
+.mobile-sign-in-btn {
+    background: linear-gradient(45deg, #4285f4, #1a73e8);
+    color: white !important;
+    border: 2px solid #4285f4 !important;
+    position: relative;
+    overflow: hidden;
+}
+
+.mobile-sign-in-btn:hover {
+    background: linear-gradient(45deg, #5a9df7, #4285f4);
+    border-color: #1a73e8 !important;
+    transform: scale(1.02) translateY(-1px);
+    box-shadow: 0 6px 20px rgba(66, 133, 244, 0.4);
+}
+
+.mobile-sign-in-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.mobile-sign-in-btn:hover:before {
+    left: 100%;
+}
+
+/* Sign In Modal Styles */
+.sign-in-modal {
+    max-width: 500px;
+    background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 20, 0.95) 100%);
+}
+
+.sign-in-benefits {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    margin-bottom: 24px;
+}
+
+.benefit-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 12px;
+    background: rgba(255, 68, 68, 0.05);
+    border-radius: 8px;
+    border-left: 3px solid var(--primary-color);
+}
+
+.benefit-icon {
+    font-size: 24px;
+    min-width: 32px;
+    text-align: center;
+}
+
+.benefit-text h4 {
+    color: var(--primary-color);
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    margin: 0 0 4px 0;
+}
+
+.benefit-text p {
+    color: var(--text-gray);
+    font-size: 12px;
+    margin: 0;
+    line-height: 1.4;
+}
+
+.sign-in-action {
+    text-align: center;
+    padding: 20px 0;
+    border-top: 1px solid rgba(255, 68, 68, 0.2);
+}
+
+.google-sign-in-btn {
+    background: linear-gradient(45deg, #4285f4, #1a73e8);
+    color: white;
+    border: none;
+    padding: 16px 32px;
+    font-size: 16px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin: 0 auto 16px auto;
+    min-width: 250px;
+    transition: all 0.3s ease;
+    position: relative;
+    overflow: hidden;
+    cursor: pointer;
+}
+
+.google-sign-in-btn:hover {
+    background: linear-gradient(45deg, #5a9df7, #4285f4);
+    transform: scale(1.05) translateY(-2px);
+    box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6);
+}
+
+.google-sign-in-btn:before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+    transition: left 0.5s;
+}
+
+.google-sign-in-btn:hover:before {
+    left: 100%;
+}
+
+.google-icon {
+    font-size: 20px;
+}
+
+.sign-in-text {
+    font-weight: bold;
+    font-family: 'Orbitron', monospace;
+}
+
+.privacy-note {
+    font-size: 11px;
+    color: var(--text-dark);
+    line-height: 1.4;
+    max-width: 300px;
+    margin: 0 auto;
+    text-align: center;
+}
+
 /* === HUD === */
 #hud {
     position: fixed;
@@ -931,7 +1075,7 @@ body.high-contrast {
     margin-bottom: 0.5rem;
 }
 
-/* FIXED: Loading house placeholder instead of broken image */
+/* Loading house placeholder instead of broken image */
 .loading-house-placeholder {
     width: 120px;
     height: 120px;
@@ -1033,6 +1177,93 @@ body.high-contrast {
 @keyframes loadingTipFade {
     0%, 100% { opacity: 0.6; }
     50% { opacity: 1; }
+}
+
+/* === MOBILE AUTH RESPONSIVE DESIGN === */
+@media (max-width: 768px) {
+    /* Hide desktop auth container on mobile */
+    .desktop-only {
+        display: none !important;
+    }
+    
+    /* Show mobile sign in buttons */
+    .mobile-sign-in-btn {
+        display: inline-flex !important;
+        width: 100%;
+        justify-content: center;
+        font-size: 13px;
+        padding: 12px 20px;
+        animation: mobileAuthGlow 2s ease-in-out infinite alternate;
+    }
+    
+    @keyframes mobileAuthGlow {
+        0% { 
+            box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+        }
+        100% { 
+            box-shadow: 0 4px 20px rgba(66, 133, 244, 0.6);
+        }
+    }
+    
+    /* Sign in modal mobile optimizations */
+    .sign-in-modal {
+        max-width: 95vw;
+        margin: 10px;
+    }
+    
+    .benefit-item {
+        padding: 10px;
+        gap: 10px;
+    }
+    
+    .benefit-icon {
+        font-size: 20px;
+        min-width: 28px;
+    }
+    
+    .benefit-text h4 {
+        font-size: 13px;
+    }
+    
+    .benefit-text p {
+        font-size: 11px;
+    }
+    
+    .google-sign-in-btn {
+        min-width: 100%;
+        padding: 14px 24px;
+        font-size: 14px;
+    }
+    
+    .privacy-note {
+        font-size: 10px;
+    }
+    
+    /* Enhanced button container for mobile */
+    .button-container {
+        gap: 10px;
+    }
+    
+    .mobile-sign-in-btn {
+        order: 2; /* Place after START GAME button */
+    }
+    
+    /* Game over screen mobile auth button */
+    #gameOverMobileSignInBtn {
+        order: 3; /* After PLAY AGAIN and SHARE SCORE */
+    }
+}
+
+@media (min-width: 769px) {
+    /* Hide mobile sign in buttons on desktop */
+    .mobile-sign-in-btn {
+        display: none !important;
+    }
+    
+    /* Show desktop auth container */
+    .desktop-only {
+        display: block !important;
+    }
 }
 
 /* === DESKTOP ENHANCEMENTS === */
