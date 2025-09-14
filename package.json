@@ -11,10 +11,13 @@
     "pwa",
     "family-friendly",
     "educational",
-    "mobile-game"
+    "mobile-game",
+    "firebase",
+    "google-signin",
+    "leaderboard"
   ],
   "author": {
-    "name": "House Head Chase",
+    "name": "House Head Chase Team",
     "email": "hello@househeadchase.com",
     "url": "https://www.househeadchase.com"
   },
@@ -42,7 +45,9 @@
     "deploy:production": "firebase use production && firebase deploy",
     "setup": "npm install && npm run build:icons",
     "clean": "rm -rf dist/ .cache/ reports/",
-    "validate": "node scripts/validate.js"
+    "validate": "node scripts/validate.js",
+    "serve": "firebase serve --only hosting",
+    "emulate": "firebase emulators:start"
   },
   "devDependencies": {
     "firebase-tools": "^13.0.0",
@@ -59,7 +64,7 @@
   },
   "browserslist": [
     "> 1%",
-    "last 2 versions",
+    "last 2 versions", 
     "not dead",
     "not ie <= 11"
   ],
@@ -92,5 +97,12 @@
     "website": "https://www.househeadchase.com",
     "twitter": "https://x.com/househeadchase",
     "support": "support@househeadchase.com"
+  },
+  "firebase": {
+    "projects": {
+      "default": "house-head-chase",
+      "staging": "house-head-chase-staging",
+      "production": "house-head-chase"
+    }
   }
 }
