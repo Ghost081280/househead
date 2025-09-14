@@ -1,9 +1,56 @@
 // House Head Chase - Main Game Logic
-// CRITICAL FIX: Event Listener Attachment
+// Clean rebuild from scratch
 
 console.log('🏠 House Head Chase - Loading...');
 
-// Sound System
+// === GAME STATE ===
+const gameState = {
+    running: false,
+    paused: false,
+    canvas: null,
+    ctx: null,
+    player: {
+        x: 400,
+        y: 300,
+        size: 15,
+        health: 100,
+        maxHealth: 100,
+        speed: 3,
+        baseSpeed: 3,
+        isDragging: false,
+        dragOffset: { x: 0, y: 0 },
+        shieldTime: 0,
+        speedBoostTime: 0
+    },
+    enemies: [],
+    powerups: [],
+    activePowerups: [],
+    flashlight: {
+        on: false,
+        intensity: 0,
+        radius: 200,
+        fadeSpeed: 0.1
+    },
+    score: 0,
+    level: 1,
+    startTime: 0,
+    lastEnemySpawn: 0,
+    lastPowerupSpawn: 0,
+    lastScoreUpdate: 0,
+    spawnRate: 3000,
+    powerupSpawnRate: 12000,
+    input: {
+        lastTap: 0,
+        doubleTapDelay: 300
+    },
+    camera: {
+        shake: 0,
+        intensity: 0
+    },
+    difficulty: 1
+};
+
+// === SOUND SYSTEM ===
 class SoundSystem {
     constructor() {
         this.context = null;
@@ -80,7 +127,10 @@ class SoundSystem {
     }
 }
 
-// Power-up Types
+// Initialize sound system
+const soundSystem = new SoundSystem();
+
+// === POWER-UP TYPES ===
 const PowerupTypes = {
     HEALTH: {
         name: 'Health Pack',
@@ -111,7 +161,7 @@ const PowerupTypes = {
     }
 };
 
-// Powerup Class
+// === POWERUP CLASS ===
 class Powerup {
     constructor(x, y, type) {
         this.x = x;
@@ -123,20 +173,16 @@ class Powerup {
         this.spawnTime = Date.now();
         this.pulseOffset = Math.random() * Math.PI * 2;
         this.floatOffset = Math.random() * Math.PI * 2;
-        this.despawnTime = this.spawnTime + 15000; // 15 seconds to collect
-        
-        console.log(`⚡ ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
+        this.despawnTime = this.spawnTime + 15000;
     }
 
     update() {
         const currentTime = Date.now();
         
-        // Check if powerup should despawn
         if (currentTime > this.despawnTime) {
             return false;
         }
         
-        // Check collision with player
         const dx = this.x - gameState.player.x;
         const dy = this.y - gameState.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
@@ -193,46 +239,37 @@ class Powerup {
         ctx.save();
         ctx.translate(this.x, this.y);
         
-        // Floating animation
         const floatY = Math.sin(currentTime * 0.003 + this.floatOffset) * 3;
         ctx.translate(0, floatY);
         
-        // Pulsing scale
         const pulse = 0.8 + Math.sin(currentTime * 0.008 + this.pulseOffset) * 0.2;
         ctx.scale(pulse, pulse);
         
-        // Glow effect
         ctx.shadowColor = this.config.color;
         ctx.shadowBlur = 15;
         
-        // Main powerup circle
         ctx.fillStyle = this.config.color;
         ctx.beginPath();
         ctx.arc(0, 0, this.size, 0, Math.PI * 2);
         ctx.fill();
         
-        // Inner bright core
         ctx.shadowBlur = 0;
         ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
         ctx.beginPath();
         ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
         ctx.fill();
         
-        // Icon (emoji simulation)
         ctx.fillStyle = '#000';
         ctx.font = `${this.size}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
-        // Draw simplified icon based on type
         switch (this.type) {
             case 'HEALTH':
-                // Draw cross
                 ctx.fillRect(-2, -6, 4, 12);
                 ctx.fillRect(-6, -2, 12, 4);
                 break;
             case 'SHIELD':
-                // Draw shield shape
                 ctx.beginPath();
                 ctx.moveTo(0, -8);
                 ctx.lineTo(6, -4);
@@ -244,7 +281,6 @@ class Powerup {
                 ctx.fill();
                 break;
             case 'SPEED':
-                // Draw lightning bolt
                 ctx.beginPath();
                 ctx.moveTo(-2, -8);
                 ctx.lineTo(4, -2);
@@ -263,55 +299,7 @@ class Powerup {
     }
 }
 
-// Game State
-const gameState = {
-    running: false,
-    paused: false,
-    canvas: null,
-    ctx: null,
-    player: {
-        x: 400,
-        y: 300,
-        size: 15,
-        health: 100,
-        maxHealth: 100,
-        speed: 3,
-        baseSpeed: 3,
-        isDragging: false,
-        dragOffset: { x: 0, y: 0 },
-        shieldTime: 0,
-        speedBoostTime: 0
-    },
-    enemies: [],
-    powerups: [],
-    activePowerups: [],
-    flashlight: {
-        on: false,
-        intensity: 0,
-        radius: 200,
-        fadeSpeed: 0.1
-    },
-    score: 0,
-    level: 1,
-    startTime: 0,
-    lastEnemySpawn: 0,
-    lastPowerupSpawn: 0,
-    lastScoreUpdate: 0,
-    spawnRate: 3000,
-    powerupSpawnRate: 12000,
-    input: {
-        lastTap: 0,
-        doubleTapDelay: 300
-    },
-    camera: {
-        shake: 0,
-        intensity: 0
-    },
-    difficulty: 1,
-    totalEnemiesSpawned: 0
-};
-
-// Enemy Types
+// === ENEMY TYPES ===
 const EnemyTypes = {
     SMALL: {
         name: 'Small House',
@@ -333,7 +321,7 @@ const EnemyTypes = {
     }
 };
 
-// Enemy Class
+// === ENEMY CLASS ===
 class Enemy {
     constructor(x, y, type) {
         this.x = x;
@@ -345,7 +333,6 @@ class Enemy {
         this.damage = this.config.damage;
         this.color = this.config.color;
         
-        // Animation states
         this.state = 'spawning';
         this.spawnTime = Date.now();
         this.activationTime = this.config.activationTime + (Math.random() * 1000);
@@ -354,7 +341,6 @@ class Enemy {
         this.lastDamageTime = 0;
         this.isVisible = false;
         
-        // Initialize legs
         for (let i = 0; i < 6; i++) {
             this.legs.push({
                 angle: (i / 6) * Math.PI * 2,
@@ -363,14 +349,11 @@ class Enemy {
                 speed: 0.1 + Math.random() * 0.1
             });
         }
-        
-        console.log(`🏠 ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
     }
 
     update() {
         const currentTime = Date.now();
         
-        // Update state based on time
         if (this.state === 'spawning') {
             if (currentTime - this.spawnTime > 1000) {
                 this.state = 'dormant';
@@ -383,16 +366,12 @@ class Enemy {
             }
         }
         
-        // Movement for active enemies
         if (this.state === 'active') {
             this.huntPlayer();
             this.updateLegs();
         }
         
-        // Update visibility based on flashlight
         this.updateVisibility();
-        
-        // Window glow animation
         this.windowGlow = 0.5 + Math.sin(currentTime * 0.003 + this.x * 0.01) * 0.3;
         
         return true;
@@ -410,12 +389,10 @@ class Enemy {
             this.x += moveX;
             this.y += moveY;
             
-            // Keep in bounds
             this.x = Math.max(this.size, Math.min(gameState.canvas.width - this.size, this.x));
             this.y = Math.max(this.size + 80, Math.min(gameState.canvas.height - this.size, this.y));
         }
         
-        // Check collision with player (only if not shielded)
         if (distance < this.size + gameState.player.size - 5 && gameState.player.shieldTime <= 0) {
             this.damagePlayer();
         }
@@ -489,11 +466,9 @@ class Enemy {
         const ctx = gameState.ctx;
         const size = this.size;
         
-        // House shadow
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size * 0.8);
         
-        // House body gradient
         const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
         gradient.addColorStop(0, this.color);
         gradient.addColorStop(0.5, this.type === 'BIG' ? '#2a1a0a' : '#3a2a1a');
@@ -501,12 +476,10 @@ class Enemy {
         ctx.fillStyle = gradient;
         ctx.fillRect(-size/2, -size/2, size, size * 0.8);
         
-        // House outline
         ctx.strokeStyle = '#000';
         ctx.lineWidth = 2;
         ctx.strokeRect(-size/2, -size/2, size, size * 0.8);
         
-        // Roof
         const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
         roofGradient.addColorStop(0, '#2a1a0a');
         roofGradient.addColorStop(1, '#1a0a0a');
@@ -519,7 +492,6 @@ class Enemy {
         ctx.fill();
         ctx.stroke();
         
-        // Glowing windows (eyes)
         const glowIntensity = this.windowGlow;
         const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
         
@@ -527,20 +499,16 @@ class Enemy {
         ctx.shadowBlur = 8;
         ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity})`;
         
-        // Left eye
         ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
-        // Right eye
         ctx.fillRect(size/6, -size/4, eyeSize, eyeSize);
         
         ctx.shadowBlur = 0;
         
-        // Eye outlines
         ctx.strokeStyle = '#666';
         ctx.lineWidth = 1;
         ctx.strokeRect(-size/3, -size/4, eyeSize, eyeSize);
         ctx.strokeRect(size/6, -size/4, eyeSize, eyeSize);
         
-        // Door (mouth)
         ctx.fillStyle = '#000';
         const doorWidth = this.type === 'BIG' ? size/3 : size/4;
         const doorHeight = size/4;
@@ -548,7 +516,6 @@ class Enemy {
         ctx.strokeStyle = '#333';
         ctx.strokeRect(-doorWidth/2, size/6, doorWidth, doorHeight);
         
-        // Door handle
         ctx.fillStyle = '#444';
         ctx.beginPath();
         ctx.arc(doorWidth/3, size/6 + doorHeight/2, 2, 0, Math.PI * 2);
@@ -574,13 +541,11 @@ class Enemy {
             ctx.lineTo(legX, legY + this.size * 0.3);
             ctx.stroke();
             
-            // Leg joint
             ctx.fillStyle = '#333';
             ctx.beginPath();
             ctx.arc(midX, midY + this.size * 0.3, 2, 0, Math.PI * 2);
             ctx.fill();
             
-            // Foot
             ctx.fillStyle = '#222';
             ctx.beginPath();
             ctx.arc(legX, legY + this.size * 0.3, 3, 0, Math.PI * 2);
@@ -589,10 +554,7 @@ class Enemy {
     }
 }
 
-// Initialize sound system
-const soundSystem = new SoundSystem();
-
-// Player Drawing
+// === DRAWING FUNCTIONS ===
 function drawPlayer() {
     const ctx = gameState.ctx;
     const player = gameState.player;
@@ -600,7 +562,6 @@ function drawPlayer() {
     ctx.save();
     ctx.translate(player.x, player.y);
     
-    // Shield effect
     if (player.shieldTime > 0) {
         ctx.shadowColor = '#4488ff';
         ctx.shadowBlur = 20;
@@ -611,30 +572,25 @@ function drawPlayer() {
         ctx.stroke();
     }
     
-    // Player glow effect
     ctx.shadowColor = '#4488ff';
     ctx.shadowBlur = 15;
     
-    // Main body - bright blue dot
     ctx.fillStyle = '#4488ff';
     ctx.beginPath();
     ctx.arc(0, 0, player.size, 0, Math.PI * 2);
     ctx.fill();
     
-    // Inner bright core
     ctx.shadowBlur = 0;
     ctx.fillStyle = '#88bbff';
     ctx.beginPath();
     ctx.arc(0, 0, player.size * 0.6, 0, Math.PI * 2);
     ctx.fill();
     
-    // Center dot
     ctx.fillStyle = '#ffffff';
     ctx.beginPath();
     ctx.arc(0, 0, player.size * 0.3, 0, Math.PI * 2);
     ctx.fill();
     
-    // Health indicator ring
     const healthPercent = player.health / player.maxHealth;
     if (healthPercent < 1) {
         ctx.strokeStyle = healthPercent > 0.5 ? '#44ff44' : healthPercent > 0.2 ? '#ffaa44' : '#ff4444';
@@ -647,7 +603,6 @@ function drawPlayer() {
     ctx.restore();
 }
 
-// Flashlight System
 function drawFlashlight() {
     if (!gameState.flashlight.on || gameState.flashlight.intensity <= 0) return;
     
@@ -655,7 +610,6 @@ function drawFlashlight() {
     const player = gameState.player;
     const intensity = gameState.flashlight.intensity;
     
-    // Create radial gradient for flashlight
     const gradient = ctx.createRadialGradient(
         player.x, player.y, 0,
         player.x, player.y, gameState.flashlight.radius
@@ -670,12 +624,10 @@ function drawFlashlight() {
     ctx.fillRect(0, 0, gameState.canvas.width, gameState.canvas.height);
 }
 
-// Environment Drawing
 function drawBackground() {
     const ctx = gameState.ctx;
     const canvas = gameState.canvas;
     
-    // Dark gradient background
     const gradient = ctx.createRadialGradient(
         canvas.width/2, canvas.height/2, 0,
         canvas.width/2, canvas.height/2, Math.max(canvas.width, canvas.height)
@@ -685,7 +637,6 @@ function drawBackground() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-    // Subtle stars
     ctx.fillStyle = '#ffffff';
     for (let i = 0; i < 50; i++) {
         const x = (i * 23.7) % canvas.width;
@@ -696,7 +647,6 @@ function drawBackground() {
     }
     ctx.globalAlpha = 1;
     
-    // Ground
     const groundGradient = ctx.createLinearGradient(0, canvas.height - 80, 0, canvas.height);
     groundGradient.addColorStop(0, '#1a2a1a');
     groundGradient.addColorStop(1, '#0a1a0a');
@@ -704,17 +654,15 @@ function drawBackground() {
     ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
 }
 
-// Game Systems
+// === GAME SYSTEMS ===
 function spawnEnemy() {
     const currentTime = Date.now();
     if (currentTime - gameState.lastEnemySpawn < gameState.spawnRate) return;
     
-    // Determine enemy type based on weights and level
     const rand = Math.random();
     const bigHouseChance = Math.min(0.3 + (gameState.level - 1) * 0.1, 0.6);
     const enemyType = rand < bigHouseChance ? 'BIG' : 'SMALL';
     
-    // Random spawn position (away from player)
     let x, y;
     let attempts = 0;
     do {
@@ -724,15 +672,13 @@ function spawnEnemy() {
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
         attempts++;
-        if (attempts > 10) break; // Prevent infinite loop
+        if (attempts > 10) break;
     } while (Math.sqrt(Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)) < 150);
     
     const enemy = new Enemy(x, y, enemyType);
     gameState.enemies.push(enemy);
-    gameState.totalEnemiesSpawned++;
     gameState.lastEnemySpawn = currentTime;
     
-    // Increase difficulty over time
     gameState.spawnRate = Math.max(1000, 3000 - (gameState.level - 1) * 200);
     
     console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
@@ -742,7 +688,6 @@ function spawnPowerup() {
     const currentTime = Date.now();
     if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
     
-    // Determine powerup type based on weights
     const rand = Math.random();
     let powerupType = 'HEALTH';
     
@@ -754,19 +699,16 @@ function spawnPowerup() {
         powerupType = 'SPEED';
     }
     
-    // Random spawn position (away from player and enemies)
     let x, y;
     let attempts = 0;
     do {
         x = 80 + Math.random() * (gameState.canvas.width - 160);
         y = 120 + Math.random() * (gameState.canvas.height - 200);
         
-        // Check distance from player
         const playerDistance = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
         
-        // Check distance from enemies
         let tooCloseToEnemy = false;
         for (const enemy of gameState.enemies) {
             const enemyDistance = Math.sqrt(
@@ -779,7 +721,7 @@ function spawnPowerup() {
         }
         
         attempts++;
-        if (attempts > 20) break; // Prevent infinite loop
+        if (attempts > 20) break;
     } while ((playerDistance < 120 || tooCloseToEnemy) && attempts < 20);
     
     const powerup = new Powerup(x, y, powerupType);
@@ -794,16 +736,14 @@ function updateGame() {
     
     const currentTime = Date.now();
     
-    // Update flashlight intensity
     if (gameState.flashlight.on) {
         gameState.flashlight.intensity = Math.min(1, gameState.flashlight.intensity + gameState.flashlight.fadeSpeed);
     } else {
         gameState.flashlight.intensity = Math.max(0, gameState.flashlight.intensity - gameState.flashlight.fadeSpeed);
     }
     
-    // Update powerup effects
     if (gameState.player.shieldTime > 0) {
-        gameState.player.shieldTime -= 16; // ~60 FPS
+        gameState.player.shieldTime -= 16;
     }
     
     if (gameState.player.speedBoostTime > 0) {
@@ -813,29 +753,22 @@ function updateGame() {
         }
     }
     
-    // Update active powerup timers
     gameState.activePowerups = gameState.activePowerups.filter(powerup => {
         powerup.timeLeft -= 16;
         return powerup.timeLeft > 0;
     });
     
-    // Update enemies
     gameState.enemies = gameState.enemies.filter(enemy => enemy.update());
-    
-    // Update powerups
     gameState.powerups = gameState.powerups.filter(powerup => powerup.update());
     
-    // Spawn new enemies and powerups
     spawnEnemy();
     spawnPowerup();
     
-    // Update score (1 point per second)
     if (currentTime - gameState.lastScoreUpdate > 1000) {
         gameState.score++;
         gameState.lastScoreUpdate = currentTime;
     }
     
-    // Level up system
     const newLevel = Math.floor(gameState.score / 30) + 1;
     if (newLevel > gameState.level) {
         gameState.level = newLevel;
@@ -845,18 +778,15 @@ function updateGame() {
         console.log(`🎊 Level up! Now level ${gameState.level}`);
     }
     
-    // Update camera shake
     if (gameState.camera.shake > 0) {
         gameState.camera.shake--;
         gameState.camera.intensity = Math.max(0, gameState.camera.intensity - 0.5);
     }
     
-    // Check game over
     if (gameState.player.health <= 0) {
         endGame();
     }
     
-    // Update UI
     updateUI();
 }
 
@@ -865,10 +795,8 @@ function drawGame() {
     
     const ctx = gameState.ctx;
     
-    // Clear canvas
     ctx.clearRect(0, 0, gameState.canvas.width, gameState.canvas.height);
     
-    // Apply camera shake
     ctx.save();
     if (gameState.camera.shake > 0) {
         const shakeX = (Math.random() - 0.5) * gameState.camera.intensity;
@@ -876,17 +804,12 @@ function drawGame() {
         ctx.translate(shakeX, shakeY);
     }
     
-    // Draw game world
     drawBackground();
     drawFlashlight();
     
-    // Draw powerups
     gameState.powerups.forEach(powerup => powerup.draw());
-    
-    // Draw enemies
     gameState.enemies.forEach(enemy => enemy.draw());
     
-    // Draw player
     drawPlayer();
     
     ctx.restore();
@@ -901,23 +824,20 @@ function gameLoop() {
     }
 }
 
-// Input Handling
+// === INPUT HANDLING ===
 function setupInputHandlers() {
     const canvas = gameState.canvas;
     if (!canvas) return;
     
-    // Touch Events (Mobile)
     canvas.addEventListener('touchstart', handleTouchStart, { passive: false });
     canvas.addEventListener('touchmove', handleTouchMove, { passive: false });
     canvas.addEventListener('touchend', handleTouchEnd, { passive: false });
     
-    // Mouse Events (Desktop)
     canvas.addEventListener('mousedown', handleMouseDown);
     canvas.addEventListener('mousemove', handleMouseMove);
     canvas.addEventListener('mouseup', handleMouseUp);
     canvas.addEventListener('dblclick', handleDoubleClick);
     
-    // Prevent context menu
     canvas.addEventListener('contextmenu', e => e.preventDefault());
 }
 
@@ -928,7 +848,6 @@ function handleTouchStart(e) {
     const x = (touch.clientX - rect.left) * (gameState.canvas.width / rect.width);
     const y = (touch.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
-    // Check if touching the player
     const dx = x - gameState.player.x;
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -938,7 +857,6 @@ function handleTouchStart(e) {
         gameState.player.dragOffset = { x: dx, y: dy };
     }
     
-    // Double tap detection
     const currentTime = Date.now();
     if (currentTime - gameState.input.lastTap < gameState.input.doubleTapDelay) {
         toggleFlashlight();
@@ -955,11 +873,9 @@ function handleTouchMove(e) {
     const x = (touch.clientX - rect.left) * (gameState.canvas.width / rect.width);
     const y = (touch.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
-    // Move player
     gameState.player.x = x - gameState.player.dragOffset.x;
     gameState.player.y = y - gameState.player.dragOffset.y;
     
-    // Keep player in bounds
     constrainPlayer();
 }
 
@@ -973,7 +889,6 @@ function handleMouseDown(e) {
     const x = (e.clientX - rect.left) * (gameState.canvas.width / rect.width);
     const y = (e.clientY - rect.top) * (gameState.canvas.height / rect.height);
     
-    // Check if clicking on player
     const dx = x - gameState.player.x;
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
@@ -1017,7 +932,6 @@ function toggleFlashlight() {
     gameState.flashlight.on = !gameState.flashlight.on;
     soundSystem.play('flashlight');
     
-    // Update UI
     const indicator = document.getElementById('flashlightIndicator');
     if (indicator) {
         if (gameState.flashlight.on) {
@@ -1030,26 +944,23 @@ function toggleFlashlight() {
     console.log(`🔦 Flashlight ${gameState.flashlight.on ? 'ON' : 'OFF'}`);
 }
 
-// UI Functions
+// === UI FUNCTIONS ===
 function updateUI() {
     const health = Math.max(0, Math.floor(gameState.player.health));
     const healthEl = document.getElementById('health');
     const healthFillEl = document.getElementById('healthFill');
     const scoreEl = document.getElementById('score');
-    const timerEl = document.getElementById('timer');
     const levelEl = document.getElementById('level');
     
     if (healthEl) healthEl.textContent = health;
     if (healthFillEl) healthFillEl.style.width = (health / gameState.player.maxHealth * 100) + '%';
     if (scoreEl) scoreEl.textContent = gameState.score;
-    if (timerEl) timerEl.textContent = Math.floor((Date.now() - gameState.startTime) / 1000);
     if (levelEl) levelEl.textContent = gameState.level;
     
     updatePowerupIndicators();
 }
 
 function showPowerupMessage(message) {
-    // Add powerup message styling to CSS if not present
     if (!document.querySelector('style[data-powerup-message]')) {
         const style = document.createElement('style');
         style.setAttribute('data-powerup-message', 'true');
@@ -1118,7 +1029,6 @@ function updatePowerupIndicators() {
 }
 
 function showDamageIndicator(damage) {
-    // Add damage indicator styling to CSS if not present
     if (!document.querySelector('style[data-damage-indicator]')) {
         const style = document.createElement('style');
         style.setAttribute('data-damage-indicator', 'true');
@@ -1146,7 +1056,6 @@ function showDamageIndicator(damage) {
     indicator.className = 'damage-indicator';
     indicator.textContent = `-${damage}`;
     
-    // Convert canvas coordinates to screen coordinates
     const rect = gameState.canvas.getBoundingClientRect();
     indicator.style.left = (rect.left + (gameState.player.x * rect.width / gameState.canvas.width)) + 'px';
     indicator.style.top = (rect.top + (gameState.player.y * rect.height / gameState.canvas.height)) + 'px';
@@ -1161,7 +1070,6 @@ function showDamageIndicator(damage) {
 }
 
 function showLevelUpEffect() {
-    // Add level up styling to CSS if not present
     if (!document.querySelector('style[data-level-up]')) {
         const style = document.createElement('style');
         style.setAttribute('data-level-up', 'true');
@@ -1208,7 +1116,7 @@ function showLevelUpEffect() {
     }, 2000);
 }
 
-// High Score System
+// === HIGH SCORE SYSTEM ===
 function getHighScores() {
     try {
         return JSON.parse(localStorage.getItem('houseHeadChaseHighScores')) || [];
@@ -1228,7 +1136,7 @@ function saveHighScore(score, level, time) {
     
     highScores.push(newScore);
     highScores.sort((a, b) => b.score - a.score);
-    highScores.splice(10); // Keep top 10
+    highScores.splice(10);
     
     localStorage.setItem('houseHeadChaseHighScores', JSON.stringify(highScores));
     console.log('💾 High score saved!', newScore);
@@ -1254,29 +1162,16 @@ function displayHighScores() {
     ).join('');
 }
 
-// MODAL MANAGEMENT - FIXED Z-INDEX CONFLICTS
+// === MODAL MANAGEMENT ===
 function hideAllModals() {
-    // Use higher specificity to ensure modals are properly hidden
-    const modals = document.querySelectorAll('.modal');
+    const modals = document.querySelectorAll('.modal-overlay');
     modals.forEach(modal => {
-        modal.style.display = 'none';
         modal.classList.add('hidden');
     });
-    
-    // Also hide individual modal IDs
-    const modalIds = ['highScoresModal', 'helpModal', 'shareModal'];
-    modalIds.forEach(modalId => {
-        const modal = document.getElementById(modalId);
-        if (modal) {
-            modal.style.display = 'none';
-            modal.classList.add('hidden');
-        }
-    });
-    
     console.log('🚫 All modals hidden');
 }
 
-// Social Sharing
+// === SOCIAL SHARING ===
 function shareScore() {
     hideAllModals();
     const shareScoreEl = document.getElementById('shareScore');
@@ -1284,7 +1179,6 @@ function shareScore() {
     
     if (shareScoreEl) shareScoreEl.textContent = gameState.score;
     if (shareModalEl) {
-        shareModalEl.style.display = 'flex';
         shareModalEl.classList.remove('hidden');
     }
 }
@@ -1318,12 +1212,11 @@ function copyScore() {
 function closeShare() {
     const shareModalEl = document.getElementById('shareModal');
     if (shareModalEl) {
-        shareModalEl.style.display = 'none';
         shareModalEl.classList.add('hidden');
     }
 }
 
-// PWA Install
+// === PWA INSTALL ===
 let deferredPrompt;
 
 window.addEventListener('beforeinstallprompt', (e) => {
@@ -1359,14 +1252,12 @@ function dismissInstall() {
     }
 }
 
-// GAME FUNCTIONS - FIXED INITIALIZATION ORDER
+// === MAIN GAME FUNCTIONS ===
 function startGame() {
     console.log('🎮 Starting House Head Chase...');
     
-    // Hide all UI elements first with force
     hideAllModals();
     
-    // Get canvas and context
     gameState.canvas = document.getElementById('gameCanvas');
     if (!gameState.canvas) {
         console.error('❌ Canvas not found!');
@@ -1379,16 +1270,12 @@ function startGame() {
         return;
     }
     
-    // Set canvas size FIRST
     resizeCanvas();
     
-    // ENSURE GAME IS INITIALIZED IMMEDIATELY
-    // Initialize game state
     gameState.running = true;
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
-    // Reset game state with proper player positioning
     gameState.player = {
         x: gameState.canvas.width / 2,
         y: gameState.canvas.height / 2,
@@ -1415,68 +1302,42 @@ function startGame() {
     gameState.flashlight.intensity = 0;
     gameState.camera.shake = 0;
     gameState.camera.intensity = 0;
-    gameState.totalEnemiesSpawned = 0;
     
     console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
     
-    // Hide screens with force
-    const startScreen = document.getElementById('startScreen');
-    const gameOver = document.getElementById('gameOver');
-    if (startScreen) {
-        startScreen.style.display = 'none';
-        startScreen.classList.add('hidden');
-    }
-    if (gameOver) {
-        gameOver.style.display = 'none';
-        gameOver.classList.add('hidden');
-    }
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameOver').classList.add('hidden');
+    document.getElementById('hud').classList.remove('hidden');
     
-    // Show controls hint
     setTimeout(() => {
         const hint = document.getElementById('controlsHint');
-        if (hint) hint.style.display = 'block';
+        if (hint) {
+            hint.classList.remove('hidden');
+            setTimeout(() => hint.classList.add('hidden'), 4000);
+        }
     }, 1000);
     
-    // Hide hint after 5 seconds
-    setTimeout(() => {
-        const hint = document.getElementById('controlsHint');
-        if (hint) hint.style.display = 'none';
-    }, 6000);
-    
-    // Setup input handlers
     setupInputHandlers();
-    
-    // Start game loop IMMEDIATELY
     gameLoop();
     
     console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
-    console.log(`🔵 Player visible at: (${gameState.player.x}, ${gameState.player.y})`);
 }
 
 function endGame() {
     gameState.running = false;
     
-    // Save high score
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
     saveHighScore(survivalTime, gameState.level, survivalTime);
     
-    // Update final stats
-    const finalScoreEl = document.getElementById('finalScore');
-    const finalTimeEl = document.getElementById('finalTime');
-    const finalLevelEl = document.getElementById('finalLevel');
-    const gameOverEl = document.getElementById('gameOver');
+    document.getElementById('finalScore').textContent = survivalTime;
+    document.getElementById('finalTime').textContent = survivalTime;
+    document.getElementById('finalLevel').textContent = gameState.level;
     
-    if (finalScoreEl) finalScoreEl.textContent = survivalTime;
-    if (finalTimeEl) finalTimeEl.textContent = survivalTime;
-    if (finalLevelEl) finalLevelEl.textContent = gameState.level;
-    if (gameOverEl) {
-        gameOverEl.style.display = 'block';
-        gameOverEl.classList.remove('hidden');
-    }
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('gameOver').classList.remove('hidden');
     
-    // Hide controls hint
     const hint = document.getElementById('controlsHint');
-    if (hint) hint.style.display = 'none';
+    if (hint) hint.classList.add('hidden');
     
     console.log('🎮 Game Over! Survival time:', survivalTime, 'seconds');
 }
@@ -1489,79 +1350,51 @@ function restartGame() {
 function showStartScreen() {
     console.log('🏠 Showing start screen...');
     hideAllModals();
-    const startScreen = document.getElementById('startScreen');
-    const gameOver = document.getElementById('gameOver');
-    
-    if (startScreen) {
-        startScreen.style.display = 'block';
-        startScreen.classList.remove('hidden');
-    }
-    if (gameOver) {
-        gameOver.style.display = 'none';
-        gameOver.classList.add('hidden');
-    }
+    document.getElementById('gameOver').classList.add('hidden');
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('startScreen').classList.remove('hidden');
     gameState.running = false;
     
-    // Hide controls hint
     const hint = document.getElementById('controlsHint');
-    if (hint) hint.style.display = 'none';
+    if (hint) hint.classList.add('hidden');
 }
 
 function showHighScores() {
     console.log('🏆 Showing high scores...');
     hideAllModals();
     displayHighScores();
-    const modal = document.getElementById('highScoresModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    }
+    document.getElementById('highScoresModal').classList.remove('hidden');
 }
 
 function closeHighScores() {
     console.log('🚫 Closing high scores...');
-    const modal = document.getElementById('highScoresModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
+    document.getElementById('highScoresModal').classList.add('hidden');
 }
 
 function showHelp() {
     console.log('❓ Showing help...');
     hideAllModals();
-    const modal = document.getElementById('helpModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    }
+    document.getElementById('helpModal').classList.remove('hidden');
 }
 
 function closeHelp() {
     console.log('🚫 Closing help...');
-    const modal = document.getElementById('helpModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
+    document.getElementById('helpModal').classList.add('hidden');
 }
 
-// Canvas Management
+// === CANVAS MANAGEMENT ===
 function resizeCanvas() {
     const canvas = gameState.canvas;
     if (!canvas) return;
     
-    // Set canvas to full window size
     canvas.width = window.innerWidth;
     canvas.height = window.innerHeight;
     
-    // Set CSS size to match
     canvas.style.width = window.innerWidth + 'px';
     canvas.style.height = window.innerHeight + 'px';
     
     console.log(`📏 Canvas resized to ${canvas.width}x${canvas.height}`);
     
-    // Reposition player if game is running
     if (gameState.running && gameState.player) {
         gameState.player.x = Math.min(gameState.player.x, canvas.width - gameState.player.size);
         gameState.player.y = Math.min(gameState.player.y, canvas.height - gameState.player.size - 100);
@@ -1569,16 +1402,9 @@ function resizeCanvas() {
     }
 }
 
-// CRITICAL FIX: PROPER EVENT LISTENER ATTACHMENT
-function attachEventListeners() {
-    console.log('🔧 Attaching event listeners...');
-    
-    // WAIT FOR DOM TO BE READY
-    if (document.readyState === 'loading') {
-        console.log('⏳ DOM still loading, waiting...');
-        document.addEventListener('DOMContentLoaded', attachEventListeners);
-        return;
-    }
+// === EVENT LISTENER SETUP ===
+function setupEventListeners() {
+    console.log('🔧 Setting up event listeners...');
     
     // Main game buttons
     const startBtn = document.getElementById('startGameBtn');
@@ -1588,56 +1414,12 @@ function attachEventListeners() {
     const showHelpBtn = document.getElementById('showHelpBtn');
     const shareScoreBtn = document.getElementById('shareScoreBtn');
     
-    console.log('🔍 Button elements found:', {
-        startBtn: !!startBtn,
-        restartBtn: !!restartBtn,
-        showStartBtn: !!showStartBtn,
-        showHighScoresBtn: !!showHighScoresBtn,
-        showHelpBtn: !!showHelpBtn,
-        shareScoreBtn: !!shareScoreBtn
-    });
-    
-    if (startBtn) {
-        startBtn.addEventListener('click', startGame);
-        console.log('✅ Start button event attached');
-    } else {
-        console.error('❌ Start button not found!');
-    }
-    
-    if (restartBtn) {
-        restartBtn.addEventListener('click', restartGame);
-        console.log('✅ Restart button event attached');
-    } else {
-        console.error('❌ Restart button not found!');
-    }
-    
-    if (showStartBtn) {
-        showStartBtn.addEventListener('click', showStartScreen);
-        console.log('✅ Show start button event attached');
-    } else {
-        console.error('❌ Show start button not found!');
-    }
-    
-    if (showHighScoresBtn) {
-        showHighScoresBtn.addEventListener('click', showHighScores);
-        console.log('✅ High scores button event attached');
-    } else {
-        console.error('❌ High scores button not found!');
-    }
-    
-    if (showHelpBtn) {
-        showHelpBtn.addEventListener('click', showHelp);
-        console.log('✅ Help button event attached');
-    } else {
-        console.error('❌ Help button not found!');
-    }
-    
-    if (shareScoreBtn) {
-        shareScoreBtn.addEventListener('click', shareScore);
-        console.log('✅ Share score button event attached');
-    } else {
-        console.error('❌ Share score button not found!');
-    }
+    if (startBtn) startBtn.addEventListener('click', startGame);
+    if (restartBtn) restartBtn.addEventListener('click', restartGame);
+    if (showStartBtn) showStartBtn.addEventListener('click', showStartScreen);
+    if (showHighScoresBtn) showHighScoresBtn.addEventListener('click', showHighScores);
+    if (showHelpBtn) showHelpBtn.addEventListener('click', showHelp);
+    if (shareScoreBtn) shareScoreBtn.addEventListener('click', shareScore);
     
     // Modal close buttons
     const closeHighScoresBtn = document.getElementById('closeHighScoresBtn');
@@ -1647,87 +1429,41 @@ function attachEventListeners() {
     const closeShareBtn = document.getElementById('closeShareBtn');
     const closeShareFooterBtn = document.getElementById('closeShareFooterBtn');
     
-    if (closeHighScoresBtn) {
-        closeHighScoresBtn.addEventListener('click', closeHighScores);
-        console.log('✅ Close high scores header button attached');
-    }
-    
-    if (closeHighScoresFooterBtn) {
-        closeHighScoresFooterBtn.addEventListener('click', closeHighScores);
-        console.log('✅ Close high scores footer button attached');
-    }
-    
-    if (closeHelpBtn) {
-        closeHelpBtn.addEventListener('click', closeHelp);
-        console.log('✅ Close help header button attached');
-    }
-    
-    if (closeHelpFooterBtn) {
-        closeHelpFooterBtn.addEventListener('click', closeHelp);
-        console.log('✅ Close help footer button attached');
-    }
-    
-    if (closeShareBtn) {
-        closeShareBtn.addEventListener('click', closeShare);
-        console.log('✅ Close share header button attached');
-    }
-    
-    if (closeShareFooterBtn) {
-        closeShareFooterBtn.addEventListener('click', closeShare);
-        console.log('✅ Close share footer button attached');
-    }
+    if (closeHighScoresBtn) closeHighScoresBtn.addEventListener('click', closeHighScores);
+    if (closeHighScoresFooterBtn) closeHighScoresFooterBtn.addEventListener('click', closeHighScores);
+    if (closeHelpBtn) closeHelpBtn.addEventListener('click', closeHelp);
+    if (closeHelpFooterBtn) closeHelpFooterBtn.addEventListener('click', closeHelp);
+    if (closeShareBtn) closeShareBtn.addEventListener('click', closeShare);
+    if (closeShareFooterBtn) closeShareFooterBtn.addEventListener('click', closeShare);
     
     // Share buttons
     const shareTwitterBtn = document.getElementById('shareTwitterBtn');
     const shareFacebookBtn = document.getElementById('shareFacebookBtn');
     const copyScoreBtn = document.getElementById('copyScoreBtn');
     
-    if (shareTwitterBtn) {
-        shareTwitterBtn.addEventListener('click', shareTwitter);
-        console.log('✅ Share Twitter button attached');
-    }
-    
-    if (shareFacebookBtn) {
-        shareFacebookBtn.addEventListener('click', shareFacebook);
-        console.log('✅ Share Facebook button attached');
-    }
-    
-    if (copyScoreBtn) {
-        copyScoreBtn.addEventListener('click', copyScore);
-        console.log('✅ Copy score button attached');
-    }
+    if (shareTwitterBtn) shareTwitterBtn.addEventListener('click', shareTwitter);
+    if (shareFacebookBtn) shareFacebookBtn.addEventListener('click', shareFacebook);
+    if (copyScoreBtn) copyScoreBtn.addEventListener('click', copyScore);
     
     // Install buttons
     const installAppBtn = document.getElementById('installAppBtn');
     const dismissInstallBtn = document.getElementById('dismissInstallBtn');
     
-    if (installAppBtn) {
-        installAppBtn.addEventListener('click', installApp);
-        console.log('✅ Install app button attached');
-    }
+    if (installAppBtn) installAppBtn.addEventListener('click', installApp);
+    if (dismissInstallBtn) dismissInstallBtn.addEventListener('click', dismissInstall);
     
-    if (dismissInstallBtn) {
-        dismissInstallBtn.addEventListener('click', dismissInstall);
-        console.log('✅ Dismiss install button attached');
-    }
-    
-    // Setup audio toggle
+    // Audio toggle
     const audioToggle = document.getElementById('audioToggle');
-    if (audioToggle) {
-        audioToggle.addEventListener('click', () => {
-            soundSystem.toggle();
-        });
-        console.log('✅ Audio toggle attached');
-    }
+    if (audioToggle) audioToggle.addEventListener('click', () => soundSystem.toggle());
     
-    console.log('🎯 All event listeners attached successfully!');
+    console.log('✅ Event listeners set up successfully');
 }
 
-// INITIALIZATION - PROPER ORDER
+// === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🏠 House Head Chase - DOM Content Loaded!');
+    console.log('🏠 House Head Chase - DOM Ready!');
     
-    // Pre-initialize canvas immediately
+    // Pre-initialize canvas
     const canvas = document.getElementById('gameCanvas');
     if (canvas) {
         canvas.width = window.innerWidth;
@@ -1737,66 +1473,31 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Attach all event listeners
-    attachEventListeners();
+    // Setup event listeners
+    setupEventListeners();
     
-    // Setup window resize handler
-    window.addEventListener('resize', () => {
-        resizeCanvas();
-    });
-    
-    // Setup orientation change handler for mobile
-    window.addEventListener('orientationchange', () => {
-        setTimeout(resizeCanvas, 100);
-    });
+    // Window event handlers
+    window.addEventListener('resize', resizeCanvas);
+    window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
     
     // Initialize high scores display
     displayHighScores();
     
     // Hide controls hint initially
     const hint = document.getElementById('controlsHint');
-    if (hint) hint.style.display = 'none';
+    if (hint) hint.classList.add('hidden');
     
-    // Ensure all modals are hidden on load
+    // Ensure all modals are hidden
     hideAllModals();
     
     console.log('🎮 Game ready to play!');
 });
 
-// FALLBACK: Window load event
-window.addEventListener('load', () => {
-    console.log('🔄 Window loaded - running fallback initialization...');
-    
-    // Only run if DOMContentLoaded didn't work
-    if (!document.getElementById('startGameBtn')?.onclick) {
-        console.log('⚠️ Event listeners missing, reattaching...');
-        attachEventListeners();
-    }
-    
-    // Register service worker
-    if ('serviceWorker' in navigator) {
+// Service worker registration
+if ('serviceWorker' in navigator) {
+    window.addEventListener('load', () => {
         navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('✅ Service Worker registered:', registration);
-            })
-            .catch(error => {
-                console.log('❌ Service Worker registration failed:', error);
-            });
-    }
-});
-
-// Make functions globally available for debugging
-window.startGame = startGame;
-window.restartGame = restartGame;
-window.showStartScreen = showStartScreen;
-window.showHighScores = showHighScores;
-window.closeHighScores = closeHighScores;
-window.showHelp = showHelp;
-window.closeHelp = closeHelp;
-window.shareScore = shareScore;
-window.shareTwitter = shareTwitter;
-window.shareFacebook = shareFacebook;
-window.copyScore = copyScore;
-window.closeShare = closeShare;
-window.installApp = installApp;
-window.dismissInstall = dismissInstall;
+            .then(registration => console.log('✅ Service Worker registered:', registration))
+            .catch(error => console.log('❌ Service Worker registration failed:', error));
+    });
+}
