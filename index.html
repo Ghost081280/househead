@@ -3,7 +3,21 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>🏠 House Head Chase</title>
+    <title>🏠 House Head Chase - Survive the Walking Houses!</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="Survive as long as you can while avoiding terrifying walking House Heads! Use your flashlight strategically in this thrilling survival game with power-ups and increasing difficulty.">
+    <meta name="keywords" content="survival game, house head chase, browser game, horror game, action game, flashlight, power-ups">
+    <meta name="author" content="House Head Chase">
+    <meta property="og:title" content="🏠 House Head Chase - Survive the Walking Houses!">
+    <meta property="og:description" content="A thrilling survival game where you must avoid walking House Heads. Use your flashlight strategically and collect power-ups to survive as long as possible!">
+    <meta property="og:type" content="game">
+    <meta property="og:url" content="https://househeadchase.com">
+    <meta property="og:image" content="https://househeadchase.com/icons/icon-512.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🏠 House Head Chase">
+    <meta name="twitter:description" content="Survive the walking House Heads in this thrilling browser game!">
+    <meta name="twitter:image" content="https://househeadchase.com/icons/icon-512.png">
     
     <!-- PWA Meta Tags -->
     <meta name="theme-color" content="#ff4444">
@@ -13,56 +27,86 @@
     <link rel="manifest" href="manifest.json">
     
     <!-- Icons -->
+    <link rel="icon" type="image/png" sizes="32x32" href="icons/icon-32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="icons/icon-16.png">
     <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" sizes="180x180" href="icons/icon-180.png">
+    <link rel="apple-touch-icon" sizes="152x152" href="icons/icon-152.png">
+    <link rel="apple-touch-icon" sizes="144x144" href="icons/icon-144.png">
     <link rel="apple-touch-icon" href="icons/icon-192.png">
     
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="game.js" as="script">
+    
     <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "House Head Chase",
+        "description": "Survive as long as you can while avoiding terrifying walking House Heads! Use your flashlight strategically in this thrilling survival game.",
+        "url": "https://househeadchase.com",
+        "genre": "Survival Horror",
+        "gamePlatform": "Web Browser",
+        "operatingSystem": "Any",
+        "applicationCategory": "Game",
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD"
+        }
+    }
+    </script>
 </head>
 <body>
     <!-- Game Container -->
     <div id="gameContainer">
-        <canvas id="gameCanvas"></canvas>
+        <canvas id="gameCanvas" aria-label="House Head Chase Game Canvas"></canvas>
         
         <!-- HUD - INITIALLY HIDDEN -->
-        <div id="hud" class="hidden">
+        <div id="hud" class="hidden" role="toolbar" aria-label="Game HUD">
             <div class="hud-item">
                 <span class="hud-label">Health</span>
-                <div id="healthBar">
+                <div id="healthBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100">
                     <div id="healthFill"></div>
                 </div>
-                <span id="health">100</span>
+                <span id="health" aria-live="polite">100</span>
             </div>
             
             <div class="hud-item">
                 <span class="hud-label">Score</span>
-                <span class="hud-value" id="score">0</span>
+                <span class="hud-value" id="score" aria-live="polite">0</span>
             </div>
             
             <div class="hud-item">
                 <span class="hud-label">Level</span>
-                <span class="hud-value" id="level">1</span>
+                <span class="hud-value" id="level" aria-live="polite">1</span>
             </div>
             
-            <button id="audioToggle" class="audio-btn" onclick="soundSystem.toggle()">🔊</button>
+            <button id="audioToggle" class="audio-btn" onclick="soundSystem.toggle()" 
+                    aria-label="Toggle game audio" title="Toggle Sound">🔊</button>
         </div>
         
         <!-- Powerup Indicators -->
-        <div id="powerupIndicators" class="hidden"></div>
+        <div id="powerupIndicators" class="hidden" aria-live="polite" aria-label="Active power-ups"></div>
         
         <!-- Flashlight Indicator -->
-        <div id="flashlightIndicator" class="hidden">
-            <span class="flashlight-icon">🔦</span>
+        <div id="flashlightIndicator" class="hidden" aria-live="polite">
+            <span class="flashlight-icon" aria-hidden="true">🔦</span>
             <span class="flashlight-text">LIGHT ON</span>
         </div>
         
         <!-- Controls Hint -->
-        <div id="controlsHint" class="controls-hint hidden">
-            📱 Drag blue dot • Double tap for flashlight
+        <div id="controlsHint" class="controls-hint hidden" role="tooltip">
+            🔦 DOUBLE TAP for flashlight • 📱 Drag blue dot to move • 💡 Use light strategically!
         </div>
     </div>
     
     <!-- Start Screen - VISIBLE BY DEFAULT -->
-    <div id="startScreen" class="game-screen">
+    <div id="startScreen" class="game-screen" role="main">
         <h1>🏠 HOUSE HEAD CHASE</h1>
         <div class="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
@@ -71,39 +115,47 @@
             <p>🏠 <strong>House Heads spawn and hunt you down!</strong></p>
             <p>⚡ <strong>Collect power-ups for special abilities!</strong></p>
             <p>💔 <strong>Avoid contact or take damage!</strong></p>
+            <p>🔦 <strong>Flashlight reveals enemies but attracts them!</strong></p>
         </div>
         <div class="button-container">
-            <button class="btn primary" id="startGameBtn" onclick="startGame()">🎮 START GAME</button>
-            <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()">🏆 HIGH SCORES</button>
-            <button class="btn secondary" id="showHelpBtn" onclick="showHelp()">❓ HOW TO PLAY</button>
+            <button class="btn primary" id="startGameBtn" onclick="startGame()" 
+                    aria-label="Start new game">🎮 START GAME</button>
+            <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()" 
+                    aria-label="View high scores">🏆 HIGH SCORES</button>
+            <button class="btn secondary" id="showHelpBtn" onclick="showHelp()" 
+                    aria-label="Show game instructions">❓ HOW TO PLAY</button>
         </div>
     </div>
     
     <!-- Game Over Screen -->
-    <div id="gameOver" class="game-screen hidden">
-        <h2>💀 GAME OVER!</h2>
+    <div id="gameOver" class="game-screen hidden" role="dialog" aria-labelledby="gameOverTitle">
+        <h2 id="gameOverTitle">💀 GAME OVER!</h2>
         <p>🏠 The House Heads got you!</p>
-        <div class="stats">
+        <div class="stats" role="group" aria-label="Final game statistics">
             <p>🏆 Score: <span id="finalScore">0</span></p>
             <p>⏰ Time: <span id="finalTime">0</span>s</p>
             <p>📊 Level: <span id="finalLevel">1</span></p>
         </div>
         <div class="button-container">
-            <button class="btn primary" id="restartGameBtn" onclick="restartGame()">🔄 PLAY AGAIN</button>
-            <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()">📤 SHARE SCORE</button>
-            <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()">🏠 MENU</button>
+            <button class="btn primary" id="restartGameBtn" onclick="restartGame()" 
+                    aria-label="Play again">🔄 PLAY AGAIN</button>
+            <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()" 
+                    aria-label="Share your score">📤 SHARE SCORE</button>
+            <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()" 
+                    aria-label="Return to main menu">🏠 MENU</button>
         </div>
     </div>
     
     <!-- High Scores Modal -->
-    <div id="highScoresModal" class="modal-overlay hidden">
+    <div id="highScoresModal" class="modal-overlay hidden" role="dialog" aria-labelledby="highScoresTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>🏆 HIGH SCORES</h2>
-                <button class="close-btn" id="closeHighScoresBtn" onclick="closeHighScores()">×</button>
+                <h2 id="highScoresTitle">🏆 HIGH SCORES</h2>
+                <button class="close-btn" id="closeHighScoresBtn" onclick="closeHighScores()" 
+                        aria-label="Close high scores">×</button>
             </div>
             <div class="modal-body">
-                <div id="highScoresList">
+                <div id="highScoresList" role="list" aria-label="High scores list">
                     <p>No high scores yet. Play to set your first record!</p>
                 </div>
             </div>
@@ -114,11 +166,12 @@
     </div>
     
     <!-- Help Modal -->
-    <div id="helpModal" class="modal-overlay hidden">
+    <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-labelledby="helpTitle">
         <div class="modal-content">
             <div class="modal-header">
-                <h2>❓ HOW TO PLAY</h2>
-                <button class="close-btn" id="closeHelpBtn" onclick="closeHelp()">×</button>
+                <h2 id="helpTitle">❓ HOW TO PLAY</h2>
+                <button class="close-btn" id="closeHelpBtn" onclick="closeHelp()" 
+                        aria-label="Close help">×</button>
             </div>
             <div class="modal-body">
                 <div class="help-section">
@@ -144,12 +197,19 @@
                     <p><strong>Speed Boost:</strong> Move faster temporarily</p>
                 </div>
                 <div class="help-section">
-                    <h3>💡 STRATEGY</h3>
-                    <p>• Use flashlight to see hidden enemies</p>
-                    <p>• But flashlight reveals your location!</p>
+                    <h3>🔦 FLASHLIGHT STRATEGY</h3>
+                    <p><strong>Light ON:</strong> See all nearby enemies clearly</p>
+                    <p><strong>But:</strong> Enemies will hunt you aggressively!</p>
+                    <p><strong>Light OFF:</strong> Enemies wander randomly</p>
+                    <p><strong>But:</strong> You can only see enemies up close!</p>
+                </div>
+                <div class="help-section">
+                    <h3>💡 TIPS</h3>
+                    <p>• Use flashlight strategically - not constantly!</p>
+                    <p>• Houses bounce off each other - use this!</p>
                     <p>• Stay away from spawning houses</p>
                     <p>• Collect power-ups to survive longer</p>
-                    <p>• Higher levels = more enemies</p>
+                    <p>• Higher levels = smarter, faster enemies</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -159,6 +219,27 @@
     </div>
     
     <!-- Share Modal (will be created dynamically by JavaScript if needed) -->
+    
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt hidden">
+        <div class="install-content">
+            <h3>📱 Install House Head Chase</h3>
+            <p>Add to your home screen for the best experience!</p>
+            <button class="btn primary" onclick="installPWA()">Install App</button>
+            <button class="btn secondary" onclick="hideInstallPrompt()">Maybe Later</button>
+        </div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-house">🏠</div>
+            <h2>Loading House Head Chase...</h2>
+            <div class="loading-bar">
+                <div class="loading-fill"></div>
+            </div>
+        </div>
+    </div>
     
     <script>
         // Ensure functions are available globally before game.js loads
@@ -171,6 +252,30 @@
         window.closeHelp = window.closeHelp || function() { console.log('Closing help...'); };
         window.showShareModal = window.showShareModal || function() { console.log('Showing share modal...'); };
         window.soundSystem = window.soundSystem || { toggle: function() { console.log('Toggling sound...'); } };
+        window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
+        window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
+        
+        // Hide loading screen once everything is loaded
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }, 1000);
+            }
+        });
+        
+        // Analytics and performance tracking
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                const timing = performance.timing;
+                const loadTime = timing.loadEventEnd - timing.navigationStart;
+                console.log(`🚀 Page loaded in ${loadTime}ms`);
+            });
+        }
     </script>
     
     <script src="game.js"></script>
