@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9" 
+        xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"
+        xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">
+  
+  <!-- Main game page -->
+  <url>
+    <loc>https://house-head-chase.web.app/</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>1.0</priority>
+    <image:image>
+      <image:loc>https://house-head-chase.web.app/icons/social-preview.png</image:loc>
+      <image:caption>House Head Chase - Survival Horror Game Screenshot</image:caption>
+      <image:title>House Head Chase Gameplay</image:title>
+    </image:image>
+  </url>
+  
+  <!-- Game manifest for app stores -->
+  <url>
+    <loc>https://house-head-chase.web.app/manifest.json</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  
+  <!-- Offline page -->
+  <url>
+    <loc>https://house-head-chase.web.app/offline.html</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.3</priority>
+  </url>
+  
+  <!-- Game icons directory -->
+  <url>
+    <loc>https://house-head-chase.web.app/icons/</loc>
+    <lastmod>2025-01-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.5</priority>
+  </url>
+
+</urlset>
