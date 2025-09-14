@@ -1,230 +1,119 @@
 {
-  "name": "House Head Chase - Survival Horror Game",
+  "name": "House Head Chase - Fun Survival Game",
   "short_name": "House Head Chase",
-  "description": "Survive as long as you can while avoiding the terrifying House Heads! Use your flashlight strategically in this thrilling survival game with power-ups and increasing difficulty. Free to play!",
-  "version": "2.0.0",
+  "description": "A fun, kid-friendly survival game where you avoid walking House Heads! Features power-ups, global leaderboards, and safe gameplay for children.",
   "start_url": "./",
-  "scope": "./",
-  "id": "com.househeadchase.game",
   "display": "standalone",
-  "orientation": "any",
+  "background_color": "#001122",
   "theme_color": "#ff4444",
-  "background_color": "#000000",
-  "lang": "en",
-  "dir": "ltr",
-  "categories": ["games", "entertainment", "action", "arcade"],
-  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "screenshots": [
-    {
-      "src": "icons/screenshot-wide.png",
-      "sizes": "1280x720",
-      "type": "image/png",
-      "form_factor": "wide",
-      "label": "House Head Chase gameplay showing player avoiding walking houses with flashlight mechanic"
-    },
-    {
-      "src": "icons/screenshot-narrow.png", 
-      "sizes": "640x1136",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "House Head Chase mobile gameplay with touch controls"
-    }
-  ],
+  "orientation": "any",
+  "scope": "./",
+  "categories": ["games", "entertainment"],
+  "lang": "en-US",
   "icons": [
     {
-      "src": "icons/favicon.ico",
-      "sizes": "16x16 32x32 48x48",
-      "type": "image/x-icon",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-16.png",
+      "src": "./icons/icon-16.png",
       "sizes": "16x16",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-32.png",
+      "src": "./icons/icon-32.png",
       "sizes": "32x32",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-48.png",
-      "sizes": "48x48",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/icon-72.png",
+      "src": "./icons/icon-72.png",
       "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-96.png", 
+      "src": "./icons/icon-96.png",
       "sizes": "96x96",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-128.png",
-      "sizes": "128x128", 
-      "type": "image/png",
-      "purpose": "any"
+      "src": "./icons/icon-128.png",
+      "sizes": "128x128",
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-144.png",
+      "src": "./icons/icon-144.png",
       "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-152.png",
+      "src": "./icons/icon-152.png",
       "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-180.png",
+      "src": "./icons/icon-180.png",
       "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-192.png",
+      "src": "./icons/icon-192.png",
       "sizes": "192x192",
       "type": "image/png",
       "purpose": "any maskable"
     },
     {
-      "src": "icons/icon-256.png",
+      "src": "./icons/icon-256.png",
       "sizes": "256x256",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-384.png",
+      "src": "./icons/icon-384.png",
       "sizes": "384x384",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
-      "src": "icons/icon-512.png",
+      "src": "./icons/icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
-    },
-    {
-      "src": "icons/apple-icon-57x57.png",
-      "sizes": "57x57",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-60x60.png",
-      "sizes": "60x60",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-72x72.png",
-      "sizes": "72x72",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-76x76.png",
-      "sizes": "76x76",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-114x114.png",
-      "sizes": "114x114",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-120x120.png",
-      "sizes": "120x120",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-144x144.png",
-      "sizes": "144x144",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-152x152.png",
-      "sizes": "152x152",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icons/apple-icon-180x180.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
-      "name": "Quick Play",
-      "short_name": "Play",
-      "description": "Jump right into survival mode and start playing immediately",
-      "url": "./?quick=true",
+      "name": "Start New Game",
+      "short_name": "New Game",
+      "description": "Start a new House Head Chase game",
+      "url": "./?action=start",
       "icons": [
         {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
+          "src": "./icons/icon-96.png",
+          "sizes": "96x96"
         }
       ]
     },
     {
-      "name": "High Scores",
-      "short_name": "Scores", 
-      "description": "View your high scores and achievements",
-      "url": "./?scores=true",
+      "name": "View High Scores",
+      "short_name": "High Scores",
+      "description": "Check your best survival times",
+      "url": "./?action=scores",
       "icons": [
         {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
-        }
-      ]
-    },
-    {
-      "name": "How to Play",
-      "short_name": "Help",
-      "description": "Learn the controls and game mechanics",
-      "url": "./?help=true",
-      "icons": [
-        {
-          "src": "icons/icon-192.png",
-          "sizes": "192x192",
-          "type": "image/png"
+          "src": "./icons/icon-96.png",
+          "sizes": "96x96"
         }
       ]
     }
   ],
-  "edge_side_panel": {
-    "preferred_width": 400
-  },
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-  "handle_links": "preferred",
-  "capture_links": "existing-client-navigate",
-  "protocol_handlers": [
+  "screenshots": [
     {
-      "protocol": "web+househeadchase",
-      "url": "./?share=%s"
+      "src": "./screenshots/gameplay.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "House Head Chase gameplay showing player avoiding walking houses"
+    },
+    {
+      "src": "./screenshots/mobile.png",
+      "sizes": "360x640",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Mobile gameplay view"
     }
   ]
 }
