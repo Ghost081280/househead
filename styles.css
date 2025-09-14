@@ -914,33 +914,84 @@ body.high-contrast {
 @media (max-width: 400px) {
     .game-screen {
         padding: 15px;
-    }
-    
-    .btn {
-        min-width: 120px;
-        padding: 8px 16px;
-        font-size: 11px;
-    }
-    
-    .button-container {
-        gap: 8px;
+        width: 98vw;
     }
     
     .game-screen header h1 {
         font-size: 18px;
     }
     
+    .btn {
+        min-width: 100%;
+        padding: 12px 16px;
+        font-size: 11px;
+    }
+    
+    .button-container {
+        gap: 6px;
+    }
+    
     .modal-content {
         padding: 0;
+        margin: 5px;
     }
     
     .modal-header,
     .modal-footer {
-        padding: 12px 15px;
+        padding: 10px 12px;
     }
     
     .modal-body {
-        padding: 15px;
+        padding: 12px;
+    }
+    
+    .modal-header h2 {
+        font-size: 14px;
+    }
+    
+    .instruction-section {
+        padding: 6px;
+        margin-bottom: 8px;
+    }
+    
+    .instruction-section h3 {
+        font-size: 10px;
+        margin-bottom: 6px;
+    }
+    
+    .instruction-section p {
+        font-size: 10px;
+    }
+    
+    .controls-hint {
+        font-size: 9px;
+        padding: 4px 8px;
+        left: 5px;
+        right: 5px;
+    }
+    
+    /* Ultra-mobile share modal */
+    .share-stats {
+        padding: 10px;
+    }
+    
+    .share-stats p {
+        font-size: 13px;
+    }
+    
+    .share-btn {
+        padding: 10px 12px;
+        font-size: 11px;
+    }
+    
+    .copy-text {
+        font-size: 9px;
+        padding: 6px;
+    }
+    
+    .tab-btn {
+        padding: 12px 6px;
+        font-size: 10px;
     }
 }
 
