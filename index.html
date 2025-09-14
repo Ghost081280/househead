@@ -10,21 +10,20 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="House Head Chase">
-    <link rel="manifest" href="manifest.json?v=2024123001">
+    <link rel="manifest" href="manifest.json">
     
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2024123001">
-    <link rel="apple-touch-icon" href="icons/icon-192.png?v=2024123001">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
+    <link rel="apple-touch-icon" href="icons/icon-192.png">
     
-    <!-- CACHE BUSTING - FORCE NEW CSS -->
-    <link rel="stylesheet" href="styles.css?v=2024123001&bust=complete">
+    <link rel="stylesheet" href="styles.css">
 </head>
 <body>
     <!-- Game Container -->
     <div id="gameContainer">
         <canvas id="gameCanvas"></canvas>
         
-        <!-- HUD -->
+        <!-- HUD - INITIALLY HIDDEN -->
         <div id="hud" class="hidden">
             <div class="hud-item">
                 <span class="hud-label">Health</span>
@@ -48,7 +47,7 @@
         </div>
         
         <!-- Powerup Indicators -->
-        <div id="powerupIndicators"></div>
+        <div id="powerupIndicators" class="hidden"></div>
         
         <!-- Flashlight Indicator -->
         <div id="flashlightIndicator" class="hidden">
@@ -62,8 +61,8 @@
         </div>
     </div>
     
-    <!-- Start Screen - FORCE HIGHEST Z-INDEX -->
-    <div id="startScreen" class="game-screen" style="z-index: 99999 !important;">
+    <!-- Start Screen - VISIBLE BY DEFAULT -->
+    <div id="startScreen" class="game-screen">
         <h1>🏠 HOUSE HEAD CHASE</h1>
         <div class="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
@@ -81,7 +80,7 @@
     </div>
     
     <!-- Game Over Screen -->
-    <div id="gameOver" class="game-screen hidden" style="z-index: 99998 !important;">
+    <div id="gameOver" class="game-screen hidden">
         <h2>💀 GAME OVER!</h2>
         <p>🏠 The House Heads got you!</p>
         <div class="stats">
@@ -96,15 +95,17 @@
         </div>
     </div>
     
-    <!-- High Scores Modal - LOWER Z-INDEX -->
-    <div id="highScoresModal" class="modal-overlay hidden" style="z-index: 50000 !important;">
+    <!-- High Scores Modal -->
+    <div id="highScoresModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🏆 HIGH SCORES</h2>
                 <button class="close-btn" id="closeHighScoresBtn">×</button>
             </div>
             <div class="modal-body">
-                <div id="highScoresList"></div>
+                <div id="highScoresList">
+                    <p>No high scores yet. Play to set your first record!</p>
+                </div>
             </div>
             <div class="modal-footer">
                 <button class="btn secondary" id="closeHighScoresFooterBtn">Close</button>
@@ -112,8 +113,8 @@
         </div>
     </div>
     
-    <!-- Help Modal - LOWER Z-INDEX -->
-    <div id="helpModal" class="modal-overlay hidden" style="z-index: 50001 !important;">
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>❓ HOW TO PLAY</h2>
@@ -157,65 +158,6 @@
         </div>
     </div>
     
-    <!-- Share Modal -->
-    <div id="shareModal" class="modal-overlay hidden" style="z-index: 50002 !important;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h2>📤 SHARE YOUR SCORE</h2>
-                <button class="close-btn" id="closeShareBtn">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="share-content">
-                    <p>I survived <span id="shareScore">0</span> seconds in House Head Chase! 🏠💀</p>
-                    <div class="share-buttons">
-                        <button class="share-btn twitter" id="shareTwitterBtn">🐦 Twitter</button>
-                        <button class="share-btn facebook" id="shareFacebookBtn">📘 Facebook</button>
-                        <button class="share-btn copy" id="copyScoreBtn">📋 Copy Link</button>
-                    </div>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" id="closeShareFooterBtn">Close</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- Install Prompt -->
-    <div id="installPrompt" class="install-prompt hidden">
-        <div class="install-content">
-            <h3>📱 Install House Head Chase</h3>
-            <p>Add to your home screen for the best experience!</p>
-            <div class="install-buttons">
-                <button class="btn primary" id="installAppBtn">Install App</button>
-                <button class="btn secondary" id="dismissInstallBtn">Maybe Later</button>
-            </div>
-        </div>
-    </div>
-    
-    <!-- CACHE BUSTING - FORCE NEW JAVASCRIPT -->
-    <script src="game.js?v=2024123001&bust=complete&reload=true"></script>
-    
-    <!-- FORCE CACHE CLEAR SCRIPT -->
-    <script>
-        // Force cache clear on load
-        if ('caches' in window) {
-            caches.keys().then(function(names) {
-                names.forEach(function(name) {
-                    caches.delete(name);
-                });
-            });
-        }
-        
-        // Disable service worker temporarily
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.getRegistrations().then(function(registrations) {
-                for(let registration of registrations) {
-                    registration.unregister();
-                }
-            });
-        }
-        
-        console.log('🔄 Cache clearing forced - version 2024123001');
-    </script>
+    <script src="game.js"></script>
 </body>
 </html>
