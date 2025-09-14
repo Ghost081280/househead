@@ -1028,6 +1028,381 @@ body.high-contrast {
     border: 0;
 }
 
+/* === DESKTOP ENHANCEMENTS === */
+@media (min-width: 768px) {
+    /* Enhanced game screens for desktop */
+    .game-screen {
+        width: 500px;
+        padding: 40px;
+        border-radius: 16px;
+        box-shadow: 0 20px 60px rgba(255, 68, 68, 0.3), 0 0 80px rgba(0, 0, 0, 0.8);
+        backdrop-filter: blur(20px);
+    }
+    
+    .game-screen header h1 {
+        font-size: 32px;
+        margin-bottom: 12px;
+        text-shadow: 0 0 20px rgba(255, 102, 102, 0.5);
+    }
+    
+    .game-tagline {
+        font-size: 16px;
+        margin-bottom: 25px;
+    }
+    
+    /* Enhanced instructions layout */
+    .instructions {
+        margin: 25px 0;
+        display: grid;
+        gap: 18px;
+    }
+    
+    .instruction-section {
+        padding: 16px;
+        border-radius: 12px;
+        background: rgba(255, 68, 68, 0.08);
+        border: 1px solid rgba(255, 68, 68, 0.2);
+        border-left: 4px solid var(--primary-color);
+        transition: all 0.3s ease;
+    }
+    
+    .instruction-section:hover {
+        background: rgba(255, 68, 68, 0.12);
+        transform: translateX(4px);
+        box-shadow: 0 4px 16px rgba(255, 68, 68, 0.15);
+    }
+    
+    .instruction-section h3 {
+        font-size: 14px;
+        margin-bottom: 10px;
+    }
+    
+    .instruction-section p {
+        font-size: 14px;
+        line-height: 1.5;
+        margin-bottom: 6px;
+    }
+    
+    /* Enhanced button layout for desktop */
+    .button-container {
+        gap: 16px;
+        margin-top: 30px;
+        flex-direction: row;
+        flex-wrap: wrap;
+        justify-content: center;
+    }
+    
+    .btn {
+        min-width: 200px;
+        padding: 16px 32px;
+        font-size: 14px;
+        border-radius: 10px;
+        position: relative;
+        overflow: hidden;
+    }
+    
+    .btn::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+        transition: left 0.5s ease;
+    }
+    
+    .btn:hover::before {
+        left: 100%;
+    }
+    
+    .btn.primary {
+        box-shadow: 0 8px 24px rgba(255, 68, 68, 0.4);
+    }
+    
+    .btn.primary:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 12px 32px rgba(255, 68, 68, 0.6);
+    }
+    
+    .btn.secondary:hover {
+        transform: scale(1.05) translateY(-2px);
+        box-shadow: 0 8px 24px rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Enhanced modals for desktop */
+    .modal-content {
+        max-width: 600px;
+        border-radius: 16px;
+        box-shadow: 0 25px 80px rgba(0, 0, 0, 0.8), 0 0 60px rgba(255, 68, 68, 0.3);
+    }
+    
+    .modal-header {
+        padding: 20px 30px;
+    }
+    
+    .modal-header h2 {
+        font-size: 20px;
+    }
+    
+    .modal-body {
+        padding: 30px;
+        max-height: 60vh;
+    }
+    
+    .modal-footer {
+        padding: 20px 30px;
+    }
+    
+    /* Enhanced help content */
+    .help-section {
+        margin-bottom: 20px;
+        padding: 16px;
+        background: rgba(255, 68, 68, 0.05);
+        border-radius: 12px;
+        border: 1px solid rgba(255, 68, 68, 0.15);
+        transition: all 0.3s ease;
+    }
+    
+    .help-section:hover {
+        background: rgba(255, 68, 68, 0.08);
+        border-color: rgba(255, 68, 68, 0.25);
+    }
+    
+    .help-section h3 {
+        font-size: 16px;
+        margin-bottom: 12px;
+    }
+    
+    .help-section p {
+        font-size: 14px;
+        line-height: 1.6;
+        margin-bottom: 8px;
+    }
+    
+    /* Enhanced share modal */
+    .share-stats {
+        padding: 20px;
+        margin-bottom: 25px;
+        border-radius: 12px;
+    }
+    
+    .share-stats p {
+        font-size: 18px;
+    }
+    
+    .share-buttons {
+        gap: 16px;
+        flex-direction: row;
+    }
+    
+    .share-btn {
+        flex: 1;
+        padding: 16px 24px;
+        font-size: 14px;
+        border-radius: 10px;
+    }
+    
+    .copy-preview {
+        margin-top: 20px;
+        padding: 16px;
+        border-radius: 12px;
+    }
+    
+    .copy-text {
+        font-size: 14px;
+        padding: 12px;
+        border-radius: 8px;
+    }
+    
+    /* Enhanced score tabs */
+    .score-tabs {
+        margin-bottom: 20px;
+    }
+    
+    .tab-btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        border-radius: 8px 8px 0 0;
+        transition: all 0.3s ease;
+    }
+    
+    .tab-btn:hover {
+        background: rgba(255, 68, 68, 0.1);
+    }
+    
+    /* Enhanced leaderboard */
+    .global-score-item {
+        padding: 12px 16px;
+        border-radius: 10px;
+        font-size: 14px;
+    }
+    
+    .global-score-item .rank {
+        font-size: 18px;
+        min-width: 40px;
+    }
+    
+    /* Enhanced HUD for desktop */
+    #hud {
+        max-width: 1200px;
+        margin: 0 auto;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        border-radius: 12px;
+        backdrop-filter: blur(15px);
+    }
+    
+    .hud-item {
+        min-width: 80px;
+    }
+    
+    .hud-value {
+        font-size: 18px;
+    }
+    
+    .hud-label {
+        font-size: 11px;
+    }
+    
+    #healthBar {
+        width: 80px;
+        height: 8px;
+    }
+    
+    .audio-btn {
+        min-width: 50px;
+        height: 50px;
+        font-size: 18px;
+        border-radius: 8px;
+    }
+    
+    /* Enhanced powerup indicators */
+    .powerup-indicator {
+        padding: 8px 16px;
+        font-size: 12px;
+        border-radius: 25px;
+    }
+    
+    #flashlightIndicator {
+        padding: 8px 16px;
+        font-size: 12px;
+        border-radius: 20px;
+    }
+    
+    /* Enhanced controls hint */
+    .controls-hint {
+        font-size: 14px;
+        padding: 12px 20px;
+        border-radius: 20px;
+        max-width: 600px;
+    }
+    
+    /* Enhanced authentication */
+    .auth-container .btn {
+        min-width: 180px;
+        font-size: 14px;
+        padding: 10px 20px;
+    }
+    
+    /* Enhanced loading screen for desktop */
+    .loading-content {
+        gap: 2.5rem;
+        padding: 3rem;
+    }
+    
+    .loading-house-image {
+        width: 140px;
+        height: 140px;
+    }
+    
+    .loading-content h2 {
+        font-size: 2.2rem;
+    }
+    
+    .loading-bar {
+        max-width: 400px;
+        height: 10px;
+    }
+    
+    .loading-tip {
+        font-size: 1.1rem;
+    }
+    
+    /* Enhanced install prompt */
+    .install-prompt {
+        padding: 20px 30px;
+        border-radius: 16px;
+        max-width: 450px;
+    }
+    
+    .install-content h3 {
+        font-size: 18px;
+        margin-bottom: 10px;
+    }
+    
+    .install-content p {
+        font-size: 14px;
+        margin-bottom: 16px;
+    }
+    
+    .install-buttons {
+        flex-direction: row;
+        gap: 12px;
+    }
+    
+    .install-content .btn {
+        min-width: 140px;
+        padding: 12px 20px;
+        font-size: 14px;
+    }
+}
+
+@media (min-width: 1200px) {
+    /* Ultra-wide desktop enhancements */
+    .game-screen {
+        width: 600px;
+        padding: 50px;
+    }
+    
+    .game-screen header h1 {
+        font-size: 36px;
+    }
+    
+    .modal-content {
+        max-width: 700px;
+    }
+    
+    .button-container {
+        flex-direction: row;
+        gap: 20px;
+    }
+    
+    .btn {
+        min-width: 220px;
+        padding: 18px 36px;
+        font-size: 15px;
+    }
+    
+    .share-buttons {
+        gap: 20px;
+    }
+    
+    .loading-house-image {
+        width: 160px;
+        height: 160px;
+    }
+    
+    .loading-content h2 {
+        font-size: 2.5rem;
+    }
+    
+    .loading-content {
+        gap: 3rem;
+    }
+}
+
 /* === RESPONSIVE DESIGN === */
 @media (max-width: 600px) {
     .game-screen {
