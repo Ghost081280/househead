@@ -1,7 +1,7 @@
 // House Head Chase - Enhanced Service Worker for Better PWA Experience
-// Version 2.0.0
+// Version 2.0.1 - Cache refresh for HELP button fix
 
-const CACHE_NAME = 'house-head-chase-v2.0.0';
+const CACHE_NAME = 'house-head-chase-v2.0.1';
 const OFFLINE_URL = './offline.html';
 
 // Files to cache for offline functionality
@@ -10,6 +10,8 @@ const CACHE_URLS = [
   './index.html',
   './styles.css',
   './game.js',
+  './config.js',
+  './firebase-integration.js',
   './manifest.json',
   './offline.html',
   './icons/icon-16.png',
@@ -29,7 +31,7 @@ const CACHE_URLS = [
 
 // Install event - cache resources
 self.addEventListener('install', event => {
-  console.log('🔧 Service Worker installing...');
+  console.log('🔧 Service Worker installing v2.0.1...');
   
   event.waitUntil(
     caches.open(CACHE_NAME)
@@ -38,7 +40,7 @@ self.addEventListener('install', event => {
         return cache.addAll(CACHE_URLS);
       })
       .then(() => {
-        console.log('✅ Service Worker installed successfully');
+        console.log('✅ Service Worker v2.0.1 installed successfully');
         return self.skipWaiting();
       })
       .catch(error => {
@@ -49,7 +51,7 @@ self.addEventListener('install', event => {
 
 // Activate event - clean up old caches
 self.addEventListener('activate', event => {
-  console.log('🚀 Service Worker activating...');
+  console.log('🚀 Service Worker v2.0.1 activating...');
   
   event.waitUntil(
     caches.keys()
@@ -64,13 +66,25 @@ self.addEventListener('activate', event => {
         );
       })
       .then(() => {
-        console.log('✅ Service Worker activated');
+        console.log('✅ Service Worker v2.0.1 activated');
+        // Force refresh all clients to get new content
         return self.clients.claim();
+      })
+      .then(() => {
+        // Notify all clients that new content is available
+        return self.clients.matchAll().then(clients => {
+          clients.forEach(client => {
+            client.postMessage({
+              type: 'CACHE_UPDATED',
+              message: 'New content available - refresh to see changes!'
+            });
+          });
+        });
       })
   );
 });
 
-// Fetch event - serve cached content when offline
+// Fetch event - serve cached content when offline, but check for updates online
 self.addEventListener('fetch', event => {
   // Skip cross-origin requests
   if (!event.request.url.startsWith(self.location.origin)) {
@@ -82,6 +96,43 @@ self.addEventListener('fetch', event => {
     return;
   }
 
+  // For HTML files, always try network first to get updates
+  if (event.request.destination === 'document' || 
+      event.request.url.includes('.html') || 
+      event.request.url.includes('.js') || 
+      event.request.url.includes('.css')) {
+    
+    event.respondWith(
+      fetch(event.request)
+        .then(response => {
+          // If fetch succeeds, update cache and return response
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME)
+              .then(cache => {
+                cache.put(event.request, responseToCache);
+              });
+          }
+          return response;
+        })
+        .catch(() => {
+          // If fetch fails, fall back to cache
+          return caches.match(event.request)
+            .then(response => {
+              if (response) {
+                return response;
+              }
+              // If no cache either, show offline page for documents
+              if (event.request.destination === 'document') {
+                return caches.match(OFFLINE_URL);
+              }
+            });
+        })
+    );
+    return;
+  }
+
+  // For other resources, use cache-first strategy
   event.respondWith(
     caches.match(event.request)
       .then(response => {
@@ -248,4 +299,4 @@ self.addEventListener('appinstalled', event => {
   });
 });
 
-console.log('🏠 House Head Chase Service Worker v2.0.0 loaded successfully!');
+console.log('🏠 House Head Chase Service Worker v2.0.1 loaded successfully!');
