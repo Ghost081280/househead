@@ -799,6 +799,139 @@ function getCurrentSurvivalTime() {
     return Math.floor((Date.now() - gameState.startTime) / 1000);
 }
 
+// === SHARE MODAL FUNCTIONS ===
+function showShareModal() {
+    console.log('📤 Showing share modal...');
+    
+    // Get current game stats
+    const survivalTime = getCurrentSurvivalTime();
+    const level = gameState ? gameState.level : 1;
+    const timeFormatted = formatTime(survivalTime);
+    
+    // Update modal content
+    const shareTimeEl = document.getElementById('shareTimeValue');
+    const shareLevelEl = document.getElementById('shareLevelValue');
+    const copyPreview = document.getElementById('copyPreviewText');
+    
+    if (shareTimeEl) shareTimeEl.textContent = timeFormatted;
+    if (shareLevelEl) shareLevelEl.textContent = level;
+    
+    const copyText = `🏠 I survived ${timeFormatted} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+    
+    if (copyPreview) copyPreview.textContent = copyText;
+    
+    // Show the modal
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+        modal.classList.remove('hidden');
+        modal.style.pointerEvents = 'auto';
+        console.log('✅ Share modal displayed');
+    } else {
+        console.error('⚠️ Share modal not found in DOM');
+    }
+}
+
+function closeShareModal() {
+    console.log('🚫 Closing share modal...');
+    const modal = document.getElementById('shareModal');
+    if (modal) {
+        modal.classList.add('hidden');
+        modal.style.pointerEvents = 'none';
+    }
+}
+
+function shareToX() {
+    console.log('🐦 Sharing to X...');
+    const survivalTime = getCurrentSurvivalTime();
+    const level = gameState ? gameState.level : 1;
+    const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+    const url = 'https://www.househeadchase.com';
+    const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+function shareToFacebook() {
+    console.log('📘 Sharing to Facebook...');
+    const url = 'https://www.househeadchase.com';
+    const survivalTime = getCurrentSurvivalTime();
+    const level = gameState ? gameState.level : 1;
+    const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+    const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`;
+    window.open(shareUrl, '_blank', 'width=600,height=400');
+}
+
+function copyScoreToClipboard() {
+    console.log('📋 Copying to clipboard...');
+    const survivalTime = getCurrentSurvivalTime();
+    const level = gameState ? gameState.level : 1;
+    const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+    
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(message).then(() => {
+            showCopyConfirmation();
+        }).catch((err) => {
+            console.error('Clipboard API failed, using fallback:', err);
+            fallbackCopyToClipboard(message);
+        });
+    } else {
+        fallbackCopyToClipboard(message);
+    }
+}
+
+function fallbackCopyToClipboard(text) {
+    const textArea = document.createElement('textarea');
+    textArea.value = text;
+    textArea.style.position = 'fixed';
+    textArea.style.left = '-999999px';
+    textArea.style.top = '-999999px';
+    document.body.appendChild(textArea);
+    textArea.focus();
+    textArea.select();
+    
+    try {
+        const successful = document.execCommand('copy');
+        if (successful) {
+            showCopyConfirmation();
+        } else {
+            console.error('Fallback copy failed');
+            alert('Copy failed. Please copy manually.');
+        }
+    } catch (err) {
+        console.error('Fallback copy error:', err);
+        alert('Copy failed. Please copy manually.');
+    } finally {
+        document.body.removeChild(textArea);
+    }
+}
+
+function showCopyConfirmation() {
+    // Find the copy button that was clicked
+    const copyButtons = document.querySelectorAll('.share-btn');
+    let btn = null;
+    
+    // Try to find the copy button by checking text content
+    copyButtons.forEach(button => {
+        if (button.textContent.includes('Copy')) {
+            btn = button;
+        }
+    });
+    
+    if (btn) {
+        const originalText = btn.innerHTML;
+        btn.innerHTML = '<span class="share-icon">✅</span>Copied!';
+        btn.disabled = true;
+        setTimeout(() => {
+            btn.innerHTML = originalText;
+            btn.disabled = false;
+        }, 2000);
+    }
+    console.log('✅ Text copied to clipboard');
+}
+
 // === DRAWING FUNCTIONS ===
 function drawPlayer() {
     const ctx = gameState.ctx;
@@ -1797,6 +1930,11 @@ window.showHighScores = showHighScores;
 window.closeHighScores = closeHighScores;
 window.showHelp = showHelp;
 window.closeHelp = closeHelp;
+window.showShareModal = showShareModal;
+window.closeShareModal = closeShareModal;
+window.shareToX = shareToX;
+window.shareToFacebook = shareToFacebook;
+window.copyScoreToClipboard = copyScoreToClipboard;
 window.soundSystem = soundSystem;
 window.gameState = gameState; // Expose for share modal
 window.getCurrentSurvivalTime = getCurrentSurvivalTime;
@@ -1830,13 +1968,7 @@ document.addEventListener('DOMContentLoaded', () => {
         'showHelpBtn': showHelp,
         'closeHelpBtn': closeHelp,
         'closeHelpFooterBtn': closeHelp,
-        'shareScoreBtn': () => {
-            if (typeof window.showShareModal === 'function') {
-                window.showShareModal();
-            } else {
-                console.log('Share modal not available');
-            }
-        },
+        'shareScoreBtn': showShareModal,
         'audioToggle': () => soundSystem.toggle()
     };
     
