@@ -414,11 +414,12 @@ function spawnEnemy() {
     const enemySize = Math.random() < 0.7 ? 25 : 40;
     let x, y;
     let attempts = 0;
+    let distanceFromPlayer = 0;
 
     do {
         x = 50 + Math.random() * (gameState.canvas.width - 100);
         y = 100 + Math.random() * (gameState.canvas.height - 180);
-        const distanceFromPlayer = Math.sqrt(
+        distanceFromPlayer = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
         attempts++;
@@ -429,7 +430,7 @@ function spawnEnemy() {
     gameState.enemies.push(enemy);
     gameState.lastEnemySpawn = currentTime;
 
-    console.log(`👻 Enemy spawned. Total: ${gameState.enemies.length}`);
+    console.log(`👻 Enemy spawned at (${Math.floor(x)}, ${Math.floor(y)}). Total: ${gameState.enemies.length}`);
 }
 
 function spawnPowerup() {
