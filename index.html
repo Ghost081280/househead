@@ -10,13 +10,14 @@
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="House Head Chase">
-    <link rel="manifest" href="manifest.json">
+    <link rel="manifest" href="manifest.json?v=2024123001">
     
     <!-- Icons -->
-    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png">
-    <link rel="apple-touch-icon" href="icons/icon-192.png">
+    <link rel="icon" type="image/png" sizes="192x192" href="icons/icon-192.png?v=2024123001">
+    <link rel="apple-touch-icon" href="icons/icon-192.png?v=2024123001">
     
-    <link rel="stylesheet" href="styles.css">
+    <!-- CACHE BUSTING - FORCE NEW CSS -->
+    <link rel="stylesheet" href="styles.css?v=2024123001&bust=complete">
 </head>
 <body>
     <!-- Game Container -->
@@ -61,8 +62,8 @@
         </div>
     </div>
     
-    <!-- Start Screen -->
-    <div id="startScreen" class="game-screen">
+    <!-- Start Screen - FORCE HIGHEST Z-INDEX -->
+    <div id="startScreen" class="game-screen" style="z-index: 99999 !important;">
         <h1>🏠 HOUSE HEAD CHASE</h1>
         <div class="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
@@ -80,7 +81,7 @@
     </div>
     
     <!-- Game Over Screen -->
-    <div id="gameOver" class="game-screen hidden">
+    <div id="gameOver" class="game-screen hidden" style="z-index: 99998 !important;">
         <h2>💀 GAME OVER!</h2>
         <p>🏠 The House Heads got you!</p>
         <div class="stats">
@@ -95,8 +96,8 @@
         </div>
     </div>
     
-    <!-- High Scores Modal -->
-    <div id="highScoresModal" class="modal-overlay hidden">
+    <!-- High Scores Modal - LOWER Z-INDEX -->
+    <div id="highScoresModal" class="modal-overlay hidden" style="z-index: 50000 !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🏆 HIGH SCORES</h2>
@@ -111,8 +112,8 @@
         </div>
     </div>
     
-    <!-- Help Modal -->
-    <div id="helpModal" class="modal-overlay hidden">
+    <!-- Help Modal - LOWER Z-INDEX -->
+    <div id="helpModal" class="modal-overlay hidden" style="z-index: 50001 !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>❓ HOW TO PLAY</h2>
@@ -157,7 +158,7 @@
     </div>
     
     <!-- Share Modal -->
-    <div id="shareModal" class="modal-overlay hidden">
+    <div id="shareModal" class="modal-overlay hidden" style="z-index: 50002 !important;">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>📤 SHARE YOUR SCORE</h2>
@@ -191,6 +192,30 @@
         </div>
     </div>
     
-    <script src="game.js"></script>
+    <!-- CACHE BUSTING - FORCE NEW JAVASCRIPT -->
+    <script src="game.js?v=2024123001&bust=complete&reload=true"></script>
+    
+    <!-- FORCE CACHE CLEAR SCRIPT -->
+    <script>
+        // Force cache clear on load
+        if ('caches' in window) {
+            caches.keys().then(function(names) {
+                names.forEach(function(name) {
+                    caches.delete(name);
+                });
+            });
+        }
+        
+        // Disable service worker temporarily
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.getRegistrations().then(function(registrations) {
+                for(let registration of registrations) {
+                    registration.unregister();
+                }
+            });
+        }
+        
+        console.log('🔄 Cache clearing forced - version 2024123001');
+    </script>
 </body>
 </html>
