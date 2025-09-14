@@ -24,31 +24,26 @@
         <canvas id="gameCanvas"></canvas>
         
         <!-- HUD -->
-        <div id="hud">
-            <div class="stat-container">
-                <div class="stat-label">Health</div>
+        <div id="hud" class="hidden">
+            <div class="hud-item">
+                <span class="hud-label">Health</span>
                 <div id="healthBar">
                     <div id="healthFill"></div>
                 </div>
-                <div class="stat-value"><span id="health">100</span>%</div>
+                <span id="health">100</span>
             </div>
             
-            <div class="stat-container">
-                <div class="stat-label">Score</div>
-                <div class="stat-value" id="score">0</div>
+            <div class="hud-item">
+                <span class="hud-label">Score</span>
+                <span class="hud-value" id="score">0</span>
             </div>
             
-            <div class="stat-container">
-                <div class="stat-label">Time</div>
-                <div class="stat-value"><span id="timer">0</span>s</div>
+            <div class="hud-item">
+                <span class="hud-label">Level</span>
+                <span class="hud-value" id="level">1</span>
             </div>
             
-            <div class="stat-container">
-                <div class="stat-label">Level</div>
-                <div class="stat-value" id="level">1</div>
-            </div>
-            
-            <button id="audioToggle">🔊</button>
+            <button id="audioToggle" class="audio-btn">🔊</button>
         </div>
         
         <!-- Powerup Indicators -->
@@ -56,71 +51,74 @@
         
         <!-- Flashlight Indicator -->
         <div id="flashlightIndicator" class="hidden">
-            <div class="flashlight-icon">🔦</div>
-            <div class="flashlight-text">LIGHT ON</div>
+            <span class="flashlight-icon">🔦</span>
+            <span class="flashlight-text">LIGHT ON</span>
         </div>
         
-        <!-- Mobile Controls Hint -->
-        <div id="controlsHint" class="hint">
+        <!-- Controls Hint -->
+        <div id="controlsHint" class="controls-hint hidden">
             📱 Drag blue dot • Double tap for flashlight
         </div>
     </div>
     
     <!-- Start Screen -->
-    <div id="startScreen">
+    <div id="startScreen" class="game-screen">
         <h1>🏠 HOUSE HEAD CHASE</h1>
-        <div id="instructions">
+        <div class="instructions">
             <p><strong>🎯 SURVIVE AS LONG AS YOU CAN!</strong></p>
             <p>🔵 <strong>Blue Dot Hero</strong> - That's you!</p>
             <p>📱 <strong>Drag to move</strong> • <strong>Double tap for flashlight</strong></p>
             <p>🏠 <strong>House Heads spawn and hunt you down!</strong></p>
             <p>⚡ <strong>Collect power-ups for special abilities!</strong></p>
-            <p>⚠️ <strong>Flashlight reveals enemies but exposes you</strong></p>
             <p>💔 <strong>Avoid contact or take damage!</strong></p>
         </div>
         <div class="button-container">
-            <button class="btn" id="startGameBtn">🎮 START GAME</button>
-            <button class="btn" id="showHighScoresBtn">🏆 HIGH SCORES</button>
-            <button class="btn" id="showHelpBtn">❓ HOW TO PLAY</button>
+            <button class="btn primary" id="startGameBtn">🎮 START GAME</button>
+            <button class="btn secondary" id="showHighScoresBtn">🏆 HIGH SCORES</button>
+            <button class="btn secondary" id="showHelpBtn">❓ HOW TO PLAY</button>
         </div>
     </div>
     
     <!-- Game Over Screen -->
-    <div id="gameOver" class="hidden">
+    <div id="gameOver" class="game-screen hidden">
         <h2>💀 GAME OVER!</h2>
         <p>🏠 The House Heads got you!</p>
-        <p>🏆 Score: <span id="finalScore">0</span></p>
-        <p>⏰ Time: <span id="finalTime">0</span>s</p>
-        <p>📊 Level: <span id="finalLevel">1</span></p>
+        <div class="stats">
+            <p>🏆 Score: <span id="finalScore">0</span></p>
+            <p>⏰ Time: <span id="finalTime">0</span>s</p>
+            <p>📊 Level: <span id="finalLevel">1</span></p>
+        </div>
         <div class="button-container">
-            <button class="btn" id="restartGameBtn">🔄 PLAY AGAIN</button>
-            <button class="btn" id="shareScoreBtn">📤 SHARE SCORE</button>
-            <button class="btn" id="showStartScreenBtn">🏠 MENU</button>
+            <button class="btn primary" id="restartGameBtn">🔄 PLAY AGAIN</button>
+            <button class="btn secondary" id="shareScoreBtn">📤 SHARE SCORE</button>
+            <button class="btn secondary" id="showStartScreenBtn">🏠 MENU</button>
         </div>
     </div>
     
     <!-- High Scores Modal -->
-    <div id="highScoresModal" class="modal hidden">
+    <div id="highScoresModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>🏆 HIGH SCORES</h2>
                 <button class="close-btn" id="closeHighScoresBtn">×</button>
             </div>
-            <div id="highScoresList"></div>
+            <div class="modal-body">
+                <div id="highScoresList"></div>
+            </div>
             <div class="modal-footer">
-                <button class="btn" id="closeHighScoresFooterBtn">Close</button>
+                <button class="btn secondary" id="closeHighScoresFooterBtn">Close</button>
             </div>
         </div>
     </div>
     
     <!-- Help Modal -->
-    <div id="helpModal" class="modal hidden">
+    <div id="helpModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>❓ HOW TO PLAY</h2>
                 <button class="close-btn" id="closeHelpBtn">×</button>
             </div>
-            <div class="help-content">
+            <div class="modal-body">
                 <div class="help-section">
                     <h3>🎯 OBJECTIVE</h3>
                     <p>Survive as long as possible while avoiding House Heads!</p>
@@ -139,9 +137,9 @@
                 </div>
                 <div class="help-section">
                     <h3>⚡ POWER-UPS</h3>
-                    <p><strong>Health:</strong> Restore your health</p>
+                    <p><strong>Health Pack:</strong> Restore your health</p>
                     <p><strong>Shield:</strong> Temporary invincibility</p>
-                    <p><strong>Speed:</strong> Move faster temporarily</p>
+                    <p><strong>Speed Boost:</strong> Move faster temporarily</p>
                 </div>
                 <div class="help-section">
                     <h3>💡 STRATEGY</h3>
@@ -153,28 +151,30 @@
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn" id="closeHelpFooterBtn">Got It!</button>
+                <button class="btn primary" id="closeHelpFooterBtn">Got It!</button>
             </div>
         </div>
     </div>
     
     <!-- Share Modal -->
-    <div id="shareModal" class="modal hidden">
+    <div id="shareModal" class="modal-overlay hidden">
         <div class="modal-content">
             <div class="modal-header">
                 <h2>📤 SHARE YOUR SCORE</h2>
                 <button class="close-btn" id="closeShareBtn">×</button>
             </div>
-            <div class="share-content">
-                <p>I survived <span id="shareScore">0</span> seconds in House Head Chase! 🏠💀</p>
-                <div class="share-buttons">
-                    <button class="share-btn twitter" id="shareTwitterBtn">🐦 Twitter</button>
-                    <button class="share-btn facebook" id="shareFacebookBtn">📘 Facebook</button>
-                    <button class="share-btn copy" id="copyScoreBtn">📋 Copy Link</button>
+            <div class="modal-body">
+                <div class="share-content">
+                    <p>I survived <span id="shareScore">0</span> seconds in House Head Chase! 🏠💀</p>
+                    <div class="share-buttons">
+                        <button class="share-btn twitter" id="shareTwitterBtn">🐦 Twitter</button>
+                        <button class="share-btn facebook" id="shareFacebookBtn">📘 Facebook</button>
+                        <button class="share-btn copy" id="copyScoreBtn">📋 Copy Link</button>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button class="btn" id="closeShareFooterBtn">Close</button>
+                <button class="btn secondary" id="closeShareFooterBtn">Close</button>
             </div>
         </div>
     </div>
@@ -185,8 +185,8 @@
             <h3>📱 Install House Head Chase</h3>
             <p>Add to your home screen for the best experience!</p>
             <div class="install-buttons">
-                <button class="btn" id="installAppBtn">Install App</button>
-                <button class="btn-secondary" id="dismissInstallBtn">Maybe Later</button>
+                <button class="btn primary" id="installAppBtn">Install App</button>
+                <button class="btn secondary" id="dismissInstallBtn">Maybe Later</button>
             </div>
         </div>
     </div>
