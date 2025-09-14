@@ -1,4 +1,4 @@
-// 🏠 House Head Chase - Firebase Integration
+// 🏠 House Head Chase - Fixed Firebase Integration
 // Authentication & Global Leaderboard System
 
 console.log('🔥 Loading Firebase integration...');
@@ -10,25 +10,24 @@ class FirebaseManager {
         this.db = null;
         this.user = null;
         this.isInitialized = false;
+        this.firebaseFunctions = null;
     }
 
     async initialize() {
-        if (!this.config.features.globalLeaderboard) {
+        if (!this.config?.features?.globalLeaderboard) {
             console.log('🔥 Firebase disabled - using local mode only');
             return;
         }
 
         try {
-            // Load Firebase SDK
-            await this.loadFirebaseSDK();
-            
-            // Initialize Firebase
+            // Load Firebase SDK using modern v10 approach
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
             const { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } = 
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             const { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where } = 
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
 
+            // Initialize Firebase with config
             const app = initializeApp(this.config.firebase.config);
             this.auth = getAuth(app);
             this.db = getFirestore(app);
@@ -56,15 +55,16 @@ class FirebaseManager {
             this.isInitialized = true;
             console.log('✅ Firebase initialized successfully');
 
+            // Show auth container after successful init
+            const authContainer = document.getElementById('authContainer');
+            if (authContainer) {
+                authContainer.classList.remove('hidden');
+            }
+
         } catch (error) {
             console.error('❌ Firebase initialization failed:', error);
             this.handleFirebaseError(error);
         }
-    }
-
-    async loadFirebaseSDK() {
-        // Firebase SDK is loaded via import() above
-        console.log('📦 Firebase SDK loaded');
     }
 
     handleAuthStateChange(user) {
@@ -99,7 +99,7 @@ class FirebaseManager {
             // Configure for family-friendly signin
             provider.setCustomParameters({
                 prompt: 'select_account',
-                hd: '' // Allow any domain, but could restrict to family domains
+                hd: '' // Allow any domain
             });
 
             const result = await this.firebaseFunctions.signInWithPopup(this.auth, provider);
@@ -151,7 +151,7 @@ class FirebaseManager {
         try {
             const scoreData = {
                 userId: this.user.uid,
-                playerName: this.user.displayName || this.config.utils.generatePlayerName(),
+                playerName: this.user.displayName || this.generatePlayerName(),
                 score: score,
                 level: level,
                 survivalTime: survivalTime,
@@ -222,74 +222,15 @@ class FirebaseManager {
         }
     }
 
-    async getUserRank() {
-        if (!this.isInitialized || !this.user) {
-            return null;
-        }
-
-        try {
-            // Get user's best score
-            const userQuery = this.firebaseFunctions.query(
-                this.firebaseFunctions.collection(this.db, 'globalScores'),
-                this.firebaseFunctions.where('userId', '==', this.user.uid),
-                this.firebaseFunctions.orderBy('score', 'desc'),
-                this.firebaseFunctions.limit(1)
-            );
-
-            const userSnapshot = await this.firebaseFunctions.getDocs(userQuery);
-            
-            if (userSnapshot.empty) {
-                return null;
-            }
-
-            const userBestScore = userSnapshot.docs[0].data().score;
-
-            // Count how many scores are better
-            const betterScoresQuery = this.firebaseFunctions.query(
-                this.firebaseFunctions.collection(this.db, 'globalScores'),
-                this.firebaseFunctions.where('score', '>', userBestScore)
-            );
-
-            const betterScoresSnapshot = await this.firebaseFunctions.getDocs(betterScoresQuery);
-            const rank = betterScoresSnapshot.size + 1;
-
-            return {
-                rank: rank,
-                bestScore: userBestScore,
-                totalPlayers: await this.getTotalPlayers()
-            };
-
-        } catch (error) {
-            console.error('❌ Failed to get user rank:', error);
-            return null;
-        }
-    }
-
-    async getTotalPlayers() {
-        try {
-            const allScoresQuery = this.firebaseFunctions.query(
-                this.firebaseFunctions.collection(this.db, 'globalScores')
-            );
-            
-            const snapshot = await this.firebaseFunctions.getDocs(allScoresQuery);
-            
-            // Count unique players
-            const uniquePlayers = new Set();
-            snapshot.forEach(doc => {
-                uniquePlayers.add(doc.data().userId);
-            });
-            
-            return uniquePlayers.size;
-
-        } catch (error) {
-            console.error('❌ Failed to get total players:', error);
-            return 0;
-        }
+    generatePlayerName() {
+        const adjectives = ['Brave', 'Quick', 'Smart', 'Swift', 'Clever'];
+        const nouns = ['Runner', 'Player', 'Explorer', 'Hero', 'Champion'];
+        return `${adjectives[Math.floor(Math.random() * adjectives.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]}`;
     }
 
     // Kid-safe player name sanitization
     sanitizePlayerName(name) {
-        if (!name) return 'Anonymous Player';
+        if (!name) return this.generatePlayerName();
         
         // Remove any inappropriate content (basic filter)
         const cleaned = name
@@ -297,7 +238,7 @@ class FirebaseManager {
             .replace(/\b(bad|word|here)\b/gi, '***') // Basic word filter
             .trim();
             
-        return cleaned || 'Anonymous Player';
+        return cleaned || this.generatePlayerName();
     }
 
     updateUIForSignedInUser() {
@@ -333,18 +274,18 @@ class FirebaseManager {
     }
 
     enableGlobalFeatures() {
-        const globalLeaderboardBtn = document.getElementById('globalLeaderboardBtn');
-        if (globalLeaderboardBtn) {
-            globalLeaderboardBtn.style.display = 'block';
-            globalLeaderboardBtn.disabled = false;
+        const globalTab = document.getElementById('globalScoresTab');
+        if (globalTab) {
+            globalTab.disabled = false;
+            globalTab.style.opacity = '1';
         }
     }
 
     disableGlobalFeatures() {
-        const globalLeaderboardBtn = document.getElementById('globalLeaderboardBtn');
-        if (globalLeaderboardBtn) {
-            globalLeaderboardBtn.style.display = 'none';
-            globalLeaderboardBtn.disabled = true;
+        const globalTab = document.getElementById('globalScoresTab');
+        if (globalTab) {
+            globalTab.disabled = true;
+            globalTab.style.opacity = '0.5';
         }
     }
 
@@ -352,8 +293,7 @@ class FirebaseManager {
         console.log('👤 User Profile:', {
             name: user.displayName,
             email: user.email,
-            uid: user.uid,
-            photoURL: user.photoURL
+            uid: user.uid
         });
     }
 
@@ -426,7 +366,7 @@ class FirebaseManager {
         messageDiv.textContent = message;
         messageDiv.style.cssText = `
             position: fixed;
-            top: 20px;
+            top: 80px;
             right: 20px;
             background: ${type === 'error' ? '#ff4444' : '#44aa44'};
             color: white;
@@ -435,6 +375,7 @@ class FirebaseManager {
             z-index: 10000;
             font-family: 'Orbitron', monospace;
             font-size: 14px;
+            max-width: 300px;
         `;
 
         document.body.appendChild(messageDiv);
