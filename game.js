@@ -1226,9 +1226,17 @@ function endGame() {
     
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
     
+    // Save high score
+    saveHighScore(survivalTime, gameState.level);
+    
+    // Update final score displays
     document.getElementById('finalScore').textContent = survivalTime;
     document.getElementById('finalTime').textContent = survivalTime;
     document.getElementById('finalLevel').textContent = gameState.level;
+    
+    // Also update share score
+    const shareScore = document.getElementById('shareScore');
+    if (shareScore) shareScore.textContent = survivalTime;
     
     // Hide game elements
     document.getElementById('hud').classList.add('hidden');
@@ -1263,12 +1271,13 @@ function showStartScreen() {
 
 function showHighScores() {
     console.log('🏆 Showing high scores...');
+    displayHighScores();
     showScreen('highScoresModal');
 }
 
 function closeHighScores() {
     console.log('🚫 Closing high scores...');
-    document.getElementById('highScoresModal').classList.add('hidden');
+    closeModalReturnToStart();
 }
 
 function showHelp() {
@@ -1278,7 +1287,7 @@ function showHelp() {
 
 function closeHelp() {
     console.log('🚫 Closing help...');
-    document.getElementById('helpModal').classList.add('hidden');
+    closeModalReturnToStart();
 }
 
 // === CANVAS MANAGEMENT ===
