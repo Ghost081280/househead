@@ -1,5 +1,5 @@
-// House Head Chase - COMPLETE FIXED VERSION WITH NAVIGATION
-console.log('🏠 House Head Chase - Loading COMPLETE FIXED VERSION...');
+// House Head Chase - ENHANCED VERSION WITH IMPROVED AI AND COLLISION
+console.log('🏠 House Head Chase - Loading ENHANCED VERSION...');
 
 // === SOUND SYSTEM ===
 class SoundSystem {
@@ -61,6 +61,12 @@ class SoundSystem {
                 oscillator.frequency.exponentialRampToValueAtTime(1320, this.context.currentTime + 0.3);
                 gainNode.gain.setValueAtTime(volume, this.context.currentTime);
                 duration = 0.3;
+                break;
+            case 'bounce':
+                oscillator.type = 'square';
+                oscillator.frequency.setValueAtTime(200, this.context.currentTime);
+                gainNode.gain.setValueAtTime(volume * 0.3, this.context.currentTime);
+                duration = 0.1;
                 break;
         }
 
@@ -269,7 +275,8 @@ const gameState = {
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
-        speedBoostTime: 0
+        speedBoostTime: 0,
+        velocity: { x: 0, y: 0 } // For collision physics
     },
     enemies: [],
     powerups: [],
@@ -297,7 +304,8 @@ const gameState = {
         intensity: 0
     },
     difficulty: 1,
-    totalEnemiesSpawned: 0
+    totalEnemiesSpawned: 0,
+    collisionGrid: new Map() // For efficient collision detection
 };
 
 // === ENEMY TYPES ===
@@ -305,24 +313,28 @@ const EnemyTypes = {
     SMALL: {
         name: 'Small House',
         size: 25,
-        speed: 1.2,
+        speed: 1.0, // Slightly reduced base speed
         damage: 15,
         spawnWeight: 0.7,
         color: '#4a3a2a',
-        activationTime: 2000
+        activationTime: 2000,
+        wanderRadius: 100,
+        huntRadius: 180
     },
     BIG: {
         name: 'Big House',
         size: 40,
-        speed: 0.8,
+        speed: 0.6, // Reduced speed for balance
         damage: 25,
         spawnWeight: 0.3,
         color: '#3a2a1a',
-        activationTime: 3000
+        activationTime: 3000,
+        wanderRadius: 80,
+        huntRadius: 200
     }
 };
 
-// === ENEMY CLASS ===
+// === ENHANCED ENEMY CLASS WITH AI AND COLLISION ===
 class Enemy {
     constructor(x, y, type) {
         this.x = x;
@@ -330,7 +342,8 @@ class Enemy {
         this.type = type;
         this.config = EnemyTypes[type];
         this.size = this.config.size;
-        this.speed = this.config.speed * (0.8 + Math.random() * 0.4);
+        this.baseSpeed = this.config.speed * (0.8 + Math.random() * 0.4);
+        this.speed = this.baseSpeed;
         this.damage = this.config.damage;
         this.color = this.config.color;
         
@@ -341,6 +354,21 @@ class Enemy {
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
         this.isVisible = false;
+        
+        // Enhanced AI properties
+        this.aiState = 'wander'; // 'wander', 'hunt', 'flee'
+        this.wanderTarget = { x: this.x, y: this.y };
+        this.wanderTime = 0;
+        this.lastWanderUpdate = 0;
+        this.velocity = { x: 0, y: 0 };
+        this.separationRadius = this.size * 2.5; // Minimum distance from other enemies
+        this.lastPlayerSeen = 0;
+        this.alertRadius = this.config.huntRadius;
+        
+        // Collision properties
+        this.mass = this.type === 'BIG' ? 2 : 1;
+        this.bounceVelocity = { x: 0, y: 0 };
+        this.frictionCoeff = 0.95;
         
         for (let i = 0; i < 6; i++) {
             this.legs.push({
@@ -357,6 +385,7 @@ class Enemy {
     update() {
         const currentTime = Date.now();
         
+        // State transitions
         if (this.state === 'spawning') {
             if (currentTime - this.spawnTime > 1000) {
                 this.state = 'dormant';
@@ -370,7 +399,8 @@ class Enemy {
         }
         
         if (this.state === 'active') {
-            this.huntPlayer();
+            this.updateAI();
+            this.updatePhysics();
             this.updateLegs();
         }
         
@@ -380,30 +410,258 @@ class Enemy {
         return true;
     }
 
+    updateAI() {
+        const currentTime = Date.now();
+        const playerX = gameState.player.x;
+        const playerY = gameState.player.y;
+        const dx = playerX - this.x;
+        const dy = playerY - this.y;
+        const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
+        
+        // Determine AI state based on flashlight and distance
+        if (gameState.flashlight.on && gameState.flashlight.intensity > 0.5) {
+            // Flashlight is on - hunt the player
+            if (distanceToPlayer < this.alertRadius) {
+                this.aiState = 'hunt';
+                this.lastPlayerSeen = currentTime;
+            } else if (currentTime - this.lastPlayerSeen < 3000) {
+                // Recently saw player, continue hunting for a bit
+                this.aiState = 'hunt';
+            } else {
+                this.aiState = 'wander';
+            }
+        } else {
+            // Flashlight is off - wander randomly unless very close
+            if (distanceToPlayer < 50) {
+                this.aiState = 'hunt'; // Only hunt if very close
+            } else {
+                this.aiState = 'wander';
+            }
+        }
+        
+        // Execute AI behavior
+        switch (this.aiState) {
+            case 'hunt':
+                this.huntPlayer();
+                break;
+            case 'wander':
+                this.wanderAI();
+                break;
+        }
+        
+        // Apply separation force to prevent bunching
+        this.applySeparation();
+        
+        // Apply boundary forces
+        this.applyBoundaryForces();
+    }
+
     huntPlayer() {
         const dx = gameState.player.x - this.x;
         const dy = gameState.player.y - this.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance > 20) {
-            const moveX = (dx / distance) * this.speed * gameState.difficulty;
-            const moveY = (dy / distance) * this.speed * gameState.difficulty;
+        if (distance > 5) {
+            // Calculate hunting speed based on difficulty
+            const huntSpeed = this.baseSpeed * gameState.difficulty * 1.2;
             
-            this.x += moveX;
-            this.y += moveY;
+            // Move towards player with some randomness to avoid perfect tracking
+            const randomOffset = (Math.random() - 0.5) * 0.3;
+            const moveX = (dx / distance) * huntSpeed + randomOffset;
+            const moveY = (dy / distance) * huntSpeed + randomOffset;
             
-            this.x = Math.max(this.size, Math.min(gameState.canvas.width - this.size, this.x));
-            this.y = Math.max(this.size + 80, Math.min(gameState.canvas.height - this.size, this.y));
-        }
-        
-        if (distance < this.size + gameState.player.size - 5 && gameState.player.shieldTime <= 0) {
-            this.damagePlayer();
+            this.velocity.x += moveX * 0.3;
+            this.velocity.y += moveY * 0.3;
         }
     }
 
+    wanderAI() {
+        const currentTime = Date.now();
+        
+        // Update wander target periodically
+        if (currentTime - this.lastWanderUpdate > 2000 + Math.random() * 3000) {
+            const angle = Math.random() * Math.PI * 2;
+            const distance = this.config.wanderRadius * (0.3 + Math.random() * 0.7);
+            
+            this.wanderTarget.x = this.x + Math.cos(angle) * distance;
+            this.wanderTarget.y = this.y + Math.sin(angle) * distance;
+            
+            // Keep wander target in bounds
+            this.wanderTarget.x = Math.max(this.size + 50, Math.min(gameState.canvas.width - this.size - 50, this.wanderTarget.x));
+            this.wanderTarget.y = Math.max(this.size + 130, Math.min(gameState.canvas.height - this.size - 50, this.wanderTarget.y));
+            
+            this.lastWanderUpdate = currentTime;
+        }
+        
+        // Move towards wander target
+        const dx = this.wanderTarget.x - this.x;
+        const dy = this.wanderTarget.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        
+        if (distance > 20) {
+            const wanderSpeed = this.baseSpeed * 0.5;
+            this.velocity.x += (dx / distance) * wanderSpeed * 0.2;
+            this.velocity.y += (dy / distance) * wanderSpeed * 0.2;
+        }
+    }
+
+    applySeparation() {
+        const separationForce = { x: 0, y: 0 };
+        let neighborCount = 0;
+        
+        gameState.enemies.forEach(other => {
+            if (other === this) return;
+            
+            const dx = this.x - other.x;
+            const dy = this.y - other.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            
+            if (distance < this.separationRadius && distance > 0) {
+                // Apply stronger separation force
+                const force = (this.separationRadius - distance) / this.separationRadius;
+                separationForce.x += (dx / distance) * force * 2;
+                separationForce.y += (dy / distance) * force * 2;
+                neighborCount++;
+            }
+        });
+        
+        if (neighborCount > 0) {
+            this.velocity.x += separationForce.x * 0.5;
+            this.velocity.y += separationForce.y * 0.5;
+        }
+    }
+
+    applyBoundaryForces() {
+        const margin = 100;
+        const forceStrength = 0.5;
+        
+        // Left boundary
+        if (this.x < margin) {
+            this.velocity.x += forceStrength * (margin - this.x) / margin;
+        }
+        // Right boundary
+        if (this.x > gameState.canvas.width - margin) {
+            this.velocity.x -= forceStrength * (this.x - (gameState.canvas.width - margin)) / margin;
+        }
+        // Top boundary
+        if (this.y < margin + 80) {
+            this.velocity.y += forceStrength * ((margin + 80) - this.y) / margin;
+        }
+        // Bottom boundary
+        if (this.y > gameState.canvas.height - margin) {
+            this.velocity.y -= forceStrength * (this.y - (gameState.canvas.height - margin)) / margin;
+        }
+    }
+
+    updatePhysics() {
+        // Apply velocity with damping
+        this.velocity.x *= this.frictionCoeff;
+        this.velocity.y *= this.frictionCoeff;
+        
+        // Limit velocity
+        const maxVelocity = this.baseSpeed * 2;
+        const velocityMag = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        if (velocityMag > maxVelocity) {
+            this.velocity.x = (this.velocity.x / velocityMag) * maxVelocity;
+            this.velocity.y = (this.velocity.y / velocityMag) * maxVelocity;
+        }
+        
+        // Update position
+        this.x += this.velocity.x;
+        this.y += this.velocity.y;
+        
+        // Constrain to boundaries
+        this.x = Math.max(this.size, Math.min(gameState.canvas.width - this.size, this.x));
+        this.y = Math.max(this.size + 80, Math.min(gameState.canvas.height - this.size, this.y));
+        
+        // Check collision with player
+        this.checkPlayerCollision();
+        
+        // Check collision with other enemies
+        this.checkEnemyCollisions();
+    }
+
+    checkPlayerCollision() {
+        const dx = gameState.player.x - this.x;
+        const dy = gameState.player.y - this.y;
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const minDistance = this.size + gameState.player.size;
+        
+        if (distance < minDistance) {
+            // Handle collision
+            if (gameState.player.shieldTime <= 0) {
+                this.damagePlayer();
+            }
+            
+            // Bounce both entities apart
+            if (distance > 0) {
+                const overlap = minDistance - distance;
+                const separationX = (dx / distance) * overlap * 0.5;
+                const separationY = (dy / distance) * overlap * 0.5;
+                
+                // Move enemy away
+                this.x -= separationX * 0.8;
+                this.y -= separationY * 0.8;
+                
+                // Move player away (if not shielded)
+                if (gameState.player.shieldTime <= 0) {
+                    gameState.player.x += separationX * 0.2;
+                    gameState.player.y += separationY * 0.2;
+                }
+                
+                // Apply bounce velocity
+                this.velocity.x -= (dx / distance) * 2;
+                this.velocity.y -= (dy / distance) * 2;
+                
+                soundSystem.play('bounce', 150, 0.1, 0.2);
+            }
+        }
+    }
+
+    checkEnemyCollisions() {
+        gameState.enemies.forEach(other => {
+            if (other === this) return;
+            
+            const dx = other.x - this.x;
+            const dy = other.y - this.y;
+            const distance = Math.sqrt(dx * dx + dy * dy);
+            const minDistance = this.size + other.size;
+            
+            if (distance < minDistance && distance > 0) {
+                // Calculate collision response
+                const overlap = minDistance - distance;
+                const separationX = (dx / distance) * overlap * 0.5;
+                const separationY = (dy / distance) * overlap * 0.5;
+                
+                // Move enemies apart
+                this.x -= separationX;
+                this.y -= separationY;
+                other.x += separationX;
+                other.y += separationY;
+                
+                // Apply bounce velocities based on mass
+                const totalMass = this.mass + other.mass;
+                const velocityExchange = 1.5;
+                
+                const thisVelX = ((this.mass - other.mass) * this.velocity.x + 2 * other.mass * other.velocity.x) / totalMass;
+                const thisVelY = ((this.mass - other.mass) * this.velocity.y + 2 * other.mass * other.velocity.y) / totalMass;
+                const otherVelX = ((other.mass - this.mass) * other.velocity.x + 2 * this.mass * this.velocity.x) / totalMass;
+                const otherVelY = ((other.mass - this.mass) * other.velocity.y + 2 * this.mass * this.velocity.y) / totalMass;
+                
+                this.velocity.x = thisVelX * velocityExchange;
+                this.velocity.y = thisVelY * velocityExchange;
+                other.velocity.x = otherVelX * velocityExchange;
+                other.velocity.y = otherVelY * velocityExchange;
+            }
+        });
+    }
+
     updateLegs() {
+        const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
+        const legSpeed = 0.1 + speed * 0.02;
+        
         this.legs.forEach(leg => {
-            leg.offset += leg.speed;
+            leg.offset += legSpeed;
         });
     }
 
@@ -498,9 +756,13 @@ class Enemy {
         const glowIntensity = this.windowGlow;
         const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
         
-        ctx.shadowColor = '#ffff88';
-        ctx.shadowBlur = 8;
-        ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity})`;
+        // Dynamic glow based on AI state
+        const glowColor = this.aiState === 'hunt' ? '#ffaa88' : '#ffff88';
+        const glowMultiplier = this.aiState === 'hunt' ? 1.2 : 1.0;
+        
+        ctx.shadowColor = glowColor;
+        ctx.shadowBlur = 8 * glowMultiplier;
+        ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity * glowMultiplier})`;
         
         ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
         ctx.fillRect(size/6, -size/4, eyeSize, eyeSize);
@@ -664,29 +926,61 @@ function spawnEnemy() {
     if (currentTime - gameState.lastEnemySpawn < gameState.spawnRate) return;
     
     const rand = Math.random();
-    const bigHouseChance = Math.min(0.3 + (gameState.level - 1) * 0.1, 0.6);
+    const bigHouseChance = Math.min(0.25 + (gameState.level - 1) * 0.05, 0.4); // Reduced big house spawn rate
     const enemyType = rand < bigHouseChance ? 'BIG' : 'SMALL';
     
     let x, y;
     let attempts = 0;
-    let distanceFromPlayer = 0;
+    let validPosition = false;
     
+    // Enhanced spawn positioning to prevent clustering
     do {
-        x = 50 + Math.random() * (gameState.canvas.width - 100);
-        y = 100 + Math.random() * (gameState.canvas.height - 180);
-        distanceFromPlayer = Math.sqrt(
+        const spawnMargin = 120;
+        const centerAvoidanceRadius = Math.min(200, Math.max(gameState.canvas.width, gameState.canvas.height) * 0.25);
+        
+        // Try to spawn away from center and other enemies
+        const angle = Math.random() * Math.PI * 2;
+        const distance = spawnMargin + Math.random() * (centerAvoidanceRadius - spawnMargin);
+        const centerX = gameState.canvas.width / 2;
+        const centerY = gameState.canvas.height / 2;
+        
+        x = centerX + Math.cos(angle) * distance;
+        y = centerY + Math.sin(angle) * distance;
+        
+        // Clamp to boundaries
+        x = Math.max(80, Math.min(gameState.canvas.width - 80, x));
+        y = Math.max(150, Math.min(gameState.canvas.height - 80, y));
+        
+        // Check distance from player
+        const playerDistance = Math.sqrt(
             Math.pow(x - gameState.player.x, 2) + Math.pow(y - gameState.player.y, 2)
         );
+        
+        // Check distance from other enemies
+        let tooCloseToOthers = false;
+        const minEnemyDistance = 100;
+        
+        for (const enemy of gameState.enemies) {
+            const enemyDistance = Math.sqrt(
+                Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
+            );
+            if (enemyDistance < minEnemyDistance) {
+                tooCloseToOthers = true;
+                break;
+            }
+        }
+        
+        validPosition = playerDistance > 180 && !tooCloseToOthers;
         attempts++;
-        if (attempts > 10) break;
-    } while (distanceFromPlayer < 150);
+    } while (!validPosition && attempts < 30);
     
     const enemy = new Enemy(x, y, enemyType);
     gameState.enemies.push(enemy);
     gameState.totalEnemiesSpawned++;
     gameState.lastEnemySpawn = currentTime;
     
-    gameState.spawnRate = Math.max(1000, 3000 - (gameState.level - 1) * 200);
+    // Balanced spawn rate scaling
+    gameState.spawnRate = Math.max(1500, 3500 - (gameState.level - 1) * 150);
     
     console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
 }
@@ -724,7 +1018,7 @@ function spawnPowerup() {
             const enemyDistance = Math.sqrt(
                 Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
             );
-            if (enemyDistance < 100) {
+            if (enemyDistance < 80) {
                 tooCloseToEnemy = true;
                 break;
             }
@@ -732,11 +1026,14 @@ function spawnPowerup() {
         
         attempts++;
         if (attempts > 20) break;
-    } while ((playerDistance < 120 || tooCloseToEnemy) && attempts < 20);
+    } while ((playerDistance < 100 || tooCloseToEnemy) && attempts < 20);
     
     const powerup = new Powerup(x, y, powerupType);
     gameState.powerups.push(powerup);
     gameState.lastPowerupSpawn = currentTime;
+    
+    // Slightly more frequent powerups for balance
+    gameState.powerupSpawnRate = Math.max(8000, 12000 - (gameState.level - 1) * 200);
     
     console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
 }
@@ -779,13 +1076,14 @@ function updateGame() {
         gameState.lastScoreUpdate = currentTime;
     }
     
-    const newLevel = Math.floor(gameState.score / 30) + 1;
+    // Balanced level progression
+    const newLevel = Math.floor(gameState.score / 45) + 1; // Slower level progression
     if (newLevel > gameState.level) {
         gameState.level = newLevel;
-        gameState.difficulty = 1 + (gameState.level - 1) * 0.2;
+        gameState.difficulty = 1 + (gameState.level - 1) * 0.15; // Gentler difficulty scaling
         soundSystem.play('levelup');
         showLevelUpEffect();
-        console.log(`🎊 Level up! Now level ${gameState.level}`);
+        console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)})`);
     }
     
     if (gameState.camera.shake > 0) {
@@ -1114,7 +1412,7 @@ function showLevelUpEffect() {
     levelDiv.className = 'level-up-effect';
     levelDiv.innerHTML = `
         <h2>🎊 LEVEL ${gameState.level}! 🎊</h2>
-        <p>Difficulty Increased!</p>
+        <p>Enemies getting smarter!</p>
     `;
     
     document.body.appendChild(levelDiv);
@@ -1126,7 +1424,7 @@ function showLevelUpEffect() {
     }, 2000);
 }
 
-// === SCREEN MANAGEMENT - COMPLETE NAVIGATION FIX ===
+// === SCREEN MANAGEMENT ===
 function hideAllScreens() {
     console.log('🚫 Hiding all screens...');
     document.getElementById('startScreen').classList.add('hidden');
@@ -1134,7 +1432,6 @@ function hideAllScreens() {
     document.getElementById('highScoresModal').classList.add('hidden');
     document.getElementById('helpModal').classList.add('hidden');
     
-    // Also hide share modal if it exists
     const shareModal = document.getElementById('shareModal');
     if (shareModal) shareModal.classList.add('hidden');
 }
@@ -1173,7 +1470,7 @@ function saveHighScore(score, level) {
     
     highScores.push(newScore);
     highScores.sort((a, b) => b.score - a.score);
-    highScores = highScores.slice(0, 10); // Keep top 10
+    highScores = highScores.slice(0, 10);
     
     try {
         localStorage.setItem('houseHeadChaseHighScores', JSON.stringify(highScores));
@@ -1236,7 +1533,6 @@ function displayHighScores() {
 function showShareModal() {
     console.log('📤 Showing share modal...');
     
-    // Create share modal if it doesn't exist
     if (!document.getElementById('shareModal')) {
         createShareModal();
     }
@@ -1281,7 +1577,6 @@ function createShareModal() {
     
     document.body.insertAdjacentHTML('beforeend', modalHTML);
     
-    // Re-attach event listeners for new buttons
     document.getElementById('closeShareBtn').addEventListener('click', closeShareModal);
     document.getElementById('closeShareFooterBtn').addEventListener('click', closeShareModal);
     document.getElementById('shareTwitterBtn').addEventListener('click', () => shareScore('twitter'));
@@ -1292,7 +1587,7 @@ function createShareModal() {
 function shareScore(platform) {
     const score = gameState.score;
     const level = gameState.level;
-    const gameUrl = 'https://ghost081280.github.io/househead';
+    const gameUrl = 'https://househeadchase.com';
     const message = `🏠 I survived ${score} seconds and reached level ${level} in House Head Chase! Can you beat my score?`;
     const messageWithUrl = `${message}\n\nPlay now: ${gameUrl}`;
     
@@ -1365,19 +1660,16 @@ function goToStartScreen() {
     console.log('🏠 Going to start screen...');
     gameState.running = false;
     
-    // Disable canvas interaction
     if (gameState.canvas) {
         gameState.canvas.classList.remove('active');
         gameState.canvas.style.pointerEvents = 'none';
     }
     
-    // Hide all game elements
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('powerupIndicators').classList.add('hidden');
     document.getElementById('flashlightIndicator').classList.add('hidden');
     document.getElementById('controlsHint').classList.add('hidden');
     
-    // Show start screen
     showScreen('startScreen');
 }
 
@@ -1390,10 +1682,8 @@ function closeModalReturnToStart() {
 function startGame() {
     console.log('🎮 Starting House Head Chase...');
     
-    // Hide all screens first
     hideAllScreens();
     
-    // Get canvas
     gameState.canvas = document.getElementById('gameCanvas');
     if (!gameState.canvas) {
         console.error('❌ Canvas not found!');
@@ -1406,23 +1696,18 @@ function startGame() {
         return;
     }
     
-    // Resize canvas to full screen
     resizeCanvas();
     
-    // ENABLE CANVAS FOR GAME INPUT
     gameState.canvas.classList.add('active');
     gameState.canvas.style.pointerEvents = 'auto';
     
-    // Show HUD and game elements
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('powerupIndicators').classList.remove('hidden');
     
-    // Initialize game state
     gameState.running = true;
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
-    // Reset player to center
     gameState.player = {
         x: gameState.canvas.width / 2,
         y: gameState.canvas.height / 2,
@@ -1434,10 +1719,10 @@ function startGame() {
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
-        speedBoostTime: 0
+        speedBoostTime: 0,
+        velocity: { x: 0, y: 0 }
     };
     
-    // Reset game state
     gameState.enemies = [];
     gameState.powerups = [];
     gameState.activePowerups = [];
@@ -1454,7 +1739,6 @@ function startGame() {
     
     console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
     
-    // Show controls hint
     setTimeout(() => {
         const hint = document.getElementById('controlsHint');
         if (hint) {
@@ -1463,10 +1747,7 @@ function startGame() {
         }
     }, 1000);
     
-    // Setup input handlers
     setupInputHandlers();
-    
-    // Start game loop
     gameLoop();
     
     console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
@@ -1475,7 +1756,6 @@ function startGame() {
 function endGame() {
     gameState.running = false;
     
-    // DISABLE CANVAS INTERACTION
     if (gameState.canvas) {
         gameState.canvas.classList.remove('active');
         gameState.canvas.style.pointerEvents = 'none';
@@ -1483,25 +1763,20 @@ function endGame() {
     
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
     
-    // Save high score
     saveHighScore(survivalTime, gameState.level);
     
-    // Update final score displays
     document.getElementById('finalScore').textContent = survivalTime;
     document.getElementById('finalTime').textContent = survivalTime;
     document.getElementById('finalLevel').textContent = gameState.level;
     
-    // Also update share score
     const shareScore = document.getElementById('shareScore');
     if (shareScore) shareScore.textContent = survivalTime;
     
-    // Hide game elements
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('powerupIndicators').classList.add('hidden');
     document.getElementById('flashlightIndicator').classList.add('hidden');
     document.getElementById('controlsHint').classList.add('hidden');
     
-    // Show game over screen
     showScreen('gameOver');
     
     console.log('🎮 Game Over! Survival time:', survivalTime, 'seconds');
@@ -1557,7 +1832,7 @@ function resizeCanvas() {
     }
 }
 
-// === GLOBAL FUNCTION ASSIGNMENTS - CRITICAL FIX ===
+// === GLOBAL FUNCTION ASSIGNMENTS ===
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.goToStartScreen = goToStartScreen;
@@ -1582,10 +1857,8 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎯 Canvas initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Setup all button event listeners - CRITICAL FIX
     console.log('🔗 Setting up navigation system...');
     
-    // PROPERLY ATTACH ALL EVENT LISTENERS
     const buttons = {
         'startGameBtn': startGame,
         'restartGameBtn': restartGame,
@@ -1603,9 +1876,7 @@ document.addEventListener('DOMContentLoaded', () => {
     Object.entries(buttons).forEach(([buttonId, handler]) => {
         const button = document.getElementById(buttonId);
         if (button) {
-            // Remove any existing event listeners
             button.onclick = null;
-            // Add new event listener
             button.addEventListener('click', (e) => {
                 e.preventDefault();
                 e.stopPropagation();
@@ -1618,25 +1889,20 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     });
     
-    // Setup window event listeners
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
     
-    // Initialize PWA features
     setupPWAInstall();
     
-    // Register service worker
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => console.log('✅ Service Worker registered'))
             .catch(error => console.log('❌ Service Worker registration failed:', error));
     }
     
-    // Make sure start screen is visible initially
     goToStartScreen();
     
     console.log('✅ Navigation system initialized successfully!');
 });
 
-// Make sure all functions are available globally
-console.log('✅ COMPLETE Game script loaded with fixed navigation!');
+console.log('✅ ENHANCED Game script loaded with improved AI and collision system!');
