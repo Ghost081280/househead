@@ -89,9 +89,9 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" aria-label="House Head Chase Game Canvas" role="application"></canvas>
         
-        <!-- Authentication Container -->
-        <div id="authContainer" class="auth-container hidden">
-            <button id="signInBtn" class="btn secondary" onclick="handleGoogleSignIn()" 
+        <!-- Desktop Authentication Container -->
+        <div id="authContainer" class="auth-container hidden desktop-only">
+            <button id="signInBtn" class="btn secondary" onclick="showSignInModal()" 
                     aria-label="Sign in with Google to save scores">
                 👤 Sign In with Google
             </button>
@@ -173,6 +173,11 @@
         <div class="button-container">
             <button class="btn primary" id="startGameBtn" onclick="startGame()" 
                     aria-label="Start new game">🎮 START GAME</button>
+            
+            <!-- Mobile Sign In Button -->
+            <button class="btn secondary mobile-sign-in-btn" id="mobileSignInBtn" onclick="showSignInModal()" 
+                    aria-label="Sign in with Google">🌍 COMPETE GLOBALLY</button>
+            
             <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()" 
                     aria-label="View high scores">🏆 HIGH SCORES</button>
             <button class="btn secondary" id="showHelpBtn" onclick="showHelp()" 
@@ -200,8 +205,70 @@
                     aria-label="Play again">🔄 PLAY AGAIN</button>
             <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()" 
                     aria-label="Share your score">📤 SHARE SCORE</button>
+            
+            <!-- Mobile Sign In Button (Game Over) -->
+            <button class="btn secondary mobile-sign-in-btn" id="gameOverMobileSignInBtn" onclick="showSignInModal()" 
+                    aria-label="Sign in to save score">🌍 SAVE TO GLOBAL LEADERBOARD</button>
+            
             <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()" 
                     aria-label="Return to main menu">🏠 MAIN MENU</button>
+        </div>
+    </div>
+    
+    <!-- Google Sign In Modal -->
+    <div id="signInModal" class="modal-overlay hidden" role="dialog" aria-labelledby="signInTitle">
+        <div class="modal-content sign-in-modal">
+            <div class="modal-header">
+                <h2 id="signInTitle">🌍 JOIN GLOBAL LEADERBOARD</h2>
+                <button class="close-btn" onclick="closeSignInModal()" aria-label="Close sign in modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="sign-in-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🏆</span>
+                        <div class="benefit-text">
+                            <h4>Compete Globally</h4>
+                            <p>See how you rank against players worldwide!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">💾</span>
+                        <div class="benefit-text">
+                            <h4>Save Your Scores</h4>
+                            <p>Never lose your best survival times!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🎯</span>
+                        <div class="benefit-text">
+                            <h4>Track Progress</h4>
+                            <p>Watch your skills improve over time!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">👨‍👩‍👧‍👦</span>
+                        <div class="benefit-text">
+                            <h4>Kid-Safe</h4>
+                            <p>COPPA compliant - safe for children!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sign-in-action">
+                    <button class="btn primary google-sign-in-btn" onclick="handleGoogleSignIn(); closeSignInModal();" 
+                            aria-label="Sign in with Google">
+                        <span class="google-icon">🌍</span>
+                        <span class="sign-in-text">Sign In with Google</span>
+                    </button>
+                    <p class="privacy-note">
+                        We only collect your name and email to save your scores. 
+                        <br>No personal data is shared or sold.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeSignInModal()">Maybe Later</button>
+            </div>
         </div>
     </div>
     
@@ -380,6 +447,25 @@
         window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
         window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
         
+        // Sign In Modal Functions
+        function showSignInModal() {
+            console.log('🔐 Showing sign in modal...');
+            const modal = document.getElementById('signInModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.pointerEvents = 'auto';
+            }
+        }
+        
+        function closeSignInModal() {
+            console.log('🚫 Closing sign in modal...');
+            const modal = document.getElementById('signInModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.pointerEvents = 'none';
+            }
+        }
+        
         // Global authentication handlers
         async function handleGoogleSignIn() {
             if (window.firebaseManager) {
@@ -387,6 +473,7 @@
                 if (success) {
                     console.log('✅ Signed in successfully');
                     showGlobalFeatures();
+                    updateMobileAuthButtons();
                     if (typeof showGlobalLeaderboard === 'function') {
                         showGlobalLeaderboard();
                     }
@@ -401,6 +488,29 @@
                 await window.firebaseManager.signOut();
                 console.log('👋 Signed out');
                 hideGlobalFeatures();
+                updateMobileAuthButtons();
+            }
+        }
+        
+        function updateMobileAuthButtons() {
+            const isSignedIn = window.firebaseManager && window.firebaseManager.user;
+            const mobileSignInBtn = document.getElementById('mobileSignInBtn');
+            const gameOverMobileSignInBtn = document.getElementById('gameOverMobileSignInBtn');
+            
+            if (mobileSignInBtn) {
+                if (isSignedIn) {
+                    mobileSignInBtn.style.display = 'none';
+                } else {
+                    mobileSignInBtn.style.display = 'inline-flex';
+                }
+            }
+            
+            if (gameOverMobileSignInBtn) {
+                if (isSignedIn) {
+                    gameOverMobileSignInBtn.style.display = 'none';
+                } else {
+                    gameOverMobileSignInBtn.style.display = 'inline-flex';
+                }
             }
         }
         
@@ -580,13 +690,10 @@ Play now: https://www.househeadchase.com`;
             return 0;
         }
         
-        // Show auth container when Firebase is ready
+        // Update mobile auth buttons when Firebase is ready
         window.addEventListener('configReady', () => {
             setTimeout(() => {
-                const authContainer = document.getElementById('authContainer');
-                if (authContainer && window.GameConfig?.features?.googleSignIn) {
-                    authContainer.classList.remove('hidden');
-                }
+                updateMobileAuthButtons();
             }, 1000);
         });
         
