@@ -1408,6 +1408,10 @@ function startGame() {
     // Resize canvas to full screen
     resizeCanvas();
     
+    // ENABLE CANVAS FOR GAME INPUT
+    gameState.canvas.classList.add('active');
+    gameState.canvas.style.pointerEvents = 'auto';
+    
     // Show HUD and game elements
     document.getElementById('hud').classList.remove('hidden');
     document.getElementById('powerupIndicators').classList.remove('hidden');
@@ -1469,6 +1473,12 @@ function startGame() {
 
 function endGame() {
     gameState.running = false;
+    
+    // DISABLE CANVAS INTERACTION
+    if (gameState.canvas) {
+        gameState.canvas.classList.remove('active');
+        gameState.canvas.style.pointerEvents = 'none';
+    }
     
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
     
@@ -1546,6 +1556,18 @@ function resizeCanvas() {
     }
 }
 
+// === GLOBAL FUNCTION ASSIGNMENTS - CRITICAL FIX ===
+window.startGame = startGame;
+window.restartGame = restartGame;
+window.goToStartScreen = goToStartScreen;
+window.showHighScores = showHighScores;
+window.closeHighScores = closeHighScores;
+window.showHelp = showHelp;
+window.closeHelp = closeHelp;
+window.showShareModal = showShareModal;
+window.closeShareModal = closeShareModal;
+window.soundSystem = soundSystem;
+
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
     console.log('🏠 House Head Chase - DOM Ready!');
@@ -1559,19 +1581,41 @@ document.addEventListener('DOMContentLoaded', () => {
         console.log('🎯 Canvas initialized:', canvas.width, 'x', canvas.height);
     }
     
-    // Setup all button event listeners
+    // Setup all button event listeners - CRITICAL FIX
     console.log('🔗 Setting up navigation system...');
     
-    // Start game button
-    const startBtn = document.getElementById('startGameBtn');
-    if (startBtn) {
-        startBtn.addEventListener('click', (e) => {
-            e.preventDefault();
-            console.log('🎮 Start game clicked');
-            startGame();
-        });
-    }
-
+    // PROPERLY ATTACH ALL EVENT LISTENERS
+    const buttons = {
+        'startGameBtn': startGame,
+        'restartGameBtn': restartGame,
+        'showStartScreenBtn': goToStartScreen,
+        'showHighScoresBtn': showHighScores,
+        'closeHighScoresBtn': closeHighScores,
+        'closeHighScoresFooterBtn': closeHighScores,
+        'showHelpBtn': showHelp,
+        'closeHelpBtn': closeHelp,
+        'closeHelpFooterBtn': closeHelp,
+        'shareScoreBtn': showShareModal,
+        'audioToggle': () => soundSystem.toggle()
+    };
+    
+    Object.entries(buttons).forEach(([buttonId, handler]) => {
+        const button = document.getElementById(buttonId);
+        if (button) {
+            // Remove any existing event listeners
+            button.onclick = null;
+            // Add new event listener
+            button.addEventListener('click', (e) => {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log(`🔘 Button clicked: ${buttonId}`);
+                handler();
+            });
+            console.log(`✅ Event listener attached to: ${buttonId}`);
+        } else {
+            console.warn(`⚠️ Button not found: ${buttonId}`);
+        }
+    });
     
     // Setup window event listeners
     window.addEventListener('resize', resizeCanvas);
@@ -1593,4 +1637,5 @@ document.addEventListener('DOMContentLoaded', () => {
     console.log('✅ Navigation system initialized successfully!');
 });
 
-console.log('✅ COMPLETE Game script loaded with fixed navigation!
+// Make sure all functions are available globally
+console.log('✅ COMPLETE Game script loaded with fixed navigation!');
