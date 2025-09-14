@@ -1,33 +1,44 @@
 {
   "name": "House Head Chase - Survival Horror Game",
   "short_name": "House Head Chase",
-  "description": "Survive as long as you can while avoiding the terrifying House Heads! Use your flashlight strategically in this thrilling survival game with power-ups and increasing difficulty.",
+  "description": "Survive as long as you can while avoiding the terrifying House Heads! Use your flashlight strategically in this thrilling survival game with power-ups and increasing difficulty. Free to play!",
   "version": "2.0.0",
   "start_url": "./",
   "scope": "./",
+  "id": "com.househeadchase.game",
   "display": "standalone",
   "orientation": "any",
   "theme_color": "#ff4444",
   "background_color": "#000000",
   "lang": "en",
-  "categories": ["games", "entertainment", "action"],
+  "dir": "ltr",
+  "categories": ["games", "entertainment", "action", "arcade"],
+  "iarc_rating_id": "e84b072d-71b3-4d3e-86ae-31a8ce4e53b7",
+  "prefer_related_applications": false,
+  "related_applications": [],
   "screenshots": [
     {
       "src": "icons/screenshot-wide.png",
       "sizes": "1280x720",
       "type": "image/png",
       "form_factor": "wide",
-      "label": "House Head Chase gameplay"
+      "label": "House Head Chase gameplay showing player avoiding walking houses with flashlight mechanic"
     },
     {
       "src": "icons/screenshot-narrow.png", 
       "sizes": "640x1136",
       "type": "image/png",
       "form_factor": "narrow",
-      "label": "House Head Chase mobile"
+      "label": "House Head Chase mobile gameplay with touch controls"
     }
   ],
   "icons": [
+    {
+      "src": "icons/favicon.ico",
+      "sizes": "16x16 32x32 48x48",
+      "type": "image/x-icon",
+      "purpose": "any"
+    },
     {
       "src": "icons/icon-16.png",
       "sizes": "16x16",
@@ -37,6 +48,12 @@
     {
       "src": "icons/icon-32.png",
       "sizes": "32x32",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/icon-48.png",
+      "sizes": "48x48",
       "type": "image/png",
       "purpose": "any"
     },
@@ -99,13 +116,67 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "any maskable"
+    },
+    {
+      "src": "icons/apple-icon-57x57.png",
+      "sizes": "57x57",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-60x60.png",
+      "sizes": "60x60",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-72x72.png",
+      "sizes": "72x72",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-76x76.png",
+      "sizes": "76x76",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-114x114.png",
+      "sizes": "114x114",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-120x120.png",
+      "sizes": "120x120",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-144x144.png",
+      "sizes": "144x144",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-152x152.png",
+      "sizes": "152x152",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icons/apple-icon-180x180.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
   "shortcuts": [
     {
       "name": "Quick Play",
       "short_name": "Play",
-      "description": "Jump right into survival mode",
+      "description": "Jump right into survival mode and start playing immediately",
       "url": "./?quick=true",
       "icons": [
         {
@@ -118,8 +189,21 @@
     {
       "name": "High Scores",
       "short_name": "Scores", 
-      "description": "View your high scores",
+      "description": "View your high scores and achievements",
       "url": "./?scores=true",
+      "icons": [
+        {
+          "src": "icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "How to Play",
+      "short_name": "Help",
+      "description": "Learn the controls and game mechanics",
+      "url": "./?help=true",
       "icons": [
         {
           "src": "icons/icon-192.png",
@@ -129,10 +213,18 @@
       ]
     }
   ],
-  "prefer_related_applications": false,
-  "related_applications": [],
-  "edge_side_panel": {},
+  "edge_side_panel": {
+    "preferred_width": 400
+  },
   "launch_handler": {
     "client_mode": "focus-existing"
-  }
+  },
+  "handle_links": "preferred",
+  "capture_links": "existing-client-navigate",
+  "protocol_handlers": [
+    {
+      "protocol": "web+househeadchase",
+      "url": "./?share=%s"
+    }
+  ]
 }
