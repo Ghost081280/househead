@@ -1,5 +1,5 @@
 // House Head Chase - Main Game Logic
-// Final Complete Fix - All Issues Resolved
+// CRITICAL FIX: Event Listener Attachment
 
 console.log('🏠 House Head Chase - Loading...');
 
@@ -1301,7 +1301,7 @@ function shareFacebook() {
 }
 
 function copyScore() {
-    const text = `I just survived ${gameState.score} seconds in House Head Chase! 🏠💀 Play at: ${window.location.href}`;
+    const text = `I survived ${gameState.score} seconds in House Head Chase! 🏠💀 Play at: ${window.location.href}`;
     navigator.clipboard.writeText(text).then(() => {
         alert('Score copied to clipboard! 📋');
     }).catch(() => {
@@ -1569,21 +1569,18 @@ function resizeCanvas() {
     }
 }
 
-// FIXED INITIALIZATION - PROPER EVENT HANDLER ATTACHMENT
-window.addEventListener('load', () => {
-    console.log('🏠 House Head Chase - PWA Loaded!');
+// CRITICAL FIX: PROPER EVENT LISTENER ATTACHMENT
+function attachEventListeners() {
+    console.log('🔧 Attaching event listeners...');
     
-    // Pre-initialize canvas immediately
-    const canvas = document.getElementById('gameCanvas');
-    if (canvas) {
-        canvas.width = window.innerWidth;
-        canvas.height = window.innerHeight;
-        canvas.style.width = window.innerWidth + 'px';
-        canvas.style.height = window.innerHeight + 'px';
-        console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
+    // WAIT FOR DOM TO BE READY
+    if (document.readyState === 'loading') {
+        console.log('⏳ DOM still loading, waiting...');
+        document.addEventListener('DOMContentLoaded', attachEventListeners);
+        return;
     }
     
-    // CORRECT: Using getElementById to match the new HTML button IDs
+    // Main game buttons
     const startBtn = document.getElementById('startGameBtn');
     const restartBtn = document.getElementById('restartGameBtn');
     const showStartBtn = document.getElementById('showStartScreenBtn');
@@ -1591,7 +1588,15 @@ window.addEventListener('load', () => {
     const showHelpBtn = document.getElementById('showHelpBtn');
     const shareScoreBtn = document.getElementById('shareScoreBtn');
     
-    // Main game buttons
+    console.log('🔍 Button elements found:', {
+        startBtn: !!startBtn,
+        restartBtn: !!restartBtn,
+        showStartBtn: !!showStartBtn,
+        showHighScoresBtn: !!showHighScoresBtn,
+        showHelpBtn: !!showHelpBtn,
+        shareScoreBtn: !!shareScoreBtn
+    });
+    
     if (startBtn) {
         startBtn.addEventListener('click', startGame);
         console.log('✅ Start button event attached');
@@ -1706,17 +1711,6 @@ window.addEventListener('load', () => {
         console.log('✅ Dismiss install button attached');
     }
     
-    // Register service worker
-    if ('serviceWorker' in navigator) {
-        navigator.serviceWorker.register('/sw.js')
-            .then(registration => {
-                console.log('✅ Service Worker registered:', registration);
-            })
-            .catch(error => {
-                console.log('❌ Service Worker registration failed:', error);
-            });
-    }
-    
     // Setup audio toggle
     const audioToggle = document.getElementById('audioToggle');
     if (audioToggle) {
@@ -1725,6 +1719,26 @@ window.addEventListener('load', () => {
         });
         console.log('✅ Audio toggle attached');
     }
+    
+    console.log('🎯 All event listeners attached successfully!');
+}
+
+// INITIALIZATION - PROPER ORDER
+document.addEventListener('DOMContentLoaded', () => {
+    console.log('🏠 House Head Chase - DOM Content Loaded!');
+    
+    // Pre-initialize canvas immediately
+    const canvas = document.getElementById('gameCanvas');
+    if (canvas) {
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+        canvas.style.width = window.innerWidth + 'px';
+        canvas.style.height = window.innerHeight + 'px';
+        console.log('🎯 Canvas pre-initialized:', canvas.width, 'x', canvas.height);
+    }
+    
+    // Attach all event listeners
+    attachEventListeners();
     
     // Setup window resize handler
     window.addEventListener('resize', () => {
@@ -1749,7 +1763,29 @@ window.addEventListener('load', () => {
     console.log('🎮 Game ready to play!');
 });
 
-// Make functions globally available for any remaining onclick attributes
+// FALLBACK: Window load event
+window.addEventListener('load', () => {
+    console.log('🔄 Window loaded - running fallback initialization...');
+    
+    // Only run if DOMContentLoaded didn't work
+    if (!document.getElementById('startGameBtn')?.onclick) {
+        console.log('⚠️ Event listeners missing, reattaching...');
+        attachEventListeners();
+    }
+    
+    // Register service worker
+    if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.register('/sw.js')
+            .then(registration => {
+                console.log('✅ Service Worker registered:', registration);
+            })
+            .catch(error => {
+                console.log('❌ Service Worker registration failed:', error);
+            });
+    }
+});
+
+// Make functions globally available for debugging
 window.startGame = startGame;
 window.restartGame = restartGame;
 window.showStartScreen = showStartScreen;
