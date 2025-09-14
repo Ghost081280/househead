@@ -1,7 +1,5 @@
-// House Head Chase - COMPLETE WORKING VERSION
-// All original complex systems restored
-
-console.log('🏠 House Head Chase - Loading COMPLETE VERSION...');
+// House Head Chase - COMPLETE FIXED VERSION
+console.log('🏠 House Head Chase - Loading COMPLETE FIXED VERSION...');
 
 // === SOUND SYSTEM ===
 class SoundSystem {
@@ -835,9 +833,6 @@ function gameLoop() {
     }
 }
 
-// Input handling and UI functions remain the same...
-// [Continue with all the input handlers, UI functions, and initialization...]
-
 // === INPUT HANDLING ===
 function setupInputHandlers() {
     const canvas = gameState.canvas;
@@ -1130,24 +1125,27 @@ function showLevelUpEffect() {
     }, 2000);
 }
 
-// === MODAL MANAGEMENT - FIXED Z-INDEX ===
-function hideAllModals() {
-    const modals = document.querySelectorAll('.modal-overlay');
-    modals.forEach(modal => {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    });
-    
-    console.log('🚫 All modals hidden');
+// === SCREEN MANAGEMENT - FIXED ===
+function hideAllScreens() {
+    document.getElementById('startScreen').classList.add('hidden');
+    document.getElementById('gameOver').classList.add('hidden');
+    document.getElementById('highScoresModal').classList.add('hidden');
+    document.getElementById('helpModal').classList.add('hidden');
+}
+
+function showScreen(screenId) {
+    hideAllScreens();
+    document.getElementById(screenId).classList.remove('hidden');
 }
 
 // === MAIN GAME FUNCTIONS ===
 function startGame() {
-    console.log('🎮 Starting COMPLETE House Head Chase...');
+    console.log('🎮 Starting FIXED House Head Chase...');
     
-    // FORCE HIDE ALL SCREENS AND MODALS
-    hideAllModals();
+    // Hide all screens first
+    hideAllScreens();
     
+    // Get canvas
     gameState.canvas = document.getElementById('gameCanvas');
     if (!gameState.canvas) {
         console.error('❌ Canvas not found!');
@@ -1160,32 +1158,19 @@ function startGame() {
         return;
     }
     
+    // Resize canvas to full screen
     resizeCanvas();
     
-    // FORCE HIDE START SCREEN WITH HIGH PRIORITY
-    const startScreen = document.getElementById('startScreen');
-    if (startScreen) {
-        startScreen.style.display = 'none !important';
-        startScreen.style.visibility = 'hidden !important';
-        startScreen.style.zIndex = '-9999 !important';
-        startScreen.classList.add('hidden');
-        console.log('✅ Start screen FORCE HIDDEN');
-    }
+    // Show HUD and game elements
+    document.getElementById('hud').classList.remove('hidden');
+    document.getElementById('powerupIndicators').classList.remove('hidden');
     
-    // FORCE SHOW HUD
-    const hud = document.getElementById('hud');
-    if (hud) {
-        hud.style.display = 'flex !important';
-        hud.style.visibility = 'visible !important';
-        hud.style.zIndex = '1000 !important';
-        hud.classList.remove('hidden');
-        console.log('✅ HUD FORCE SHOWN');
-    }
-    
+    // Initialize game state
     gameState.running = true;
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
+    // Reset player to center
     gameState.player = {
         x: gameState.canvas.width / 2,
         y: gameState.canvas.height / 2,
@@ -1200,6 +1185,7 @@ function startGame() {
         speedBoostTime: 0
     };
     
+    // Reset game state
     gameState.enemies = [];
     gameState.powerups = [];
     gameState.activePowerups = [];
@@ -1216,6 +1202,7 @@ function startGame() {
     
     console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
     
+    // Show controls hint
     setTimeout(() => {
         const hint = document.getElementById('controlsHint');
         if (hint) {
@@ -1224,10 +1211,13 @@ function startGame() {
         }
     }, 1000);
     
+    // Setup input handlers
     setupInputHandlers();
+    
+    // Start game loop
     gameLoop();
     
-    console.log(`🎮 COMPLETE Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
+    console.log(`🎮 FIXED Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
 }
 
 function endGame() {
@@ -1239,11 +1229,14 @@ function endGame() {
     document.getElementById('finalTime').textContent = survivalTime;
     document.getElementById('finalLevel').textContent = gameState.level;
     
+    // Hide game elements
     document.getElementById('hud').classList.add('hidden');
-    document.getElementById('gameOver').classList.remove('hidden');
+    document.getElementById('powerupIndicators').classList.add('hidden');
+    document.getElementById('flashlightIndicator').classList.add('hidden');
+    document.getElementById('controlsHint').classList.add('hidden');
     
-    const hint = document.getElementById('controlsHint');
-    if (hint) hint.classList.add('hidden');
+    // Show game over screen
+    showScreen('gameOver');
     
     console.log('🎮 Game Over! Survival time:', survivalTime, 'seconds');
 }
@@ -1255,52 +1248,36 @@ function restartGame() {
 
 function showStartScreen() {
     console.log('🏠 Showing start screen...');
-    hideAllModals();
-    document.getElementById('gameOver').classList.add('hidden');
-    document.getElementById('hud').classList.add('hidden');
-    document.getElementById('startScreen').classList.remove('hidden');
     gameState.running = false;
     
-    const hint = document.getElementById('controlsHint');
-    if (hint) hint.classList.add('hidden');
+    // Hide all game elements
+    document.getElementById('hud').classList.add('hidden');
+    document.getElementById('powerupIndicators').classList.add('hidden');
+    document.getElementById('flashlightIndicator').classList.add('hidden');
+    document.getElementById('controlsHint').classList.add('hidden');
+    
+    // Show start screen
+    showScreen('startScreen');
 }
 
 function showHighScores() {
     console.log('🏆 Showing high scores...');
-    hideAllModals();
-    const modal = document.getElementById('highScoresModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    }
+    showScreen('highScoresModal');
 }
 
 function closeHighScores() {
     console.log('🚫 Closing high scores...');
-    const modal = document.getElementById('highScoresModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
+    document.getElementById('highScoresModal').classList.add('hidden');
 }
 
 function showHelp() {
     console.log('❓ Showing help...');
-    hideAllModals();
-    const modal = document.getElementById('helpModal');
-    if (modal) {
-        modal.style.display = 'flex';
-        modal.classList.remove('hidden');
-    }
+    showScreen('helpModal');
 }
 
 function closeHelp() {
     console.log('🚫 Closing help...');
-    const modal = document.getElementById('helpModal');
-    if (modal) {
-        modal.style.display = 'none';
-        modal.classList.add('hidden');
-    }
+    document.getElementById('helpModal').classList.add('hidden');
 }
 
 // === CANVAS MANAGEMENT ===
@@ -1325,7 +1302,7 @@ function resizeCanvas() {
 
 // === INITIALIZATION ===
 document.addEventListener('DOMContentLoaded', () => {
-    console.log('🏠 COMPLETE House Head Chase - DOM Ready!');
+    console.log('🏠 COMPLETE FIXED House Head Chase - DOM Ready!');
     
     const canvas = document.getElementById('gameCanvas');
     if (canvas) {
@@ -1342,9 +1319,9 @@ document.addEventListener('DOMContentLoaded', () => {
         'restartGameBtn': restartGame,
         'showStartScreenBtn': showStartScreen,
         'showHighScoresBtn': showHighScores,
-        'showHelpBtn': showHelp,
         'closeHighScoresBtn': closeHighScores,
         'closeHighScoresFooterBtn': closeHighScores,
+        'showHelpBtn': showHelp,
         'closeHelpBtn': closeHelp,
         'closeHelpFooterBtn': closeHelp,
         'audioToggle': () => soundSystem.toggle()
@@ -1363,12 +1340,10 @@ document.addEventListener('DOMContentLoaded', () => {
     window.addEventListener('resize', resizeCanvas);
     window.addEventListener('orientationchange', () => setTimeout(resizeCanvas, 100));
     
-    const hint = document.getElementById('controlsHint');
-    if (hint) hint.classList.add('hidden');
+    // Make sure start screen is visible initially
+    showStartScreen();
     
-    hideAllModals();
-    
-    console.log('🎮 COMPLETE GAME READY TO PLAY!');
+    console.log('🎮 COMPLETE FIXED GAME READY TO PLAY!');
 });
 
-console.log('✅ COMPLETE Game script loaded successfully v2024123001!');
+console.log('✅ COMPLETE FIXED Game script loaded successfully!');
