@@ -241,73 +241,7 @@
         </div>
     </div>
     
-    <!-- Share Modal -->
-    <div id="shareModal" class="modal-overlay hidden">
-        <div class="modal-content share-modal">
-            <div class="modal-header">
-                <h2>📤 Share Your Score</h2>
-                <button class="close-btn" onclick="closeShareModal()" aria-label="Close share modal">×</button>
-            </div>
-            <div class="modal-body">
-                <!-- Achievement Card -->
-                <div class="achievement-card">
-                    <div class="achievement-icon">🏆</div>
-                    <div class="achievement-text">
-                        <h3>Amazing Survival!</h3>
-                        <p>You survived <strong id="shareTimeValue">0:00</strong> and reached <strong>Level <span id="shareLevelValue">1</span></strong></p>
-                    </div>
-                </div>
-                
-                <!-- Share Actions -->
-                <div class="share-actions">
-                    <div class="share-action-item" onclick="shareToX()" role="button" tabindex="0">
-                        <div class="share-icon-wrapper x-color">
-                            <span class="share-platform-icon">𝕏</span>
-                        </div>
-                        <div class="share-action-content">
-                            <h4>Share on X</h4>
-                            <p>Post to your X timeline</p>
-                        </div>
-                        <div class="share-arrow">→</div>
-                    </div>
-                    
-                    <div class="share-action-item" onclick="shareToFacebook()" role="button" tabindex="0">
-                        <div class="share-icon-wrapper facebook-color">
-                            <span class="share-platform-icon">f</span>
-                        </div>
-                        <div class="share-action-content">
-                            <h4>Share on Facebook</h4>
-                            <p>Post to your Facebook feed</p>
-                        </div>
-                        <div class="share-arrow">→</div>
-                    </div>
-                    
-                    <div class="share-action-item primary-action" onclick="copyScoreToClipboard()" role="button" tabindex="0">
-                        <div class="share-icon-wrapper copy-color">
-                            <span class="share-platform-icon">📋</span>
-                        </div>
-                        <div class="share-action-content">
-                            <h4>Copy to Clipboard</h4>
-                            <p>Copy text to share anywhere</p>
-                        </div>
-                        <div class="share-arrow">→</div>
-                    </div>
-                </div>
-                
-                <!-- Preview Text -->
-                <div class="share-preview">
-                    <div class="preview-header">
-                        <span class="preview-label">Preview</span>
-                    </div>
-                    <div class="preview-content" id="copyPreviewText">
-                        🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
-                        
-                        Play now: https://www.househeadchase.com
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
+    <!-- Share Modal will be created dynamically by JavaScript -->
     
     <!-- Help Modal -->
     <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-labelledby="helpTitle">
