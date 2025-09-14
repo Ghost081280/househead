@@ -270,23 +270,26 @@ body {
     pointer-events: auto !important; /* ENSURE CLICKABLE */
 }
 
+/* FIXED: Much more subtle title glow - readable and elegant */
 #startScreen h1 {
     font-family: 'Creepster', cursive;
     font-size: 28px;
     margin-bottom: 20px;
-    text-shadow: 0 0 15px var(--primary-color);
-    animation: titleGlow 3s ease-in-out infinite alternate;
+    text-shadow: 0 0 3px var(--primary-color), 0 0 5px rgba(255, 68, 68, 0.3);
+    animation: titleGlow 4s ease-in-out infinite alternate;
     line-height: 1.2;
+    color: #ff6666; /* Slightly lighter base color for better readability */
 }
 
+/* FIXED: Much more subtle glow animation */
 @keyframes titleGlow {
     from { 
-        text-shadow: 0 0 8px var(--primary-color), 0 0 12px var(--primary-color); 
+        text-shadow: 0 0 3px var(--primary-color), 0 0 5px rgba(255, 68, 68, 0.2); 
         transform: scale(1);
     }
     to { 
-        text-shadow: 0 0 12px #ff6666, 0 0 16px var(--primary-color), 0 0 20px var(--primary-color); 
-        transform: scale(1.005);
+        text-shadow: 0 0 5px var(--primary-color), 0 0 8px rgba(255, 68, 68, 0.4); 
+        transform: scale(1.002);
     }
 }
 
@@ -294,7 +297,7 @@ body {
     font-family: 'Creepster', cursive;
     font-size: 24px;
     margin-bottom: 15px;
-    text-shadow: 0 0 15px var(--primary-color);
+    text-shadow: 0 0 3px var(--primary-color);
 }
 
 .instructions {
