@@ -177,16 +177,16 @@ class AuthUIManager {
 // Initialize Auth UI Manager
 const authUIManager = new AuthUIManager();
 
-// === POWER-UP TYPES ===
+// === POWER-UP TYPES WITH BALANCED DISTRIBUTION ===
 const PowerupTypes = {
     HEALTH: {
         name: 'Health Pack',
         emoji: '💚',
         color: '#44ff44',
         effect: 'health',
-        value: 35,
+        value: 40,
         duration: 0,
-        spawnWeight: 0.5
+        spawnWeight: 0.4
     },
     SHIELD: {
         name: 'Shield',
@@ -194,7 +194,7 @@ const PowerupTypes = {
         color: '#4488ff',
         effect: 'shield',
         value: 0,
-        duration: 6000,
+        duration: 7000,
         spawnWeight: 0.3
     },
     FREEZE: {
@@ -203,24 +203,24 @@ const PowerupTypes = {
         color: '#88ddff',
         effect: 'freeze',
         value: 0,
-        duration: 8000,
-        spawnWeight: 0.2
+        duration: 9000,
+        spawnWeight: 0.3
     }
 };
 
-// === POWERUP CLASS ===
+// === POWERUP CLASS WITH BETTER DISTRIBUTION ===
 class Powerup {
     constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.config = PowerupTypes[type];
-        this.size = 15;
+        this.size = window.GameConfig?.ui?.powerupSize || 20; // Larger power-ups
         this.collected = false;
         this.spawnTime = Date.now();
         this.pulseOffset = Math.random() * Math.PI * 2;
         this.floatOffset = Math.random() * Math.PI * 2;
-        this.despawnTime = this.spawnTime + 15000;
+        this.despawnTime = this.spawnTime + (window.GameConfig?.gameBalance?.powerups?.despawnTime || 18000);
         
         console.log(`⚡ ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
     }
@@ -236,7 +236,7 @@ class Powerup {
         const dy = this.y - gameState.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance < this.size + gameState.player.size - 5) {
+        if (distance < this.size + gameState.player.size - 3) { // Slightly easier collection
             this.collect();
             return false;
         }
@@ -286,6 +286,10 @@ class Powerup {
                 console.log(`🧊 House Freeze activated for ${this.config.duration/1000}s`);
                 break;
         }
+        
+        // Track power-up collection for balancing
+        gameState.powerupStats = gameState.powerupStats || {};
+        gameState.powerupStats[this.type] = (gameState.powerupStats[this.type] || 0) + 1;
     }
 
     draw() {
@@ -297,14 +301,14 @@ class Powerup {
         ctx.save();
         ctx.translate(this.x, this.y);
         
-        const floatY = Math.sin(currentTime * 0.003 + this.floatOffset) * 3;
+        const floatY = Math.sin(currentTime * 0.003 + this.floatOffset) * 4;
         ctx.translate(0, floatY);
         
-        const pulse = 0.8 + Math.sin(currentTime * 0.008 + this.pulseOffset) * 0.2;
+        const pulse = 0.85 + Math.sin(currentTime * 0.008 + this.pulseOffset) * 0.25;
         ctx.scale(pulse, pulse);
         
         ctx.shadowColor = this.config.color;
-        ctx.shadowBlur = 15;
+        ctx.shadowBlur = 18;
         
         ctx.fillStyle = this.config.color;
         ctx.beginPath();
@@ -312,42 +316,44 @@ class Powerup {
         ctx.fill();
         
         ctx.shadowBlur = 0;
-        ctx.fillStyle = 'rgba(255, 255, 255, 0.8)';
+        ctx.fillStyle = 'rgba(255, 255, 255, 0.9)';
         ctx.beginPath();
-        ctx.arc(0, 0, this.size * 0.6, 0, Math.PI * 2);
+        ctx.arc(0, 0, this.size * 0.7, 0, Math.PI * 2);
         ctx.fill();
         
         ctx.fillStyle = '#000';
-        ctx.font = `${this.size}px Arial`;
+        ctx.font = `${this.size * 0.8}px Arial`;
         ctx.textAlign = 'center';
         ctx.textBaseline = 'middle';
         
         switch (this.type) {
             case 'HEALTH':
-                ctx.fillRect(-2, -6, 4, 12);
-                ctx.fillRect(-6, -2, 12, 4);
+                const crossSize = this.size * 0.5;
+                ctx.fillRect(-crossSize * 0.2, -crossSize, crossSize * 0.4, crossSize * 2);
+                ctx.fillRect(-crossSize, -crossSize * 0.2, crossSize * 2, crossSize * 0.4);
                 break;
             case 'SHIELD':
                 ctx.beginPath();
-                ctx.moveTo(0, -8);
-                ctx.lineTo(6, -4);
-                ctx.lineTo(6, 4);
-                ctx.lineTo(0, 8);
-                ctx.lineTo(-6, 4);
-                ctx.lineTo(-6, -4);
+                ctx.moveTo(0, -this.size * 0.6);
+                ctx.lineTo(this.size * 0.5, -this.size * 0.3);
+                ctx.lineTo(this.size * 0.5, this.size * 0.3);
+                ctx.lineTo(0, this.size * 0.6);
+                ctx.lineTo(-this.size * 0.5, this.size * 0.3);
+                ctx.lineTo(-this.size * 0.5, -this.size * 0.3);
                 ctx.closePath();
                 ctx.fill();
                 break;
             case 'FREEZE':
                 // Draw ice crystal pattern
+                const iceSize = this.size * 0.4;
                 ctx.fillStyle = '#000';
-                ctx.fillRect(-6, -6, 12, 3);
-                ctx.fillRect(-6, -1, 12, 3);
-                ctx.fillRect(-6, 4, 12, 3);
-                // Add ice crystal effect
-                ctx.fillRect(-2, -8, 4, 4);
-                ctx.fillRect(-8, -2, 4, 4);
-                ctx.fillRect(4, -2, 4, 4);
+                ctx.fillRect(-iceSize, -iceSize * 0.15, iceSize * 2, iceSize * 0.3);
+                ctx.fillRect(-iceSize, -iceSize * 0.15 + iceSize * 0.6, iceSize * 2, iceSize * 0.3);
+                ctx.fillRect(-iceSize, -iceSize * 0.15 + iceSize * 1.2, iceSize * 2, iceSize * 0.3);
+                // Add diagonal ice effects
+                ctx.fillRect(-iceSize * 0.15, -iceSize, iceSize * 0.3, iceSize * 2);
+                ctx.fillRect(-iceSize * 0.7, -iceSize * 0.7, iceSize * 0.4, iceSize * 1.4);
+                ctx.fillRect(iceSize * 0.3, -iceSize * 0.7, iceSize * 0.4, iceSize * 1.4);
                 break;
         }
         
@@ -355,7 +361,7 @@ class Powerup {
     }
 }
 
-// === GAME STATE ===
+// === GAME STATE WITH BALANCED SETTINGS ===
 const gameState = {
     running: false,
     paused: false,
@@ -367,8 +373,8 @@ const gameState = {
         size: 18,
         health: 100,
         maxHealth: 100,
-        speed: 3.5,
-        baseSpeed: 3.5,
+        speed: 3.8,  // Slightly faster player
+        baseSpeed: 3.8,
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
@@ -391,8 +397,8 @@ const gameState = {
     lastEnemySpawn: 0,
     lastPowerupSpawn: 0,
     lastScoreUpdate: 0,
-    spawnRate: 4000,
-    powerupSpawnRate: 10000,
+    spawnRate: 5500,  // Slower initial spawn rate
+    powerupSpawnRate: 8000,  // More frequent power-ups
     input: {
         lastTap: 0,
         doubleTapDelay: 300
@@ -403,36 +409,39 @@ const gameState = {
     },
     difficulty: 1,
     totalEnemiesSpawned: 0,
-    collisionGrid: new Map()
+    collisionGrid: new Map(),
+    powerupStats: {},  // Track power-up collection for balancing
+    lastPowerupType: null,  // Ensure variety in power-up spawning
+    powerupRotationIndex: 0  // Round-robin power-up spawning
 };
 
-// === ENEMY TYPES ===
+// === ENEMY TYPES WITH BALANCED STATS ===
 const EnemyTypes = {
     SMALL: {
         name: 'Small House',
         size: 25,
-        speed: 0.8,
-        damage: 12,
-        spawnWeight: 0.7,
+        speed: 0.7,        // Slower
+        damage: 10,        // Less damage
+        spawnWeight: 0.8,  // More common early on
         color: '#4a3a2a',
-        activationTime: 2500,
+        activationTime: 3000,  // Longer activation
         wanderRadius: 100,
         huntRadius: 180
     },
     BIG: {
         name: 'Big House',
         size: 40,
-        speed: 0.5,
-        damage: 20,
-        spawnWeight: 0.3,
+        speed: 0.4,        // Much slower
+        damage: 18,        // Less damage
+        spawnWeight: 0.2,  // Less common early on
         color: '#3a2a1a',
-        activationTime: 3500,
+        activationTime: 4500,  // Much longer activation
         wanderRadius: 80,
         huntRadius: 200
     }
 };
 
-// === ENHANCED ENEMY CLASS WITH AI AND COLLISION ===
+// === ENHANCED ENEMY CLASS WITH BALANCED AI ===
 class Enemy {
     constructor(x, y, type) {
         this.x = x;
@@ -440,21 +449,28 @@ class Enemy {
         this.type = type;
         this.config = EnemyTypes[type];
         this.size = this.config.size;
-        this.baseSpeed = this.config.speed * (0.8 + Math.random() * 0.4);
+        
+        // Apply level-based modifiers for balanced progression
+        const levelModifiers = window.GameConfig?.utils?.getLevelModifiers(gameState.level) || {
+            speedMultiplier: 1,
+            damageMultiplier: 1
+        };
+        
+        this.baseSpeed = this.config.speed * (0.8 + Math.random() * 0.4) * levelModifiers.speedMultiplier;
         this.speed = this.baseSpeed;
-        this.damage = this.config.damage;
+        this.damage = Math.floor(this.config.damage * levelModifiers.damageMultiplier);
         this.color = this.config.color;
         
         this.state = 'spawning';
         this.spawnTime = Date.now();
-        this.activationTime = this.config.activationTime + (Math.random() * 1000);
+        this.activationTime = this.config.activationTime + (Math.random() * 1500); // More variable activation
         this.legs = [];
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
         this.isVisible = false;
         this.frozenUntil = 0;
         
-        // Enhanced AI properties
+        // Enhanced AI properties with less aggressive behavior
         this.aiState = 'wander';
         this.wanderTarget = { x: this.x, y: this.y };
         this.wanderTime = 0;
@@ -467,26 +483,26 @@ class Enemy {
         // Collision properties
         this.mass = this.type === 'BIG' ? 2 : 1;
         this.bounceVelocity = { x: 0, y: 0 };
-        this.frictionCoeff = 0.95;
+        this.frictionCoeff = 0.96; // Slightly more friction
         
         for (let i = 0; i < 6; i++) {
             this.legs.push({
                 angle: (i / 6) * Math.PI * 2,
                 length: this.size * 0.8,
                 offset: Math.random() * Math.PI * 2,
-                speed: 0.1 + Math.random() * 0.1
+                speed: 0.08 + Math.random() * 0.08  // Slower leg animation
             });
         }
         
-        console.log(`🏠 ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)})`);
+        console.log(`🏠 ${this.config.name} spawned at (${Math.floor(x)}, ${Math.floor(y)}) - Level ${gameState.level} modifiers applied`);
     }
 
     update() {
         const currentTime = Date.now();
         
-        // State transitions
+        // State transitions with longer dormant period
         if (this.state === 'spawning') {
-            if (currentTime - this.spawnTime > 1000) {
+            if (currentTime - this.spawnTime > 1200) { // Longer spawn animation
                 this.state = 'dormant';
                 soundSystem.play('spawn', 180, 0.3, 0.2);
             }
@@ -523,25 +539,25 @@ class Enemy {
         const dy = playerY - this.y;
         const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
         
-        // Determine AI state based on flashlight and distance
+        // Less aggressive AI - more wander time, less hunting
         if (gameState.flashlight.on && gameState.flashlight.intensity > 0.5) {
-            if (distanceToPlayer < this.alertRadius) {
+            if (distanceToPlayer < this.alertRadius * 0.8) { // Smaller alert radius
                 this.aiState = 'hunt';
                 this.lastPlayerSeen = currentTime;
-            } else if (currentTime - this.lastPlayerSeen < 3000) {
+            } else if (currentTime - this.lastPlayerSeen < 2000) { // Shorter memory
                 this.aiState = 'hunt';
             } else {
                 this.aiState = 'wander';
             }
         } else {
-            if (distanceToPlayer < 50) {
+            if (distanceToPlayer < 40) { // Much closer before they notice
                 this.aiState = 'hunt';
             } else {
                 this.aiState = 'wander';
             }
         }
         
-        // Execute AI behavior
+        // Execute AI behavior with less intensity
         switch (this.aiState) {
             case 'hunt':
                 this.huntPlayer();
@@ -561,22 +577,24 @@ class Enemy {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 5) {
-            const huntSpeed = this.baseSpeed * gameState.difficulty * 1.2;
-            const randomOffset = (Math.random() - 0.5) * 0.3;
+            // Less aggressive hunting with more randomness
+            const huntSpeed = this.baseSpeed * gameState.difficulty * 0.9; // Reduced hunt speed
+            const randomOffset = (Math.random() - 0.5) * 0.5; // More randomness
             const moveX = (dx / distance) * huntSpeed + randomOffset;
             const moveY = (dy / distance) * huntSpeed + randomOffset;
             
-            this.velocity.x += moveX * 0.3;
-            this.velocity.y += moveY * 0.3;
+            this.velocity.x += moveX * 0.25; // Less direct movement
+            this.velocity.y += moveY * 0.25;
         }
     }
 
     wanderAI() {
         const currentTime = Date.now();
         
-        if (currentTime - this.lastWanderUpdate > 2000 + Math.random() * 3000) {
+        // More frequent direction changes for less predictable movement
+        if (currentTime - this.lastWanderUpdate > 1500 + Math.random() * 2500) {
             const angle = Math.random() * Math.PI * 2;
-            const distance = this.config.wanderRadius * (0.3 + Math.random() * 0.7);
+            const distance = this.config.wanderRadius * (0.4 + Math.random() * 0.6);
             
             this.wanderTarget.x = this.x + Math.cos(angle) * distance;
             this.wanderTarget.y = this.y + Math.sin(angle) * distance;
@@ -592,9 +610,9 @@ class Enemy {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 20) {
-            const wanderSpeed = this.baseSpeed * 0.5;
-            this.velocity.x += (dx / distance) * wanderSpeed * 0.2;
-            this.velocity.y += (dy / distance) * wanderSpeed * 0.2;
+            const wanderSpeed = this.baseSpeed * 0.4; // Slower wandering
+            this.velocity.x += (dx / distance) * wanderSpeed * 0.15;
+            this.velocity.y += (dy / distance) * wanderSpeed * 0.15;
         }
     }
 
@@ -611,21 +629,21 @@ class Enemy {
             
             if (distance < this.separationRadius && distance > 0) {
                 const force = (this.separationRadius - distance) / this.separationRadius;
-                separationForce.x += (dx / distance) * force * 2;
-                separationForce.y += (dy / distance) * force * 2;
+                separationForce.x += (dx / distance) * force * 1.5; // Less separation force
+                separationForce.y += (dy / distance) * force * 1.5;
                 neighborCount++;
             }
         });
         
         if (neighborCount > 0) {
-            this.velocity.x += separationForce.x * 0.5;
-            this.velocity.y += separationForce.y * 0.5;
+            this.velocity.x += separationForce.x * 0.4;
+            this.velocity.y += separationForce.y * 0.4;
         }
     }
 
     applyBoundaryForces() {
         const margin = 100;
-        const forceStrength = 0.5;
+        const forceStrength = 0.4; // Reduced boundary force
         
         if (this.x < margin) {
             this.velocity.x += forceStrength * (margin - this.x) / margin;
@@ -645,7 +663,7 @@ class Enemy {
         this.velocity.x *= this.frictionCoeff;
         this.velocity.y *= this.frictionCoeff;
         
-        const maxVelocity = this.baseSpeed * 2;
+        const maxVelocity = this.baseSpeed * 1.8; // Reduced max velocity
         const velocityMag = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
         if (velocityMag > maxVelocity) {
             this.velocity.x = (this.velocity.x / velocityMag) * maxVelocity;
@@ -686,8 +704,8 @@ class Enemy {
                     gameState.player.y += separationY * 0.2;
                 }
                 
-                this.velocity.x -= (dx / distance) * 2;
-                this.velocity.y -= (dy / distance) * 2;
+                this.velocity.x -= (dx / distance) * 1.5; // Less bounce
+                this.velocity.y -= (dy / distance) * 1.5;
                 
                 soundSystem.play('bounce', 150, 0.1, 0.2);
             }
@@ -714,7 +732,7 @@ class Enemy {
                 other.y += separationY;
                 
                 const totalMass = this.mass + other.mass;
-                const velocityExchange = 1.5;
+                const velocityExchange = 1.2; // Reduced collision force
                 
                 const thisVelX = ((this.mass - other.mass) * this.velocity.x + 2 * other.mass * other.velocity.x) / totalMass;
                 const thisVelY = ((this.mass - other.mass) * this.velocity.y + 2 * other.mass * other.velocity.y) / totalMass;
@@ -731,7 +749,7 @@ class Enemy {
 
     updateLegs() {
         const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-        const legSpeed = 0.1 + speed * 0.02;
+        const legSpeed = 0.08 + speed * 0.015; // Slower leg movement
         
         this.legs.forEach(leg => {
             leg.offset += legSpeed;
@@ -754,11 +772,11 @@ class Enemy {
 
     damagePlayer() {
         const currentTime = Date.now();
-        if (currentTime - this.lastDamageTime > 1500) {
+        if (currentTime - this.lastDamageTime > 1800) { // Longer damage cooldown
             gameState.player.health -= this.damage;
             this.lastDamageTime = currentTime;
-            gameState.camera.shake = 10;
-            gameState.camera.intensity = 8;
+            gameState.camera.shake = 8; // Less screen shake
+            gameState.camera.intensity = 6;
             soundSystem.play('damage');
             console.log(`💔 Player took ${this.damage} damage from ${this.config.name}`);
             
@@ -789,7 +807,7 @@ class Enemy {
 
     drawSpawning() {
         const ctx = gameState.ctx;
-        const progress = Math.min((Date.now() - this.spawnTime) / 1000, 1);
+        const progress = Math.min((Date.now() - this.spawnTime) / 1200, 1); // Longer spawn animation
         const currentSize = this.size * progress;
         
         ctx.fillStyle = this.color;
@@ -912,10 +930,10 @@ class Enemy {
         const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
         
         const glowColor = this.aiState === 'hunt' ? '#ffaa88' : '#ffff88';
-        const glowMultiplier = this.aiState === 'hunt' ? 1.2 : 1.0;
+        const glowMultiplier = this.aiState === 'hunt' ? 1.1 : 1.0; // Less intense glow
         
         ctx.shadowColor = glowColor;
-        ctx.shadowBlur = 8 * glowMultiplier;
+        ctx.shadowBlur = 6 * glowMultiplier;
         ctx.fillStyle = `rgba(255, 255, 136, ${glowIntensity * glowMultiplier})`;
         
         ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
@@ -1096,11 +1114,9 @@ function fallbackCopyToClipboard(text) {
 }
 
 function showCopyConfirmation() {
-    // Find the copy button that was clicked
     const copyButtons = document.querySelectorAll('.share-btn');
     let btn = null;
     
-    // Try to find the copy button by checking text content
     copyButtons.forEach(button => {
         if (button.textContent.includes('Copy')) {
             btn = button;
@@ -1219,13 +1235,32 @@ function drawBackground() {
     ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
 }
 
-// === GAME SYSTEMS ===
+// === BALANCED GAME SYSTEMS ===
 function spawnEnemy() {
     const currentTime = Date.now();
-    if (currentTime - gameState.lastEnemySpawn < gameState.spawnRate) return;
+    const config = window.GameConfig?.gameBalance?.enemies;
     
+    if (!config) return;
+    
+    // Apply level-based spawn rate modifiers
+    const levelModifiers = window.GameConfig.utils.getLevelModifiers(gameState.level);
+    const adjustedSpawnRate = gameState.spawnRate * levelModifiers.spawnRateMultiplier;
+    
+    if (currentTime - gameState.lastEnemySpawn < adjustedSpawnRate) return;
+    
+    // Limit max enemies based on performance settings
+    const maxEnemies = window.GameConfig.performance.maxEnemies || 15;
+    if (gameState.enemies.length >= maxEnemies) return;
+    
+    // Dynamic enemy type selection based on level
     const rand = Math.random();
-    const bigHouseChance = Math.min(0.25 + (gameState.level - 1) * 0.05, 0.4);
+    let bigHouseChance = Math.min(0.15 + (gameState.level - 1) * 0.03, 0.35); // Slower increase, lower cap
+    
+    // Reduce big houses on mobile for performance
+    if (window.GameConfig.isMobile) {
+        bigHouseChance *= 0.7;
+    }
+    
     const enemyType = rand < bigHouseChance ? 'BIG' : 'SMALL';
     
     let x, y;
@@ -1233,8 +1268,8 @@ function spawnEnemy() {
     let validPosition = false;
     
     do {
-        const spawnMargin = 120;
-        const centerAvoidanceRadius = Math.min(200, Math.max(gameState.canvas.width, gameState.canvas.height) * 0.25);
+        const spawnMargin = 140; // Larger margin for easier gameplay
+        const centerAvoidanceRadius = Math.min(250, Math.max(gameState.canvas.width, gameState.canvas.height) * 0.3);
         
         const angle = Math.random() * Math.PI * 2;
         const distance = spawnMargin + Math.random() * (centerAvoidanceRadius - spawnMargin);
@@ -1252,7 +1287,7 @@ function spawnEnemy() {
         );
         
         let tooCloseToOthers = false;
-        const minEnemyDistance = 100;
+        const minEnemyDistance = 120; // Larger minimum distance
         
         for (const enemy of gameState.enemies) {
             const enemyDistance = Math.sqrt(
@@ -1264,7 +1299,7 @@ function spawnEnemy() {
             }
         }
         
-        validPosition = playerDistance > 180 && !tooCloseToOthers;
+        validPosition = playerDistance > 220 && !tooCloseToOthers; // Safer spawn distance
         attempts++;
     } while (!validPosition && attempts < 30);
     
@@ -1273,24 +1308,56 @@ function spawnEnemy() {
     gameState.totalEnemiesSpawned++;
     gameState.lastEnemySpawn = currentTime;
     
-    gameState.spawnRate = Math.max(2000, 4000 - (gameState.level - 1) * 150);
+    // Update spawn rate with level modifiers
+    const baseSpawnRate = config.spawnRate.base;
+    gameState.spawnRate = Math.max(config.spawnRate.minimum, 
+        baseSpawnRate - (gameState.level - 1) * 200); // Gentler progression
     
-    console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}`);
+    console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}, Level: ${gameState.level}`);
 }
 
 function spawnPowerup() {
     const currentTime = Date.now();
+    const config = window.GameConfig?.gameBalance?.powerups;
+    
+    if (!config) return;
+    
     if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
     
-    const rand = Math.random();
-    let powerupType = 'HEALTH';
+    // Limit max power-ups
+    const maxPowerups = window.GameConfig.performance.maxPowerups || 6;
+    if (gameState.powerups.length >= maxPowerups) return;
     
-    if (rand < PowerupTypes.HEALTH.spawnWeight) {
-        powerupType = 'HEALTH';
-    } else if (rand < PowerupTypes.HEALTH.spawnWeight + PowerupTypes.SHIELD.spawnWeight) {
-        powerupType = 'SHIELD';
+    // BALANCED POWER-UP DISTRIBUTION
+    // Use round-robin system to ensure equal distribution
+    const powerupKeys = Object.keys(PowerupTypes);
+    let powerupType;
+    
+    // First, check if we need to balance distribution
+    const stats = gameState.powerupStats || {};
+    const totalCollected = Object.values(stats).reduce((sum, count) => sum + count, 0);
+    
+    if (totalCollected < 6) {
+        // Early game: use round-robin for guaranteed variety
+        powerupType = powerupKeys[gameState.powerupRotationIndex % powerupKeys.length];
+        gameState.powerupRotationIndex++;
     } else {
-        powerupType = 'FREEZE';
+        // Later game: still prefer balanced distribution but allow some randomness
+        const healthCount = stats.HEALTH || 0;
+        const shieldCount = stats.SHIELD || 0;
+        const freezeCount = stats.FREEZE || 0;
+        
+        // Find which power-up is least collected
+        const counts = { HEALTH: healthCount, SHIELD: shieldCount, FREEZE: freezeCount };
+        const minCount = Math.min(...Object.values(counts));
+        const leastCollected = Object.keys(counts).filter(key => counts[key] === minCount);
+        
+        // 70% chance to spawn least collected, 30% random
+        if (Math.random() < 0.7) {
+            powerupType = leastCollected[Math.floor(Math.random() * leastCollected.length)];
+        } else {
+            powerupType = powerupKeys[Math.floor(Math.random() * powerupKeys.length)];
+        }
     }
     
     let x, y;
@@ -1299,8 +1366,7 @@ function spawnPowerup() {
     let tooCloseToEnemy = false;
     
     do {
-        // Fixed spawn boundaries to keep powerups away from edges and within player reach
-        const margin = 150; // Increased margin significantly 
+        const margin = 120; // Good margin from edges
         x = margin + Math.random() * (gameState.canvas.width - margin * 2);
         y = margin + Math.random() * (gameState.canvas.height - margin * 2);
         
@@ -1313,23 +1379,24 @@ function spawnPowerup() {
             const enemyDistance = Math.sqrt(
                 Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
             );
-            if (enemyDistance < 80) {
+            if (enemyDistance < 100) { // Safe distance from enemies
                 tooCloseToEnemy = true;
                 break;
             }
         }
         
         attempts++;
-        if (attempts > 20) break;
-    } while ((playerDistance < 100 || tooCloseToEnemy) && attempts < 20);
+        if (attempts > 25) break;
+    } while ((playerDistance < 80 || tooCloseToEnemy) && attempts < 25);
     
     const powerup = new Powerup(x, y, powerupType);
     gameState.powerups.push(powerup);
     gameState.lastPowerupSpawn = currentTime;
     
-    gameState.powerupSpawnRate = Math.max(8000, 10000 - (gameState.level - 1) * 200);
+    // More frequent power-ups as game progresses
+    gameState.powerupSpawnRate = Math.max(6000, config.spawnRate - (gameState.level - 1) * 150);
     
-    console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}`);
+    console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}. Stats:`, gameState.powerupStats);
 }
 
 function updateGame() {
@@ -1374,13 +1441,20 @@ function updateGame() {
         gameState.lastScoreUpdate = currentTime;
     }
     
-    const newLevel = Math.floor(gameState.score / 45) + 1;
+    // Balanced level progression
+    const config = window.GameConfig?.gameBalance?.scoring;
+    const levelThreshold = config?.levelUpThreshold || 50;
+    const newLevel = Math.floor(gameState.score / levelThreshold) + 1;
+    
     if (newLevel > gameState.level) {
         gameState.level = newLevel;
-        gameState.difficulty = 1 + (gameState.level - 1) * 0.1;
+        gameState.difficulty = 1 + (gameState.level - 1) * (config?.difficultyScaling || 0.08);
         soundSystem.play('levelup');
         showLevelUpEffect();
-        console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)})`);
+        
+        // Apply level modifiers
+        const levelModifiers = window.GameConfig.utils.getLevelModifiers(gameState.level);
+        console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)}, Modifiers:`, levelModifiers, ')');
     }
     
     if (gameState.camera.shake > 0) {
@@ -1457,7 +1531,7 @@ function handleTouchStart(e) {
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance < gameState.player.size + 20) {
+    if (distance < gameState.player.size + 25) { // Slightly larger touch area
         gameState.player.isDragging = true;
         gameState.player.dragOffset = { x: dx, y: dy };
     }
@@ -1498,7 +1572,7 @@ function handleMouseDown(e) {
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance < gameState.player.size + 20) {
+    if (distance < gameState.player.size + 25) { // Slightly larger click area
         gameState.player.isDragging = true;
         gameState.player.dragOffset = { x: dx, y: dy };
     }
@@ -1582,20 +1656,20 @@ function showPowerupMessage(message) {
                 transform: translate(-50%, -50%);
                 color: #44ff44;
                 font-weight: bold;
-                font-size: 20px;
+                font-size: 22px;
                 pointer-events: none;
                 z-index: 8000;
-                animation: powerupMessageFloat 1.5s ease-out forwards;
+                animation: powerupMessageFloat 1.8s ease-out forwards;
                 font-family: 'Orbitron', monospace;
-                text-shadow: 0 0 10px #44ff44;
+                text-shadow: 0 0 12px #44ff44;
                 background: rgba(0, 0, 0, 0.8);
-                padding: 8px 16px;
-                border-radius: 20px;
+                padding: 10px 18px;
+                border-radius: 25px;
                 border: 2px solid #44ff44;
             }
             @keyframes powerupMessageFloat {
                 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
-                20% { transform: translate(-50%, -50%) scale(1.2); opacity: 1; }
+                20% { transform: translate(-50%, -50%) scale(1.3); opacity: 1; }
                 80% { transform: translate(-50%, -50%) scale(1); opacity: 1; }
                 100% { transform: translate(-50%, -50%) scale(0.8); opacity: 0; }
             }
@@ -1613,7 +1687,7 @@ function showPowerupMessage(message) {
         if (document.body.contains(messageDiv)) {
             document.body.removeChild(messageDiv);
         }
-    }, 1500);
+    }, 1800);
 }
 
 function updatePowerupIndicators() {
@@ -1647,16 +1721,16 @@ function showDamageIndicator(damage) {
                 position: fixed;
                 color: #ff4444;
                 font-weight: bold;
-                font-size: 18px;
+                font-size: 20px;
                 pointer-events: none;
                 z-index: 8000;
-                animation: damageFloat 0.8s ease-out forwards;
+                animation: damageFloat 1.0s ease-out forwards;
                 font-family: 'Orbitron', monospace;
-                text-shadow: 0 0 8px #ff4444;
+                text-shadow: 0 0 10px #ff4444;
             }
             @keyframes damageFloat {
                 0% { transform: translateY(0); opacity: 1; }
-                100% { transform: translateY(-40px); opacity: 0; }
+                100% { transform: translateY(-50px); opacity: 0; }
             }
         `;
         document.head.appendChild(style);
@@ -1676,7 +1750,7 @@ function showDamageIndicator(damage) {
         if (document.body.contains(indicator)) {
             document.body.removeChild(indicator);
         }
-    }, 800);
+    }, 1000);
 }
 
 function showLevelUpEffect() {
@@ -1689,17 +1763,17 @@ function showLevelUpEffect() {
                 top: 50%;
                 left: 50%;
                 transform: translate(-50%, -50%);
-                background: linear-gradient(45deg, rgba(255, 68, 68, 0.9), rgba(255, 136, 68, 0.9));
+                background: linear-gradient(45deg, rgba(255, 68, 68, 0.95), rgba(255, 136, 68, 0.95));
                 color: white;
-                padding: 20px;
-                border-radius: 12px;
+                padding: 25px;
+                border-radius: 15px;
                 text-align: center;
                 font-family: 'Orbitron', monospace;
                 font-weight: bold;
                 z-index: 8000;
-                animation: levelUpPulse 2s ease-out;
-                backdrop-filter: blur(10px);
-                border: 2px solid #ff4444;
+                animation: levelUpPulse 2.5s ease-out;
+                backdrop-filter: blur(15px);
+                border: 3px solid #ff4444;
             }
             @keyframes levelUpPulse {
                 0% { transform: translate(-50%, -50%) scale(0.5); opacity: 0; }
@@ -1714,7 +1788,7 @@ function showLevelUpEffect() {
     levelDiv.className = 'level-up-effect';
     levelDiv.innerHTML = `
         <h2>🎊 LEVEL ${gameState.level}! 🎊</h2>
-        <p>Enemies getting smarter!</p>
+        <p>Enemies getting tougher - you got this!</p>
     `;
     
     document.body.appendChild(levelDiv);
@@ -1723,7 +1797,7 @@ function showLevelUpEffect() {
         if (document.body.contains(levelDiv)) {
             document.body.removeChild(levelDiv);
         }
-    }, 2000);
+    }, 2500);
 }
 
 // === SCREEN MANAGEMENT ===
@@ -1987,14 +2061,16 @@ function startGame() {
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
+    // Reset game state with balanced settings
+    const config = window.GameConfig?.gameBalance;
     gameState.player = {
         x: gameState.canvas.width / 2,
         y: gameState.canvas.height / 2,
         size: 18,
-        health: 100,
-        maxHealth: 100,
-        speed: 3.5,
-        baseSpeed: 3.5,
+        health: config?.player?.startingHealth || 100,
+        maxHealth: config?.player?.maxHealth || 100,
+        speed: config?.player?.baseSpeed || 3.8,
+        baseSpeed: config?.player?.baseSpeed || 3.8,
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
         shieldTime: 0,
@@ -2016,14 +2092,21 @@ function startGame() {
     gameState.camera.shake = 0;
     gameState.camera.intensity = 0;
     gameState.totalEnemiesSpawned = 0;
+    gameState.powerupStats = {};
+    gameState.powerupRotationIndex = 0;
+    
+    // Set balanced spawn rates
+    gameState.spawnRate = config?.enemies?.spawnRate?.base || 5500;
+    gameState.powerupSpawnRate = config?.powerups?.spawnRate || 8000;
     
     console.log(`🔵 Player positioned at (${gameState.player.x}, ${gameState.player.y})`);
+    console.log('⚖️ Balanced difficulty settings applied');
     
     setTimeout(() => {
         const hint = document.getElementById('controlsHint');
         if (hint) {
             hint.classList.remove('hidden');
-            setTimeout(() => hint.classList.add('hidden'), 4000);
+            setTimeout(() => hint.classList.add('hidden'), 5000);
         }
     }, 1000);
     
@@ -2076,6 +2159,7 @@ function endGame() {
     authUIManager.onGameEnd();
     
     console.log('🎮 Game Over! Survival time:', formatTime(survivalTime));
+    console.log('📊 Power-up distribution:', gameState.powerupStats);
 }
 
 function restartGame() {
@@ -2211,6 +2295,7 @@ document.addEventListener('DOMContentLoaded', () => {
     goToStartScreen();
     
     console.log('✅ Navigation system initialized successfully!');
+    console.log('⚖️ Game difficulty balanced for better progression!');
 });
 
-console.log('✅ ENHANCED Game script loaded with improved AI, collision system, and auth UI management!');
+console.log('✅ BALANCED Game script loaded with improved difficulty progression!');
