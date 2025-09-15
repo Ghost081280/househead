@@ -123,10 +123,21 @@ body.high-contrast {
     white-space: nowrap;
 }
 
-/* === MOBILE AUTHENTICATION STYLES === */
-/* Desktop-only auth container */
+/* === DESKTOP-ONLY AUTH === */
 .desktop-only {
     display: block;
+}
+
+@media (max-width: 768px) {
+    .desktop-only {
+        display: none !important;
+    }
+}
+
+@media (min-width: 769px) {
+    .desktop-only {
+        display: block !important;
+    }
 }
 
 /* === GLOBAL AUTHENTICATION SECTION === */
@@ -138,11 +149,14 @@ body.high-contrast {
     margin: 15px 0;
     text-align: center;
     transition: all 0.3s ease;
+    animation: authSectionSlide 0.4s ease-out;
 }
 
 .global-auth-section:hover {
     background: linear-gradient(135deg, rgba(66, 133, 244, 0.15), rgba(26, 115, 232, 0.15));
     border-color: rgba(66, 133, 244, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(66, 133, 244, 0.2);
 }
 
 .global-auth-title {
@@ -155,6 +169,8 @@ body.high-contrast {
     justify-content: center;
     gap: 8px;
     font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .global-auth-description {
@@ -182,12 +198,20 @@ body.high-contrast {
     letter-spacing: 1px;
     position: relative;
     overflow: hidden;
+    min-width: 200px;
+    justify-content: center;
+    animation: signInPulse 3s ease-in-out infinite;
 }
 
 .global-sign-in-btn:hover {
     background: linear-gradient(45deg, #5a9df7, #4285f4);
     transform: scale(1.05) translateY(-2px);
     box-shadow: 0 8px 25px rgba(66, 133, 244, 0.6);
+    animation: none;
+}
+
+.global-sign-in-btn:active {
+    transform: scale(0.98);
 }
 
 .global-sign-in-btn:before {
@@ -209,15 +233,18 @@ body.high-contrast {
     font-size: 16px;
 }
 
-/* Signed in state */
+/* === SIGNED IN STATE === */
 .user-signed-in {
     background: linear-gradient(135deg, rgba(68, 255, 68, 0.1), rgba(34, 204, 34, 0.1));
     border-color: rgba(68, 255, 68, 0.3);
+    animation: successGlow 4s ease-in-out infinite;
 }
 
 .user-signed-in:hover {
     background: linear-gradient(135deg, rgba(68, 255, 68, 0.15), rgba(34, 204, 34, 0.15));
     border-color: rgba(68, 255, 68, 0.5);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 20px rgba(68, 255, 68, 0.2);
 }
 
 .signed-in-title {
@@ -230,10 +257,21 @@ body.high-contrast {
     justify-content: center;
     gap: 10px;
     margin-bottom: 10px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    border-radius: 8px;
 }
 
 .user-info .user-avatar {
     font-size: 24px;
+    background: linear-gradient(45deg, #4285f4, #1a73e8);
+    padding: 8px;
+    border-radius: 50%;
+    min-width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .user-info .user-name {
@@ -244,6 +282,7 @@ body.high-contrast {
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
+    font-size: 16px;
 }
 
 .sign-out-btn {
@@ -259,15 +298,74 @@ body.high-contrast {
     text-transform: uppercase;
     letter-spacing: 1px;
     font-weight: bold;
+    min-width: 120px;
 }
 
 .sign-out-btn:hover {
     background: rgba(255, 68, 68, 0.4);
     border-color: var(--primary-color);
-    transform: scale(1.05);
+    transform: scale(1.05) translateY(-1px);
+    box-shadow: 0 4px 15px rgba(255, 68, 68, 0.3);
 }
 
-/* Sign In Modal Styles */
+.sign-out-btn:active {
+    transform: scale(0.98);
+}
+
+/* === ANIMATIONS === */
+@keyframes authSectionSlide {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+@keyframes signInPulse {
+    0%, 100% {
+        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
+    }
+    50% {
+        box-shadow: 0 4px 20px rgba(66, 133, 244, 0.5);
+    }
+}
+
+@keyframes successGlow {
+    0%, 100% {
+        box-shadow: 0 0 10px rgba(68, 255, 68, 0.3);
+    }
+    50% {
+        box-shadow: 0 0 20px rgba(68, 255, 68, 0.6);
+    }
+}
+
+/* Enhanced visual feedback for auth interactions */
+.auth-prompt {
+    position: relative;
+}
+
+.auth-prompt::before {
+    content: '';
+    position: absolute;
+    top: -2px;
+    left: -2px;
+    right: -2px;
+    bottom: -2px;
+    background: linear-gradient(45deg, #4285f4, #1a73e8, #4285f4);
+    border-radius: 14px;
+    z-index: -1;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.auth-prompt:hover::before {
+    opacity: 0.1;
+}
+
+/* === SIGN IN MODAL STYLES === */
 .sign-in-modal {
     max-width: 500px;
     background: linear-gradient(135deg, rgba(0, 0, 0, 0.95) 0%, rgba(20, 0, 20, 0.95) 100%);
@@ -667,47 +765,6 @@ body.high-contrast {
     color: #ff6666;
 }
 
-/* === SUPPORT SECTION STYLING === */
-.support-section {
-    margin-top: 15px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(255, 68, 68, 0.2);
-}
-
-.support-section h4 {
-    font-family: 'Orbitron', monospace;
-    font-size: 12px;
-    color: var(--primary-color);
-    margin-bottom: 8px;
-    text-transform: uppercase;
-    letter-spacing: 1px;
-}
-
-.support-links {
-    display: flex;
-    flex-direction: column;
-    gap: 4px;
-    margin-bottom: 8px;
-}
-
-.support-links p {
-    margin: 0;
-    font-size: 10px;
-    line-height: 1.3;
-}
-
-.support-links strong {
-    color: var(--text-gray);
-    font-weight: bold;
-}
-
-.support-note {
-    font-size: 9px;
-    color: var(--text-dark);
-    font-style: italic;
-    margin-top: 6px;
-}
-
 .button-container {
     display: flex;
     flex-direction: column;
@@ -878,12 +935,16 @@ body.high-contrast {
     border-bottom: 2px solid transparent;
     transition: all var(--transition-fast);
     min-width: auto;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
 }
 
 .tab-btn.active,
 .tab-btn:hover {
     color: var(--primary-color);
     border-bottom-color: var(--primary-color);
+    transform: translateY(-1px);
 }
 
 .tab-btn:disabled {
@@ -1191,7 +1252,6 @@ body.high-contrast {
     margin-bottom: 0.5rem;
 }
 
-/* Loading house placeholder instead of broken image */
 .loading-house-placeholder {
     width: 120px;
     height: 120px;
@@ -1295,84 +1355,8 @@ body.high-contrast {
     50% { opacity: 1; }
 }
 
-/* === GLOBAL AUTH ANIMATIONS === */
-@keyframes authSectionSlide {
-    from {
-        opacity: 0;
-        transform: translateY(-10px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-.global-auth-section:not(.hidden) {
-    animation: authSectionSlide 0.3s ease-out;
-}
-
-/* Enhanced visual feedback for auth interactions */
-.auth-prompt {
-    position: relative;
-}
-
-.auth-prompt::before {
-    content: '';
-    position: absolute;
-    top: -2px;
-    left: -2px;
-    right: -2px;
-    bottom: -2px;
-    background: linear-gradient(45deg, #4285f4, #1a73e8, #4285f4);
-    border-radius: 14px;
-    z-index: -1;
-    opacity: 0;
-    transition: opacity 0.3s ease;
-}
-
-.auth-prompt:hover::before {
-    opacity: 0.1;
-}
-
-/* Subtle pulsing animation for sign-in button */
-@keyframes signInPulse {
-    0%, 100% {
-        box-shadow: 0 4px 12px rgba(66, 133, 244, 0.3);
-    }
-    50% {
-        box-shadow: 0 4px 20px rgba(66, 133, 244, 0.5);
-    }
-}
-
-.global-sign-in-btn {
-    animation: signInPulse 3s ease-in-out infinite;
-}
-
-.global-sign-in-btn:hover {
-    animation: none;
-}
-
-/* Success state animation */
-@keyframes successGlow {
-    0%, 100% {
-        box-shadow: 0 0 10px rgba(68, 255, 68, 0.3);
-    }
-    50% {
-        box-shadow: 0 0 20px rgba(68, 255, 68, 0.6);
-    }
-}
-
-.user-signed-in {
-    animation: successGlow 4s ease-in-out infinite;
-}
-
-/* === MOBILE AUTH RESPONSIVE DESIGN === */
+/* === MOBILE RESPONSIVE === */
 @media (max-width: 768px) {
-    /* Hide desktop auth container on mobile */
-    .desktop-only {
-        display: none !important;
-    }
-    
     /* Global auth section mobile optimizations */
     .global-auth-section {
         padding: 15px;
@@ -1395,6 +1379,7 @@ body.high-contrast {
         padding: 14px 20px;
         font-size: 13px;
         justify-content: center;
+        min-width: 100%;
     }
     
     .user-info {
@@ -1412,6 +1397,7 @@ body.high-contrast {
         width: 100%;
         padding: 10px 16px;
         font-size: 11px;
+        min-width: 100%;
     }
     
     /* Enhanced button container for mobile */
@@ -1454,16 +1440,8 @@ body.high-contrast {
     }
 }
 
-@media (min-width: 769px) {
-    /* Show desktop auth container */
-    .desktop-only {
-        display: block !important;
-    }
-}
-
 /* === DESKTOP ENHANCEMENTS === */
 @media (min-width: 768px) {
-    /* Full-width HUD for desktop */
     #hud {
         left: 0;
         right: 0;
@@ -1498,7 +1476,6 @@ body.high-contrast {
         font-size: 18px;
     }
     
-    /* Refined modal sizing for desktop */
     .modal-overlay {
         padding: 40px;
     }
@@ -1526,7 +1503,6 @@ body.high-contrast {
         padding: 20px 25px;
     }
     
-    /* Refined button sizing */
     .btn {
         min-width: 160px;
         padding: 14px 28px;
@@ -1539,7 +1515,6 @@ body.high-contrast {
         padding: 12px 24px;
     }
     
-    /* Enhanced game screens */
     .game-screen {
         width: 480px;
         padding: 35px;
@@ -1557,7 +1532,6 @@ body.high-contrast {
         justify-content: center;
     }
     
-    /* Share modal improvements */
     .share-buttons {
         gap: 10px;
     }
@@ -1567,7 +1541,6 @@ body.high-contrast {
         font-size: 13px;
     }
     
-    /* Enhanced help sections */
     .help-section {
         padding: 16px;
         border-radius: 10px;
@@ -1587,7 +1560,6 @@ body.high-contrast {
         line-height: 1.5;
     }
     
-    /* Enhanced loading screen */
     .loading-content {
         gap: 2.5rem;
     }
@@ -1612,7 +1584,6 @@ body.high-contrast {
         height: 10px;
     }
     
-    /* Powerup indicators */
     .powerup-indicator {
         padding: 8px 14px;
         font-size: 11px;
@@ -1623,14 +1594,12 @@ body.high-contrast {
         font-size: 12px;
     }
     
-    /* Controls hint */
     .controls-hint {
         font-size: 13px;
         padding: 10px 18px;
         max-width: 500px;
     }
     
-    /* Authentication */
     .auth-container {
         top: 25px;
         right: 25px;
@@ -1643,52 +1612,7 @@ body.high-contrast {
     }
 }
 
-@media (min-width: 1200px) {
-    /* Ultra-wide enhancements */
-    #hud {
-        padding: 15px 60px;
-        height: 80px;
-    }
-    
-    .hud-item {
-        min-width: 120px;
-    }
-    
-    .hud-value {
-        font-size: 22px;
-    }
-    
-    #healthBar {
-        width: 120px;
-        height: 10px;
-    }
-    
-    .modal-content {
-        max-width: 520px;
-    }
-    
-    .game-screen {
-        width: 520px;
-        padding: 40px;
-    }
-    
-    .loading-house-placeholder {
-        width: 160px;
-        height: 160px;
-        font-size: 120px;
-    }
-    
-    .loading-house-image {
-        width: 160px;
-        height: 160px;
-    }
-    
-    .loading-content h2 {
-        font-size: 2.5rem;
-    }
-}
-
-/* === RESPONSIVE DESIGN === */
+/* === SMALL MOBILE === */
 @media (max-width: 600px) {
     .game-screen {
         width: 95vw;
@@ -1751,17 +1675,6 @@ body.high-contrast {
         padding: 6px 12px;
     }
     
-    .auth-container {
-        top: 15px;
-        right: 15px;
-    }
-    
-    .auth-container .btn {
-        min-width: 140px;
-        font-size: 11px;
-        padding: 6px 12px;
-    }
-    
     .modal-content {
         max-width: 95vw;
     }
@@ -1786,7 +1699,6 @@ body.high-contrast {
         padding: 4px 8px;
     }
     
-    /* Loading screen mobile */
     .loading-content {
         padding: 1.5rem;
         gap: 1.5rem;
@@ -1811,7 +1723,6 @@ body.high-contrast {
         font-size: 0.9rem;
     }
     
-    /* Share modal mobile optimizations */
     .share-buttons {
         gap: 8px;
     }
@@ -1829,32 +1740,6 @@ body.high-contrast {
         font-size: 11px;
     }
     
-    /* Support section mobile */
-    .support-links {
-        gap: 2px;
-    }
-    
-    .support-links p {
-        font-size: 9px;
-    }
-    
-    .support-note {
-        font-size: 8px;
-    }
-    
-    .support-contacts {
-        gap: 4px;
-    }
-    
-    .support-contacts p {
-        font-size: 11px;
-    }
-    
-    .help-note {
-        font-size: 9px;
-    }
-    
-    /* Global auth section mobile */
     .global-auth-section {
         padding: 12px;
         margin: 8px 0;
@@ -1885,196 +1770,47 @@ body.high-contrast {
     }
 }
 
-@media (max-width: 400px) {
-    .game-screen {
-        padding: 15px;
-        width: 98vw;
-    }
-    
-    .game-screen header h1 {
-        font-size: 18px;
-    }
-    
-    .title-house-image {
-        width: 18px;
-        height: 18px;
-        margin-right: 4px;
-    }
-    
-    .btn {
-        min-width: 100%;
-        padding: 12px 16px;
-        font-size: 11px;
-    }
-    
-    .button-container {
-        gap: 6px;
-    }
-    
-    .modal-content {
-        padding: 0;
-        margin: 5px;
-    }
-    
-    .modal-header,
-    .modal-footer {
-        padding: 10px 12px;
-    }
-    
-    .modal-body {
-        padding: 12px;
-    }
-    
-    .modal-header h2 {
-        font-size: 14px;
-    }
-    
-    .instruction-section {
-        padding: 6px;
-        margin-bottom: 8px;
-    }
-    
-    .instruction-section h3 {
-        font-size: 10px;
-        margin-bottom: 6px;
-    }
-    
-    .instruction-section p {
-        font-size: 10px;
-    }
-    
-    .controls-hint {
-        font-size: 9px;
-        padding: 4px 8px;
-        left: 5px;
-        right: 5px;
-        transform: none;
-    }
-    
-    /* Loading screen ultra mobile */
-    .loading-content {
-        padding: 1rem;
-        gap: 1.2rem;
-    }
-    
-    .loading-house-placeholder {
-        width: 80px;
-        height: 80px;
-        font-size: 50px;
-    }
-    
-    .loading-house-image {
-        width: 80px;
-        height: 80px;
-    }
-    
-    .loading-content h2 {
-        font-size: 1.3rem;
-    }
-    
-    .loading-tip {
-        font-size: 0.8rem;
-    }
-    
-    /* Ultra-mobile share modal */
-    .share-stats {
-        padding: 10px;
-    }
-    
-    .share-stats p {
-        font-size: 13px;
-    }
-    
-    .share-btn {
-        padding: 10px 12px;
-        font-size: 11px;
-    }
-    
-    .copy-text {
-        font-size: 9px;
-        padding: 6px;
-    }
-    
-    .tab-btn {
-        padding: 6px 8px;
-        font-size: 10px;
-    }
-    
-    .copy-preview {
-        padding: 8px;
-    }
-    
-    .copy-label {
-        font-size: 10px;
-    }
-    
-    /* Ultra-mobile support */
-    .support-links p {
-        font-size: 8px;
-    }
-    
-    .support-note {
-        font-size: 7px;
-    }
-    
-    .support-contacts p {
-        font-size: 10px;
-    }
-    
-    .help-note {
-        font-size: 8px;
-    }
-    
-    .support-section h4 {
-        font-size: 10px;
-    }
-    
-    .help-section.support-info {
-        padding: 8px;
-    }
-    
-    /* Ultra-mobile global auth */
+/* === ACCESSIBILITY === */
+.global-sign-in-btn:focus,
+.sign-out-btn:focus {
+    outline: 2px solid #ffffff;
+    outline-offset: 2px;
+}
+
+.global-auth-section[aria-hidden="true"] {
+    display: none;
+}
+
+/* === HIGH CONTRAST SUPPORT === */
+@media (prefers-contrast: high) {
     .global-auth-section {
-        padding: 10px;
-        margin: 6px 0;
-    }
-    
-    .global-auth-title {
-        font-size: 12px;
-        gap: 2px;
-    }
-    
-    .global-auth-description {
-        font-size: 10px;
-        margin-bottom: 8px;
+        border-width: 3px;
+        background: rgba(66, 133, 244, 0.2);
     }
     
     .global-sign-in-btn {
-        padding: 10px 12px;
-        font-size: 11px;
-        gap: 6px;
-    }
-    
-    .global-sign-in-btn .google-icon {
-        font-size: 14px;
-    }
-    
-    .user-info {
-        gap: 4px;
-    }
-    
-    .user-info .user-avatar {
-        font-size: 20px;
-    }
-    
-    .user-info .user-name {
-        font-size: 12px;
-        max-width: 120px;
+        border: 2px solid #ffffff;
     }
     
     .sign-out-btn {
-        padding: 6px 10px;
-        font-size: 9px;
+        border-width: 3px;
+    }
+}
+
+/* === REDUCED MOTION SUPPORT === */
+@media (prefers-reduced-motion: reduce) {
+    .global-sign-in-btn,
+    .user-signed-in,
+    .auth-prompt::before {
+        animation: none;
+    }
+    
+    .global-sign-in-btn:before {
+        transition: none;
+    }
+    
+    .global-auth-section {
+        transition: none;
     }
 }
 
@@ -2096,63 +1832,7 @@ body.high-contrast {
     border: 0;
 }
 
-/* === ENHANCED ACCESSIBILITY === */
-/* Focus states for accessibility */
-.global-sign-in-btn:focus,
-.sign-out-btn:focus {
-    outline: 2px solid #ffffff;
-    outline-offset: 2px;
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-    .global-auth-section {
-        border-width: 3px;
-        background: rgba(66, 133, 244, 0.2);
-    }
-    
-    .global-sign-in-btn {
-        border: 2px solid #ffffff;
-    }
-    
-    .sign-out-btn {
-        border-width: 3px;
-    }
-}
-
-/* Reduced motion support */
-@media (prefers-reduced-motion: reduce) {
-    .global-sign-in-btn,
-    .user-signed-in,
-    .auth-prompt::before {
-        animation: none;
-    }
-    
-    .global-sign-in-btn:before {
-        transition: none;
-    }
-    
-    .global-auth-section {
-        transition: none;
-    }
-}
-
-/* Enhanced modal content to accommodate new section */
-.modal-content {
-    max-height: 85vh;
-}
-
-.modal-body {
-    max-height: 70vh;
-    overflow-y: auto;
-}
-
-/* Screen reader accessibility */
-.global-auth-section[aria-hidden="true"] {
-    display: none;
-}
-
-/* Print styles */
+/* === PRINT STYLES === */
 @media print {
     .game-screen,
     .modal-overlay {
