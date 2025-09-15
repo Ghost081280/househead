@@ -48,59 +48,76 @@ const GameConfig = {
         }
     },
     
-    // Game Balance Settings (Kid-Friendly)
+    // Game Balance Settings (Kid-Friendly with Better Progression)
     gameBalance: {
         player: {
             startingHealth: 100,
             maxHealth: 100,
-            baseSpeed: 3.5,
+            baseSpeed: 3.8,        // Slightly faster player
             size: 18
         },
         enemies: {
             spawnRate: {
-                base: 4000,        // Slower spawning for kids
-                minimum: 2000,     // Never too overwhelming
-                levelScaling: 0.1  // Gentle difficulty increase
+                base: 5500,           // Much slower initial spawning (was 4000)
+                minimum: 2500,        // Reasonable minimum (was 2000)
+                levelScaling: 0.08    // Even gentler difficulty increase (was 0.1)
             },
             types: {
                 small: {
                     size: 25,
-                    speed: 0.8,
-                    damage: 12,
-                    spawnWeight: 0.7,
-                    activationTime: 2500
+                    speed: 0.7,       // Slower small houses (was 0.8)
+                    damage: 10,       // Less damage (was 12)
+                    spawnWeight: 0.8, // More small houses early on (was 0.7)
+                    activationTime: 3000  // Longer activation time (was 2500)
                 },
                 big: {
                     size: 40,
-                    speed: 0.5,
-                    damage: 20,
-                    spawnWeight: 0.3,
-                    activationTime: 3500
+                    speed: 0.4,       // Much slower big houses (was 0.5)
+                    damage: 18,       // Less damage (was 20)
+                    spawnWeight: 0.2, // Fewer big houses early on (was 0.3)
+                    activationTime: 4500  // Much longer activation time (was 3500)
                 }
+            },
+            // Progressive difficulty scaling by level
+            levelModifiers: {
+                1: { spawnRateMultiplier: 1.0, speedMultiplier: 0.8, damageMultiplier: 0.8 },
+                2: { spawnRateMultiplier: 0.95, speedMultiplier: 0.85, damageMultiplier: 0.9 },
+                3: { spawnRateMultiplier: 0.9, speedMultiplier: 0.9, damageMultiplier: 0.95 },
+                4: { spawnRateMultiplier: 0.85, speedMultiplier: 0.95, damageMultiplier: 1.0 },
+                5: { spawnRateMultiplier: 0.8, speedMultiplier: 1.0, damageMultiplier: 1.0 },
+                6: { spawnRateMultiplier: 0.75, speedMultiplier: 1.05, damageMultiplier: 1.1 },
+                7: { spawnRateMultiplier: 0.7, speedMultiplier: 1.1, damageMultiplier: 1.15 },
+                8: { spawnRateMultiplier: 0.65, speedMultiplier: 1.15, damageMultiplier: 1.2 }
             }
         },
         powerups: {
-            spawnRate: 10000,     // More frequent power-ups
-            despawnTime: 15000,   // Longer available time
+            spawnRate: 8000,         // More frequent power-ups (was 10000)
+            despawnTime: 18000,      // Longer available time (was 15000)
             types: {
                 health: { 
-                    value: 35, 
-                    spawnWeight: 0.5 
+                    value: 40,           // More healing (was 35)
+                    spawnWeight: 0.4,    // Balanced distribution (was 0.5)
+                    color: '#44ff44',
+                    emoji: '💚'
                 },
                 shield: { 
-                    duration: 6000, 
-                    spawnWeight: 0.3 
+                    duration: 7000,      // Longer shield (was 6000)
+                    spawnWeight: 0.3,    // Balanced distribution (same)
+                    color: '#4488ff',
+                    emoji: '🛡️'
                 },
                 freeze: { 
-                    duration: 8000, 
-                    spawnWeight: 0.2 
+                    duration: 9000,      // Longer freeze (was 8000)
+                    spawnWeight: 0.3,    // Equal distribution (was 0.2)
+                    color: '#88ddff',
+                    emoji: '🧊'
                 }
             }
         },
         scoring: {
             pointsPerSecond: 1,
-            levelUpThreshold: 45,   // Seconds to next level
-            difficultyScaling: 0.1  // How much harder each level gets
+            levelUpThreshold: 50,    // Slightly longer levels (was 45)
+            difficultyScaling: 0.08  // Gentler scaling (was 0.1)
         }
     },
     
@@ -159,7 +176,8 @@ const GameConfig = {
             mobile: 600,
             tablet: 1024,
             desktop: 1200
-        }
+        },
+        powerupSize: 20             // Larger power-up icons (was 15)
     },
     
     // PWA Configuration
@@ -196,8 +214,8 @@ const GameConfig = {
     // Performance Settings
     performance: {
         targetFPS: 60,
-        maxEnemies: 20,
-        maxPowerups: 5,
+        maxEnemies: 15,             // Reduced max enemies (was 20)
+        maxPowerups: 6,             // Increased max power-ups (was 5)
         canvasOptimization: true,
         memoryManagement: true,
         backgroundSync: true
@@ -232,6 +250,20 @@ const GameConfig = {
         },
         isValidEmail: (email) => {
             return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+        },
+        // Get level-specific difficulty modifiers
+        getLevelModifiers: (level) => {
+            const modifiers = GameConfig.gameBalance.enemies.levelModifiers;
+            if (modifiers[level]) {
+                return modifiers[level];
+            }
+            // For levels beyond defined modifiers, use exponential scaling
+            const baseMultiplier = Math.min(1.0 + (level - 8) * 0.05, 1.5); // Cap at 50% increase
+            return {
+                spawnRateMultiplier: Math.max(0.5, 0.65 - (level - 8) * 0.02),
+                speedMultiplier: baseMultiplier,
+                damageMultiplier: baseMultiplier
+            };
         }
     },
     
@@ -326,8 +358,9 @@ const initializeConfig = () => {
     
     // Device-specific optimizations
     if (GameConfig.isMobile) {
-        GameConfig.performance.maxEnemies = 15; // Reduce for mobile performance
-        GameConfig.gameBalance.enemies.spawnRate.base = 5000; // Slower spawning on mobile
+        GameConfig.performance.maxEnemies = 12; // Further reduce for mobile performance
+        GameConfig.gameBalance.enemies.spawnRate.base = 6000; // Even slower spawning on mobile
+        GameConfig.gameBalance.powerups.spawnRate = 7000; // More frequent power-ups on mobile
     }
     
     console.log(`📱 Device: ${GameConfig.isMobile ? 'Mobile' : GameConfig.isTablet ? 'Tablet' : 'Desktop'}`);
@@ -342,6 +375,7 @@ const initializeConfig = () => {
     console.log('⚙️ Game configuration loaded successfully');
     console.log('🎮 Version:', GameConfig.version);
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
+    console.log('⚖️ Difficulty balanced for better progression');
 };
 
 // Initialize when DOM is ready
