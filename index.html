@@ -272,11 +272,11 @@
             </div>
             <div class="modal-body">
                 <div class="score-tabs">
-                    <button class="tab-btn active" onclick="showLocalScores()">📱 Local Scores</button>
+                    <button class="tab-btn active" onclick="showLocalScores()" id="localScoresTab">📱 Local Scores</button>
                     <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab">🌍 Global Scores</button>
                 </div>
                 
-                <!-- Global Authentication Section -->
+                <!-- Global Authentication Section (Hidden by default) -->
                 <div id="globalAuthSection" class="global-auth-section hidden">
                     <!-- When not signed in -->
                     <div id="authPrompt" class="auth-prompt">
@@ -413,7 +413,7 @@
                     <p>• Stay away from areas where houses are spawning</p>
                     <p>• Collect power-ups to survive longer</p>
                     <p>• Higher levels = smarter, faster enemies</p>
-                    <p>• Check the High Scores for global competition!</p>
+                    <p>• Check High Scores → Global Scores for worldwide competition!</p>
                 </div>
                 <div class="help-section support-info">
                     <h3>📞 NEED MORE HELP?</h3>
@@ -495,79 +495,116 @@
         
         // Global authentication handlers
         async function handleGoogleSignIn() {
+            console.log('🔐 Attempting Google sign-in...');
             if (window.firebaseManager) {
                 const success = await window.firebaseManager.signInWithGoogle();
                 if (success) {
                     console.log('✅ Signed in successfully');
                     updateGlobalAuthUI();
-                    if (typeof showGlobalLeaderboard === 'function') {
-                        showGlobalLeaderboard();
+                    // Auto-refresh the global leaderboard
+                    if (window.firebaseManager.updateGlobalLeaderboard) {
+                        window.firebaseManager.updateGlobalLeaderboard();
                     }
                 }
             } else {
-                console.warn('Firebase not yet loaded');
+                console.warn('⚠️ Firebase not yet loaded');
+                alert('Authentication system is still loading. Please try again in a moment.');
             }
         }
 
         async function handleSignOut() {
+            console.log('👋 Attempting sign-out...');
             if (window.firebaseManager) {
                 await window.firebaseManager.signOut();
-                console.log('👋 Signed out');
+                console.log('👋 Signed out successfully');
                 updateGlobalAuthUI();
             }
         }
         
         function updateGlobalAuthUI() {
+            console.log('🔄 Updating global auth UI...');
             const isSignedIn = window.firebaseManager && window.firebaseManager.user;
             const authPrompt = document.getElementById('authPrompt');
             const userSignedIn = document.getElementById('userSignedIn');
             const globalUserName = document.getElementById('globalUserName');
+            const globalScoresTab = document.getElementById('globalScoresTab');
+            
+            console.log('🔍 Sign-in status:', isSignedIn);
             
             if (isSignedIn) {
+                // Show signed-in state
                 if (authPrompt) authPrompt.classList.add('hidden');
                 if (userSignedIn) userSignedIn.classList.remove('hidden');
                 if (globalUserName && window.firebaseManager.user) {
                     globalUserName.textContent = window.firebaseManager.user.displayName || 'Player';
                 }
+                // Enable global scores tab
+                if (globalScoresTab) {
+                    globalScoresTab.disabled = false;
+                    globalScoresTab.style.opacity = '1';
+                    globalScoresTab.style.cursor = 'pointer';
+                }
             } else {
+                // Show sign-in prompt
                 if (authPrompt) authPrompt.classList.remove('hidden');
                 if (userSignedIn) userSignedIn.classList.add('hidden');
+                // Keep global scores tab enabled so users can see the auth prompt
+                if (globalScoresTab) {
+                    globalScoresTab.disabled = false;
+                    globalScoresTab.style.opacity = '1';
+                    globalScoresTab.style.cursor = 'pointer';
+                }
             }
         }
         
-        // Score tab switching
+        // Score tab switching functions
         function showLocalScores() {
+            console.log('📱 Showing local scores...');
+            
+            // Update tab appearance
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('localScoresTab').classList.add('active');
+            
+            // Show/hide content
             document.getElementById('highScoresList').style.display = 'block';
             document.getElementById('globalLeaderboardList').style.display = 'none';
             document.getElementById('globalAuthSection').classList.add('hidden');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // Load local scores
             if (typeof displayHighScores === 'function') {
                 displayHighScores();
+            } else {
+                console.log('⚠️ displayHighScores function not available yet');
             }
         }
         
         function showGlobalScores() {
+            console.log('🌍 Showing global scores...');
+            
+            // Update tab appearance
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('globalScoresTab').classList.add('active');
+            
+            // Show/hide content
             document.getElementById('highScoresList').style.display = 'none';
             document.getElementById('globalLeaderboardList').style.display = 'block';
             document.getElementById('globalAuthSection').classList.remove('hidden');
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            event.target.classList.add('active');
+            
+            // Update the auth UI to show current state
             updateGlobalAuthUI();
-            if (window.firebaseManager) {
-                window.firebaseManager.updateGlobalLeaderboard();
-            }
-        }
-        
-        // Global leaderboard function
-        function showGlobalLeaderboard() {
-            showHighScores();
-            setTimeout(() => {
-                const globalTab = document.getElementById('globalScoresTab');
-                if (globalTab && !globalTab.disabled) {
-                    globalTab.click();
+            
+            // Load global scores if signed in
+            if (window.firebaseManager && window.firebaseManager.user) {
+                if (window.firebaseManager.updateGlobalLeaderboard) {
+                    window.firebaseManager.updateGlobalLeaderboard();
                 }
-            }, 100);
+            } else {
+                // Show placeholder for not signed in
+                const globalList = document.getElementById('globalLeaderboardList');
+                if (globalList) {
+                    globalList.innerHTML = '<p style="text-align: center; color: #888; font-style: italic;">Sign in above to view and compete on the global leaderboard!</p>';
+                }
+            }
         }
         
         // Enhanced share modal functions
@@ -704,11 +741,40 @@ Play now: https://www.househeadchase.com`;
             return 0;
         }
         
-        // Update auth UI when Firebase is ready
+        // Initialize auth UI when Firebase becomes available
+        function initializeAuthSystem() {
+            console.log('🔧 Initializing auth system...');
+            
+            // Wait for Firebase to be ready
+            const checkFirebaseReady = () => {
+                if (window.GameConfig && window.firebaseManager) {
+                    console.log('🔥 Firebase is ready, updating auth UI...');
+                    updateGlobalAuthUI();
+                    
+                    // Listen for auth state changes
+                    if (window.firebaseManager.auth) {
+                        console.log('👂 Setting up auth state listener...');
+                        // The firebase integration should handle auth state changes
+                    }
+                } else {
+                    console.log('⏳ Waiting for Firebase to load...');
+                    setTimeout(checkFirebaseReady, 500);
+                }
+            };
+            
+            checkFirebaseReady();
+        }
+        
+        // Initialize when DOM and config are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM loaded, setting up auth system...');
+            initializeAuthSystem();
+        });
+        
+        // Also listen for the config ready event
         window.addEventListener('configReady', () => {
-            setTimeout(() => {
-                updateGlobalAuthUI();
-            }, 1000);
+            console.log('⚙️ Config ready, setting up auth system...');
+            setTimeout(initializeAuthSystem, 100);
         });
         
         // Hide loading screen when everything is ready
