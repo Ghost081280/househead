@@ -1599,17 +1599,7 @@ body.high-contrast {
         padding: 10px 18px;
         max-width: 500px;
     }
-    
-    .auth-container {
-        top: 25px;
-        right: 25px;
-    }
-    
-    .auth-container .btn {
-        min-width: 160px;
-        font-size: 13px;
-        padding: 10px 18px;
-    }
+}
 }
 
 /* === SMALL MOBILE === */
