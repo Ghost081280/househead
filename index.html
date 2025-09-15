@@ -89,18 +89,7 @@
     <div id="gameContainer">
         <canvas id="gameCanvas" aria-label="House Head Chase Game Canvas" role="application"></canvas>
         
-        <!-- Desktop Authentication Container -->
-        <div id="authContainer" class="auth-container hidden desktop-only">
-            <button id="signInBtn" class="btn secondary" onclick="showSignInModal()" 
-                    aria-label="Sign in with Google to save scores">
-                👤 Sign In with Google
-            </button>
-            <button id="signOutBtn" class="btn secondary hidden" onclick="handleSignOut()" 
-                    aria-label="Sign out">
-                👋 Sign Out
-            </button>
-            <div id="userProfile" class="user-profile hidden" aria-live="polite"></div>
-        </div>
+        <!-- Desktop auth removed - now handled in High Scores modal -->
         
         <!-- HUD - Game Interface -->
         <div id="hud" class="hidden" role="toolbar" aria-label="Game HUD">
