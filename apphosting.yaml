@@ -1,0 +1,51 @@
+# Firebase App Hosting Configuration for House Head Chase
+# This file tells Firebase how to build and deploy your static web app
+
+# Specify the runtime environment
+runConfig:
+  # Use Node.js runtime for any build scripts
+  runtime: nodejs18
+
+# Build configuration
+buildConfig:
+  # Commands to run during build
+  commands:
+    # Install dependencies if package.json exists
+    - npm install --production
+    # Generate icons and build assets
+    - npm run build:icons || echo "Icon generation skipped"
+    # Run any build optimizations
+    - npm run build || echo "Build script not found, using static files"
+
+# Static file serving configuration
+serveConfig:
+  # Specify the directory to serve static files from
+  staticAssets:
+    # Serve files from the root directory
+    directory: "."
+    # Include all necessary file types
+    include:
+      - "**/*.html"
+      - "**/*.css" 
+      - "**/*.js"
+      - "**/*.json"
+      - "**/*.png"
+      - "**/*.svg"
+      - "**/*.ico"
+      - "**/*.xml"
+      - "**/*.txt"
+      - "icons/**/*"
+    # Exclude development files
+    exclude:
+      - "node_modules/**/*"
+      - ".git/**/*"
+      - "scripts/**/*"
+      - "*.md"
+      - "*.log"
+      - ".firebaserc"
+      - "firebase.json"
+      - "package*.json"
+
+# Environment variables (if needed)
+env:
+  NODE_ENV: "production"
