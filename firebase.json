@@ -1,6 +1,6 @@
 {
   "hosting": {
-    "public": "./",
+    "public": ".",
     "ignore": [
       "firebase.json",
       "**/.*",
@@ -10,7 +10,8 @@
       "package*.json",
       ".gitignore",
       ".firebaserc",
-      "**/*.log"
+      "**/*.log",
+      "apphosting.yaml"
     ],
     "rewrites": [
       {
@@ -74,24 +75,10 @@
     "rules": "firestore.rules",
     "indexes": "firestore.indexes.json"
   },
-  "auth": {
-    "settings": {
-      "appVerificationDisabledForTesting": false
-    }
-  },
-  "emulators": {
-    "auth": {
-      "port": 9099
-    },
-    "firestore": {
-      "port": 8080
-    },
-    "hosting": {
-      "port": 5000
-    },
-    "ui": {
-      "enabled": true,
-      "port": 4000
+  "apphosting": {
+    "source": {
+      "projectId": "house-head-chase",
+      "location": "us-central1"
     }
   }
 }
