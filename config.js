@@ -28,16 +28,23 @@ const GameConfig = {
         offlineMode: true
     },
     
-    // Firebase Configuration (placeholder - replace with your Firebase config)
+    // Firebase Configuration - REPLACE WITH YOUR ACTUAL VALUES
     firebase: {
         config: {
-            // Replace these with your actual Firebase config values
-            apiKey: "your-api-key-here",
+            // To get these values:
+            // 1. Go to Firebase Console (https://console.firebase.google.com)
+            // 2. Select your project
+            // 3. Click the gear icon → Project settings
+            // 4. Scroll down to "Your apps" section
+            // 5. Click on your web app or "Add app" if you haven't created one
+            // 6. Copy the config object values below
+            
+            apiKey: "AIzaSyExample-Replace-With-Your-Actual-API-Key",
             authDomain: "house-head-chase.firebaseapp.com",
             projectId: "house-head-chase",
             storageBucket: "house-head-chase.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456",
+            messagingSenderId: "123456789012",
+            appId: "1:123456789012:web:abcdef1234567890",
             measurementId: "G-XXXXXXXXXX"
         },
         // Firestore collection names
@@ -376,6 +383,12 @@ const initializeConfig = () => {
     console.log('🎮 Version:', GameConfig.version);
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
+    
+    // Firebase configuration warning
+    if (GameConfig.firebase.config.apiKey.includes('Example')) {
+        console.warn('⚠️ Firebase configuration not updated! Please replace with your actual Firebase config values.');
+        console.warn('📋 See comments in config.js for instructions on how to get these values.');
+    }
 };
 
 // Initialize when DOM is ready
