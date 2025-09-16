@@ -1,0 +1,80 @@
+// Firestore Security Rules for House Head Chase
+// Kid-safe and COPPA compliant rules
+
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Global high scores - read access for all, write access for authenticated users only
+    match /globalScores/{scoreId} {
+      // Anyone can read global scores
+      allow read: if true;
+      
+      // Only authenticated users can submit scores
+      allow create: if request.auth != null 
+        && request.auth.uid == resource.data.userId
+        && validateScoreData(request.resource.data);
+      
+      // Users can update only their own scores
+      allow update: if request.auth != null 
+        && request.auth.uid == resource.data.userId
+        && validateScoreData(request.resource.data);
+      
+      // Users can delete only their own scores
+      allow delete: if request.auth != null 
+        && request.auth.uid == resource.data.userId;
+    }
+    
+    // User profiles - users can only access their own data
+    match /users/{userId} {
+      allow read, write: if request.auth != null 
+        && request.auth.uid == userId
+        && validateUserData(request.resource.data);
+    }
+    
+    // Feedback collection - authenticated users can submit feedback
+    match /feedback/{feedbackId} {
+      allow create: if request.auth != null
+        && validateFeedbackData(request.resource.data);
+      
+      // Only allow reading feedback for moderators (future feature)
+      allow read: if false;
+    }
+    
+    // Helper functions for data validation
+    function validateScoreData(data) {
+      return data.keys().hasAll(['userId', 'playerName', 'score', 'level', 'survivalTime', 'timestamp'])
+        && data.userId is string
+        && data.playerName is string 
+        && data.playerName.size() <= 50
+        && data.score is number
+        && data.score >= 0
+        && data.score <= 86400  // Max 24 hours survival time
+        && data.level is number
+        && data.level >= 1
+        && data.level <= 1000   // Reasonable max level
+        && data.survivalTime is number
+        && data.survivalTime >= 0
+        && data.timestamp is timestamp;
+    }
+    
+    function validateUserData(data) {
+      return data.keys().hasAll(['displayName', 'email', 'createdAt'])
+        && data.displayName is string
+        && data.displayName.size() <= 50
+        && data.email is string
+        && data.email.matches('.*@.*\\..*')  // Basic email format
+        && data.createdAt is timestamp;
+    }
+    
+    function validateFeedbackData(data) {
+      return data.keys().hasAll(['userId', 'message', 'timestamp', 'type'])
+        && data.userId is string
+        && data.message is string
+        && data.message.size() <= 1000  // Max 1000 characters
+        && data.timestamp is timestamp
+        && data.type in ['bug', 'suggestion', 'compliment', 'other'];
+    }
+  }
+}
