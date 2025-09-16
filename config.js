@@ -28,24 +28,16 @@ const GameConfig = {
         offlineMode: true
     },
     
-    // Firebase Configuration - REPLACE WITH YOUR ACTUAL VALUES
+    // Firebase Configuration - YOUR ACTUAL VALUES
     firebase: {
         config: {
-            // To get these values:
-            // 1. Go to Firebase Console (https://console.firebase.google.com)
-            // 2. Select your project
-            // 3. Click the gear icon → Project settings
-            // 4. Scroll down to "Your apps" section
-            // 5. Click on your web app or "Add app" if you haven't created one
-            // 6. Copy the config object values below
-            
-            apiKey: "AIzaSyExample-Replace-With-Your-Actual-API-Key",
+            apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
             authDomain: "house-head-chase.firebaseapp.com",
             projectId: "house-head-chase",
-            storageBucket: "house-head-chase.appspot.com",
-            messagingSenderId: "123456789012",
-            appId: "1:123456789012:web:abcdef1234567890",
-            measurementId: "G-XXXXXXXXXX"
+            storageBucket: "house-head-chase.firebasestorage.app",
+            messagingSenderId: "947955836936",
+            appId: "1:947955836936:web:3f146e5a496c9e3f8ac9bd",
+            measurementId: "G-FT0GWN6BLB"
         },
         // Firestore collection names
         collections: {
@@ -147,7 +139,7 @@ const GameConfig = {
     analytics: {
         enabled: true,
         googleAnalytics: {
-            measurementId: "G-XXXXXXXXXX" // Replace with your GA4 measurement ID
+            measurementId: "G-FT0GWN6BLB" // Your actual GA4 measurement ID
         },
         events: {
             gameStart: 'game_start',
@@ -384,23 +376,5 @@ const initializeConfig = () => {
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
     
-    // Firebase configuration warning
-    if (GameConfig.firebase.config.apiKey.includes('Example')) {
-        console.warn('⚠️ Firebase configuration not updated! Please replace with your actual Firebase config values.');
-        console.warn('📋 See comments in config.js for instructions on how to get these values.');
-    }
-};
-
-// Initialize when DOM is ready
-if (document.readyState === 'loading') {
-    document.addEventListener('DOMContentLoaded', initializeConfig);
-} else {
-    initializeConfig();
-}
-
-// Export for ES6 modules
-if (typeof module !== 'undefined' && module.exports) {
-    module.exports = GameConfig;
-}
-
-console.log('✅ Config module loaded');
+    console.log('✅ Config module loaded');
+    console.log('🔥 Firebase configured with your project settings');
