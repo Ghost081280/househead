@@ -1,0 +1,108 @@
+{
+  "name": "house-head-chase",
+  "version": "2.0.0",
+  "description": "🏠 House Head Chase - A fun survival game for kids where you avoid walking House Heads!",
+  "main": "index.html",
+  "private": true,
+  "keywords": [
+    "kids-game",
+    "survival",
+    "browser-game", 
+    "pwa",
+    "family-friendly",
+    "educational",
+    "mobile-game",
+    "firebase",
+    "google-signin",
+    "leaderboard"
+  ],
+  "author": {
+    "name": "House Head Chase Team",
+    "email": "hello@househeadchase.com",
+    "url": "https://www.househeadchase.com"
+  },
+  "license": "MIT",
+  "homepage": "https://www.househeadchase.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/househeadchase/house-head-chase.git"
+  },
+  "bugs": {
+    "url": "https://github.com/househeadchase/house-head-chase/issues",
+    "email": "support@househeadchase.com"
+  },
+  "scripts": {
+    "start": "npx http-server . -p 3000 -c-1 --cors",
+    "dev": "npm start",
+    "build": "node scripts/build.js",
+    "build:icons": "node scripts/generate-icons.js",
+    "test": "npm run test:game && npm run test:pwa",
+    "test:game": "node scripts/test-game.js",
+    "test:pwa": "lighthouse http://localhost:3000 --output html --quiet",
+    "lint": "eslint *.js --fix || true",
+    "deploy:firebase": "npm run build && firebase deploy",
+    "deploy:staging": "firebase use staging && firebase deploy",
+    "deploy:production": "firebase use production && firebase deploy",
+    "setup": "npm install && npm run build:icons",
+    "clean": "rm -rf dist/ .cache/ reports/",
+    "validate": "node scripts/validate.js",
+    "serve": "firebase serve --only hosting",
+    "emulate": "firebase emulators:start"
+  },
+  "devDependencies": {
+    "firebase-tools": "^13.0.0",
+    "http-server": "^14.1.1",
+    "lighthouse": "^11.4.0",
+    "eslint": "^8.57.0"
+  },
+  "dependencies": {
+    "sharp": "^0.33.2"
+  },
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=8.0.0"
+  },
+  "browserslist": [
+    "> 1%",
+    "last 2 versions", 
+    "not dead",
+    "not ie <= 11"
+  ],
+  "pwa": {
+    "name": "House Head Chase",
+    "short_name": "HouseHeadChase",
+    "description": "Fun survival game for kids - avoid the walking houses!",
+    "theme_color": "#ff4444",
+    "background_color": "#000000",
+    "display": "standalone"
+  },
+  "gameConfig": {
+    "title": "House Head Chase",
+    "version": "2.0.0",
+    "genre": "Family/Kids",
+    "rating": "E (Everyone)",
+    "platforms": ["Web", "PWA", "Mobile"],
+    "targetAudience": "Kids 8+",
+    "features": [
+      "Kid-Safe Gameplay",
+      "Google Sign-In",
+      "Global Leaderboard", 
+      "Offline Play",
+      "Touch Controls",
+      "No Ads",
+      "COPPA Compliant"
+    ]
+  },
+  "social": {
+    "website": "https://www.househeadchase.com",
+    "twitter": "https://x.com/househeadchase",
+    "support": "support@househeadchase.com"
+  },
+  "firebase": {
+    "projects": {
+      "default": "house-head-chase",
+      "staging": "house-head-chase-staging",
+      "production": "house-head-chase"
+    }
+  }
+}

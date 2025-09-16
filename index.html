@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🏠 House Head Chase - Fun Survival Game for Kids!</title>
+    
+    <!-- SEO Meta Tags -->
+    <meta name="description" content="House Head Chase - A fun, kid-friendly survival game! Avoid walking House Heads, collect power-ups, and compete on global leaderboards. Free to play, no downloads needed!">
+    <meta name="keywords" content="kids game, survival game, house head chase, family game, browser game, free game, no download, safe for kids">
+    <meta name="author" content="House Head Chase">
+    <meta name="robots" content="index, follow">
+    <link rel="canonical" href="https://www.househeadchase.com/">
+    
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:title" content="🏠 House Head Chase - Fun Survival Game for Kids!">
+    <meta property="og:description" content="A fun, kid-friendly survival game where you avoid walking House Heads! Free to play with global leaderboards.">
+    <meta property="og:image" content="https://www.househeadchase.com/icons/social-preview.png">
+    <meta property="og:url" content="https://www.househeadchase.com/">
+    <meta property="og:site_name" content="House Head Chase">
+    
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="🏠 House Head Chase - Fun Game for Kids!">
+    <meta name="twitter:description" content="Avoid walking House Heads in this fun survival game! Free to play, kid-friendly, and safe.">
+    <meta property="og:image" content="https://www.househeadchase.com/icons/social-preview.png">
+    <meta name="twitter:site" content="@househeadchase">
+    <meta name="twitter:creator" content="@househeadchase">
+    
+    <!-- PWA Meta Tags -->
+    <meta name="theme-color" content="#ff4444">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="House Head Chase">
+    <meta name="mobile-web-app-capable" content="yes">
+    <link rel="manifest" href="manifest.json">
+    
+    <!-- Preload critical resources -->
+    <link rel="preload" href="styles.css" as="style">
+    <link rel="preload" href="config.js" as="script">
+    <link rel="preload" href="game.js" as="script">
+    <link rel="dns-prefetch" href="//fonts.googleapis.com">
+    <link rel="dns-prefetch" href="//www.gstatic.com">
+    
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Creepster&family=Orbitron:wght@400;700;900&family=Exo+2:wght@300;400;700&display=swap" rel="stylesheet">
+    
+    <link rel="stylesheet" href="styles.css">
+    
+    <!-- Structured Data for SEO -->
+    <script type="application/ld+json">
+    {
+        "@context": "https://schema.org",
+        "@type": "Game",
+        "name": "House Head Chase",
+        "description": "A fun, kid-friendly survival game where you avoid walking House Heads! Features power-ups, global leaderboards, and safe gameplay for children.",
+        "url": "https://www.househeadchase.com",
+        "genre": "Survival",
+        "gamePlatform": ["Web Browser", "Mobile", "PWA"],
+        "operatingSystem": "Any",
+        "applicationCategory": "Game",
+        "audience": {
+            "@type": "Audience",
+            "audienceType": "Children",
+            "suggestedMinAge": 8
+        },
+        "offers": {
+            "@type": "Offer",
+            "price": "0",
+            "priceCurrency": "USD",
+            "availability": "https://schema.org/InStock"
+        },
+        "publisher": {
+            "@type": "Organization",
+            "name": "House Head Chase",
+            "url": "https://www.househeadchase.com"
+        },
+        "sameAs": [
+            "https://x.com/househeadchase"
+        ]
+    }
+    </script>
+</head>
+<body>
+    <!-- Game Container -->
+    <div id="gameContainer">
+        <canvas id="gameCanvas" aria-label="House Head Chase Game Canvas" role="application"></canvas>
+        
+        <!-- Desktop auth removed - now handled in High Scores modal -->
+        
+        <!-- HUD - Game Interface -->
+        <div id="hud" class="hidden" role="toolbar" aria-label="Game HUD">
+            <div class="hud-item">
+                <span class="hud-label">Health</span>
+                <div id="healthBar" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="100" aria-label="Player health">
+                    <div id="healthFill"></div>
+                </div>
+                <span id="health" aria-live="polite">100</span>
+            </div>
+            
+            <div class="hud-item">
+                <span class="hud-label">Time</span>
+                <span class="hud-value" id="survivalTime" aria-live="polite" aria-label="Survival time">0:00</span>
+            </div>
+            
+            <div class="hud-item">
+                <span class="hud-label">Level</span>
+                <span class="hud-value" id="level" aria-live="polite" aria-label="Current level">1</span>
+            </div>
+            
+            <button id="audioToggle" class="audio-btn" onclick="soundSystem?.toggle()" 
+                    aria-label="Toggle game audio" title="Toggle Sound">🔊</button>
+        </div>
+        
+        <!-- Power-up Indicators -->
+        <div id="powerupIndicators" class="hidden" aria-live="polite" aria-label="Active power-ups"></div>
+        
+        <!-- Flashlight Indicator -->
+        <div id="flashlightIndicator" class="hidden" aria-live="polite" aria-label="Flashlight status">
+            <span class="flashlight-icon" aria-hidden="true">🔦</span>
+            <span class="flashlight-text">LIGHT ON</span>
+        </div>
+        
+        <!-- Controls Hint -->
+        <div id="controlsHint" class="controls-hint hidden" role="tooltip">
+            🔦 DOUBLE TAP for flashlight • 📱 Drag blue dot to move • 💡 Use light strategically!
+        </div>
+    </div>
+    
+    <!-- Start Screen -->
+    <div id="startScreen" class="game-screen" role="main">
+        <header>
+            <h1>🏠 HOUSE HEAD CHASE</h1>
+            <p class="game-tagline">Fun Survival Game for Kids!</p>
+        </header>
+        
+        <div class="instructions">
+            <div class="instruction-section">
+                <h3>🎯 YOUR MISSION</h3>
+                <p><strong>Survive as long as you can!</strong></p>
+                <p>🔵 You're the <strong>blue dot</strong> - stay alive!</p>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🎮 HOW TO PLAY</h3>
+                <p>📱 <strong>Drag the blue dot</strong> to move around</p>
+                <p>🔦 <strong>Double tap</strong> anywhere for flashlight</p>
+                <p>⚡ <strong>Collect colorful power-ups</strong> for help!</p>
+            </div>
+            
+            <div class="instruction-section">
+                <h3>🏠 WATCH OUT!</h3>
+                <p>👾 <strong>House Heads spawn and hunt you!</strong></p>
+                <p>💔 <strong>Don't let them catch you!</strong></p>
+                <p>🔦 <strong>Flashlight shows enemies but attracts them!</strong></p>
+            </div>
+        </div>
+        
+        <div class="button-container">
+            <button class="btn primary" id="startGameBtn" onclick="startGame()" 
+                    aria-label="Start new game">🎮 START GAME</button>
+            <button class="btn secondary" id="showHighScoresBtn" onclick="showHighScores()" 
+                    aria-label="View high scores">🏆 HIGH SCORES</button>
+            <button class="btn secondary" id="showHelpBtn" onclick="showHelp()" 
+                    aria-label="Show help and instructions">❓ HELP</button>
+        </div>
+        
+        <footer class="game-footer">
+            <p>🆓 Free to play • 👨‍👩‍👧‍👦 Kid-safe • 📱 No download needed</p>
+        </footer>
+    </div>
+    
+    <!-- Game Over Screen -->
+    <div id="gameOver" class="game-screen hidden" role="dialog" aria-labelledby="gameOverTitle">
+        <h2 id="gameOverTitle">💀 GAME OVER!</h2>
+        <p>🏠 The House Heads caught you!</p>
+        <div class="stats" role="group" aria-label="Final game statistics">
+            <p>⏰ Survival Time: <strong id="finalTime">0:00</strong></p>
+            <p>📊 Level Reached: <strong id="finalLevel">1</strong></p>
+            <div id="globalRankInfo" class="global-rank hidden">
+                <p>🌍 Global Rank: <strong id="globalRank">#-</strong></p>
+            </div>
+        </div>
+        <div class="button-container">
+            <button class="btn primary" id="restartGameBtn" onclick="restartGame()" 
+                    aria-label="Play again">🔄 PLAY AGAIN</button>
+            <button class="btn secondary" id="shareScoreBtn" onclick="showShareModal()" 
+                    aria-label="Share your score">📤 SHARE SCORE</button>
+            <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()" 
+                    aria-label="Return to main menu">🏠 MAIN MENU</button>
+        </div>
+    </div>
+    
+    <!-- Google Sign In Modal -->
+    <div id="signInModal" class="modal-overlay hidden" role="dialog" aria-labelledby="signInTitle">
+        <div class="modal-content sign-in-modal">
+            <div class="modal-header">
+                <h2 id="signInTitle">🌍 JOIN GLOBAL LEADERBOARD</h2>
+                <button class="close-btn" onclick="closeSignInModal()" aria-label="Close sign in modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="sign-in-benefits">
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🏆</span>
+                        <div class="benefit-text">
+                            <h4>Compete Globally</h4>
+                            <p>See how you rank against players worldwide!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">💾</span>
+                        <div class="benefit-text">
+                            <h4>Save Your Scores</h4>
+                            <p>Never lose your best survival times!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">🎯</span>
+                        <div class="benefit-text">
+                            <h4>Track Progress</h4>
+                            <p>Watch your skills improve over time!</p>
+                        </div>
+                    </div>
+                    <div class="benefit-item">
+                        <span class="benefit-icon">👨‍👩‍👧‍👦</span>
+                        <div class="benefit-text">
+                            <h4>Kid-Safe</h4>
+                            <p>COPPA compliant - safe for children!</p>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="sign-in-action">
+                    <button class="btn primary google-sign-in-btn" onclick="handleGoogleSignIn(); closeSignInModal();" 
+                            aria-label="Sign in with Google">
+                        <span class="google-icon">🌍</span>
+                        <span class="sign-in-text">Sign In with Google</span>
+                    </button>
+                    <p class="privacy-note">
+                        We only collect your name and email to save your scores. 
+                        <br>No personal data is shared or sold.
+                    </p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeSignInModal()">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- High Scores Modal -->
+    <div id="highScoresModal" class="modal-overlay hidden" role="dialog" aria-labelledby="highScoresTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="highScoresTitle">🏆 HIGH SCORES</h2>
+                <button class="close-btn" id="closeHighScoresBtn" onclick="closeHighScores()" 
+                        aria-label="Close high scores">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="score-tabs">
+                    <button class="tab-btn active" onclick="showLocalScores()" id="localScoresTab">📱 Local Scores</button>
+                    <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab">🌍 Global Scores</button>
+                </div>
+                
+                <!-- Global Authentication Section (Hidden by default) -->
+                <div id="globalAuthSection" class="global-auth-section hidden">
+                    <!-- When not signed in -->
+                    <div id="authPrompt" class="auth-prompt">
+                        <div class="global-auth-title">
+                            🌍 <span>Join Global Competition</span>
+                        </div>
+                        <p class="global-auth-description">
+                            Sign in with Google to compete with players worldwide and save your scores to the cloud!
+                        </p>
+                        <button class="global-sign-in-btn" onclick="handleGoogleSignIn()" 
+                                aria-label="Sign in with Google for global leaderboard">
+                            <span class="google-icon">🌍</span>
+                            <span>Sign In with Google</span>
+                        </button>
+                    </div>
+                    
+                    <!-- When signed in -->
+                    <div id="userSignedIn" class="user-signed-in hidden">
+                        <div class="global-auth-title signed-in-title">
+                            ✅ <span>Global Competition Active</span>
+                        </div>
+                        <div class="user-info">
+                            <span class="user-avatar">👤</span>
+                            <span class="user-name" id="globalUserName">Player</span>
+                        </div>
+                        <p class="global-auth-description">
+                            Your scores are automatically saved to the global leaderboard!
+                        </p>
+                        <button class="sign-out-btn" onclick="handleSignOut()" 
+                                aria-label="Sign out from global leaderboard">
+                            👋 Sign Out
+                        </button>
+                    </div>
+                </div>
+                
+                <div id="highScoresList" role="list" aria-label="High scores list">
+                    <p>Loading scores...</p>
+                </div>
+                <div id="globalLeaderboardList" role="list" aria-label="Global leaderboard" style="display: none;">
+                    <p>Loading global scores...</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" id="closeHighScoresFooterBtn" onclick="closeHighScores()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Share Modal -->
+    <div id="shareModal" class="modal-overlay hidden" role="dialog" aria-labelledby="shareTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="shareTitle">📤 SHARE YOUR SCORE</h2>
+                <button class="close-btn" onclick="closeShareModal()" aria-label="Close share modal">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="share-stats">
+                    <p>🏠 Survived: <strong id="shareTimeValue">0:00</strong></p>
+                    <p>📊 Level: <strong id="shareLevelValue">1</strong></p>
+                </div>
+                
+                <div class="share-buttons">
+                    <button class="btn primary share-btn" onclick="shareToX()" aria-label="Share on X (Twitter)">
+                        <span class="share-icon">🐦</span>
+                        Share on X
+                    </button>
+                    <button class="btn secondary share-btn" onclick="shareToFacebook()" aria-label="Share on Facebook">
+                        <span class="share-icon">📘</span>
+                        Share on Facebook
+                    </button>
+                    <button class="btn secondary share-btn" onclick="copyScoreToClipboard()" aria-label="Copy score to clipboard">
+                        <span class="share-icon">📋</span>
+                        Copy to Clipboard
+                    </button>
+                </div>
+                
+                <div class="copy-preview">
+                    <div class="copy-label">Preview:</div>
+                    <div class="copy-text" id="copyPreviewText">
+                        🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
+
+                        Play now: https://www.househeadchase.com
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn secondary" onclick="closeShareModal()">Close</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Help Modal -->
+    <div id="helpModal" class="modal-overlay hidden" role="dialog" aria-labelledby="helpTitle">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2 id="helpTitle">❓ HELP</h2>
+                <button class="close-btn" id="closeHelpBtn" onclick="closeHelp()" 
+                        aria-label="Close help">×</button>
+            </div>
+            <div class="modal-body">
+                <div class="help-section">
+                    <h3>🎯 OBJECTIVE</h3>
+                    <p>Survive as long as possible while avoiding House Heads!</p>
+                </div>
+                <div class="help-section">
+                    <h3>🎮 CONTROLS</h3>
+                    <p><strong>📱 Mobile:</strong> Touch and drag the blue dot to move</p>
+                    <p><strong>🖥️ Desktop:</strong> Click and drag with mouse</p>
+                    <p><strong>🔦 Flashlight:</strong> Double tap/click anywhere to toggle</p>
+                </div>
+                <div class="help-section">
+                    <h3>🏠 ENEMIES</h3>
+                    <p><strong>Small Houses:</strong> Fast but less damage (12 HP)</p>
+                    <p><strong>Big Houses:</strong> Slow but more damage (20 HP)</p>
+                    <p>Houses spawn → grow legs → hunt you down!</p>
+                </div>
+                <div class="help-section">
+                    <h3>⚡ POWER-UPS</h3>
+                    <p><strong>💚 Health Pack:</strong> Restore 35 health points</p>
+                    <p><strong>🛡️ Shield:</strong> 6 seconds of invincibility</p>
+                    <p><strong>🧊 House Freeze:</strong> Turn houses back to safe mode for 8 seconds</p>
+                </div>
+                <div class="help-section">
+                    <h3>🔦 FLASHLIGHT STRATEGY</h3>
+                    <p><strong>Light ON:</strong> See all nearby enemies clearly</p>
+                    <p><strong>But:</strong> Enemies will hunt you aggressively!</p>
+                    <p><strong>Light OFF:</strong> Enemies wander randomly</p>
+                    <p><strong>But:</strong> You can only see enemies up close!</p>
+                </div>
+                <div class="help-section">
+                    <h3>💡 TIPS FOR SUCCESS</h3>
+                    <p>• Use flashlight strategically - not all the time!</p>
+                    <p>• Houses bounce off each other - use this to your advantage!</p>
+                    <p>• Stay away from areas where houses are spawning</p>
+                    <p>• Collect power-ups to survive longer</p>
+                    <p>• Higher levels = smarter, faster enemies</p>
+                    <p>• Check High Scores → Global Scores for worldwide competition!</p>
+                </div>
+                <div class="help-section support-info">
+                    <h3>📞 NEED MORE HELP?</h3>
+                    <div class="support-contacts">
+                        <p><strong>🐦 X/Twitter:</strong> <a href="https://x.com/househeadchase" target="_blank" rel="noopener">@househeadchase</a></p>
+                        <p><strong>📧 Email:</strong> <a href="mailto:support@househeadchase.com">support@househeadchase.com</a></p>
+                        <p><strong>👨‍💻 GitHub:</strong> <a href="https://github.com/Ghost081280" target="_blank" rel="noopener">Developer Profile</a></p>
+                    </div>
+                    <p class="help-note">Designed and developed by Ghost081280</p>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn primary" id="closeHelpFooterBtn" onclick="closeHelp()">Got It!</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- PWA Install Prompt -->
+    <div id="installPrompt" class="install-prompt hidden">
+        <div class="install-content">
+            <h3>📱 Install House Head Chase</h3>
+            <p>Add to your home screen for the best experience!</p>
+            <div class="install-buttons">
+                <button class="btn primary" onclick="installPWA()">📲 Install App</button>
+                <button class="btn secondary" onclick="hideInstallPrompt()">Maybe Later</button>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Loading Screen -->
+    <div id="loadingScreen" class="loading-screen">
+        <div class="loading-content">
+            <div class="loading-house">
+                <img src="./images/HouseHead.clear.svg" alt="House Head" class="loading-house-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                <div class="loading-house-placeholder" style="display: none;">🏠</div>
+            </div>
+            <h2>Loading House Head Chase...</h2>
+            <div class="loading-bar">
+                <div class="loading-fill"></div>
+            </div>
+            <p class="loading-tip">Get ready to run from walking houses! 🏃‍♂️</p>
+        </div>
+    </div>
+    
+    <!-- Scripts -->
+    <script>
+        // Placeholder functions that will be replaced by game.js
+        window.startGame = window.startGame || function() { console.log('Game starting...'); };
+        window.restartGame = window.restartGame || function() { console.log('Game restarting...'); };
+        window.goToStartScreen = window.goToStartScreen || function() { console.log('Going to start screen...'); };
+        window.showHighScores = window.showHighScores || function() { console.log('Showing high scores...'); };
+        window.closeHighScores = window.closeHighScores || function() { console.log('Closing high scores...'); };
+        window.showHelp = window.showHelp || function() { console.log('Showing help...'); };
+        window.closeHelp = window.closeHelp || function() { console.log('Closing help...'); };
+        window.showShareModal = window.showShareModal || function() { console.log('Showing share modal...'); };
+        window.closeShareModal = window.closeShareModal || function() { console.log('Closing share modal...'); };
+        window.soundSystem = window.soundSystem || { toggle: function() { console.log('Toggling sound...'); } };
+        window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
+        window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
+        
+        // Sign In Modal Functions
+        function showSignInModal() {
+            console.log('🔐 Showing sign in modal...');
+            const modal = document.getElementById('signInModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.pointerEvents = 'auto';
+            }
+        }
+        
+        function closeSignInModal() {
+            console.log('🚫 Closing sign in modal...');
+            const modal = document.getElementById('signInModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.pointerEvents = 'none';
+            }
+        }
+        
+        // Global authentication handlers
+        async function handleGoogleSignIn() {
+            console.log('🔐 Attempting Google sign-in...');
+            if (window.firebaseManager) {
+                const success = await window.firebaseManager.signInWithGoogle();
+                if (success) {
+                    console.log('✅ Signed in successfully');
+                    updateGlobalAuthUI();
+                    // Auto-refresh the global leaderboard
+                    if (window.firebaseManager.updateGlobalLeaderboard) {
+                        window.firebaseManager.updateGlobalLeaderboard();
+                    }
+                }
+            } else {
+                console.warn('⚠️ Firebase not yet loaded');
+                alert('Authentication system is still loading. Please try again in a moment.');
+            }
+        }
+
+        async function handleSignOut() {
+            console.log('👋 Attempting sign-out...');
+            if (window.firebaseManager) {
+                await window.firebaseManager.signOut();
+                console.log('👋 Signed out successfully');
+                updateGlobalAuthUI();
+            }
+        }
+        
+        function updateGlobalAuthUI() {
+            console.log('🔄 Updating global auth UI...');
+            const isSignedIn = window.firebaseManager && window.firebaseManager.user;
+            const authPrompt = document.getElementById('authPrompt');
+            const userSignedIn = document.getElementById('userSignedIn');
+            const globalUserName = document.getElementById('globalUserName');
+            const globalScoresTab = document.getElementById('globalScoresTab');
+            
+            console.log('🔍 Sign-in status:', isSignedIn);
+            
+            if (isSignedIn) {
+                // Show signed-in state
+                if (authPrompt) authPrompt.classList.add('hidden');
+                if (userSignedIn) userSignedIn.classList.remove('hidden');
+                if (globalUserName && window.firebaseManager.user) {
+                    globalUserName.textContent = window.firebaseManager.user.displayName || 'Player';
+                }
+                // Enable global scores tab
+                if (globalScoresTab) {
+                    globalScoresTab.disabled = false;
+                    globalScoresTab.style.opacity = '1';
+                    globalScoresTab.style.cursor = 'pointer';
+                }
+            } else {
+                // Show sign-in prompt
+                if (authPrompt) authPrompt.classList.remove('hidden');
+                if (userSignedIn) userSignedIn.classList.add('hidden');
+                // Keep global scores tab enabled so users can see the auth prompt
+                if (globalScoresTab) {
+                    globalScoresTab.disabled = false;
+                    globalScoresTab.style.opacity = '1';
+                    globalScoresTab.style.cursor = 'pointer';
+                }
+            }
+        }
+        
+        // Score tab switching functions
+        function showLocalScores() {
+            console.log('📱 Showing local scores...');
+            
+            // Update tab appearance
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('localScoresTab').classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('highScoresList').style.display = 'block';
+            document.getElementById('globalLeaderboardList').style.display = 'none';
+            document.getElementById('globalAuthSection').classList.add('hidden');
+            
+            // Load local scores
+            if (typeof displayHighScores === 'function') {
+                displayHighScores();
+            } else {
+                console.log('⚠️ displayHighScores function not available yet');
+            }
+        }
+        
+        function showGlobalScores() {
+            console.log('🌍 Showing global scores...');
+            
+            // Update tab appearance
+            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+            document.getElementById('globalScoresTab').classList.add('active');
+            
+            // Show/hide content
+            document.getElementById('highScoresList').style.display = 'none';
+            document.getElementById('globalLeaderboardList').style.display = 'block';
+            document.getElementById('globalAuthSection').classList.remove('hidden');
+            
+            // Update the auth UI to show current state
+            updateGlobalAuthUI();
+            
+            // Load global scores if signed in
+            if (window.firebaseManager && window.firebaseManager.user) {
+                if (window.firebaseManager.updateGlobalLeaderboard) {
+                    window.firebaseManager.updateGlobalLeaderboard();
+                }
+            } else {
+                // Show placeholder for not signed in
+                const globalList = document.getElementById('globalLeaderboardList');
+                if (globalList) {
+                    globalList.innerHTML = '<p style="text-align: center; color: #888; font-style: italic;">Sign in above to view and compete on the global leaderboard!</p>';
+                }
+            }
+        }
+        
+        // Enhanced share modal functions
+        function showShareModal() {
+            console.log('📤 Showing share modal...');
+            
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const timeFormatted = formatTime(survivalTime);
+            
+            const shareTimeEl = document.getElementById('shareTimeValue');
+            const shareLevelEl = document.getElementById('shareLevelValue');
+            const copyPreview = document.getElementById('copyPreviewText');
+            
+            if (shareTimeEl) shareTimeEl.textContent = timeFormatted;
+            if (shareLevelEl) shareLevelEl.textContent = level;
+            
+            const copyText = `🏠 I survived ${timeFormatted} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+            
+            if (copyPreview) copyPreview.textContent = copyText;
+            
+            const modal = document.getElementById('shareModal');
+            if (modal) {
+                modal.classList.remove('hidden');
+                modal.style.pointerEvents = 'auto';
+                console.log('✅ Share modal displayed');
+            } else {
+                console.error('⚠️ Share modal not found');
+            }
+        }
+        
+        function closeShareModal() {
+            console.log('🚫 Closing share modal...');
+            const modal = document.getElementById('shareModal');
+            if (modal) {
+                modal.classList.add('hidden');
+                modal.style.pointerEvents = 'none';
+            }
+        }
+        
+        function shareToX() {
+            console.log('🐦 Sharing to X...');
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+            const url = 'https://www.househeadchase.com';
+            const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function shareToFacebook() {
+            console.log('📘 Sharing to Facebook...');
+            const url = 'https://www.househeadchase.com';
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
+            const shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${encodeURIComponent(url)}&quote=${encodeURIComponent(message)}`;
+            window.open(shareUrl, '_blank', 'width=600,height=400');
+        }
+        
+        function copyScoreToClipboard() {
+            console.log('📋 Copying to clipboard...');
+            const survivalTime = getCurrentSurvivalTime();
+            const level = window.gameState ? window.gameState.level : 1;
+            const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
+
+Play now: https://www.househeadchase.com`;
+            
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(message).then(() => {
+                    showCopyConfirmation();
+                }).catch((err) => {
+                    console.error('Clipboard API failed, using fallback:', err);
+                    fallbackCopyToClipboard(message);
+                });
+            } else {
+                fallbackCopyToClipboard(message);
+            }
+        }
+        
+        function fallbackCopyToClipboard(text) {
+            const textArea = document.createElement('textarea');
+            textArea.value = text;
+            textArea.style.position = 'fixed';
+            textArea.style.left = '-999999px';
+            textArea.style.top = '-999999px';
+            document.body.appendChild(textArea);
+            textArea.focus();
+            textArea.select();
+            
+            try {
+                const successful = document.execCommand('copy');
+                if (successful) {
+                    showCopyConfirmation();
+                } else {
+                    console.error('Fallback copy failed');
+                    alert('Copy failed. Please copy manually.');
+                }
+            } catch (err) {
+                console.error('Fallback copy error:', err);
+                alert('Copy failed. Please copy manually.');
+            } finally {
+                document.body.removeChild(textArea);
+            }
+        }
+        
+        function showCopyConfirmation() {
+            const btn = event?.target || document.querySelector('.share-btn:last-of-type');
+            if (btn) {
+                const originalText = btn.innerHTML;
+                btn.innerHTML = '✅ Copied!';
+                btn.disabled = true;
+                setTimeout(() => {
+                    btn.innerHTML = originalText;
+                    btn.disabled = false;
+                }, 2000);
+            }
+            console.log('✅ Text copied to clipboard');
+        }
+        
+        function formatTime(seconds) {
+            if (typeof seconds !== 'number' || isNaN(seconds)) return '0:00';
+            const mins = Math.floor(seconds / 60);
+            const secs = Math.floor(seconds % 60);
+            return `${mins}:${secs.toString().padStart(2, '0')}`;
+        }
+        
+        function getCurrentSurvivalTime() {
+            if (window.gameState && window.gameState.startTime) {
+                return Math.floor((Date.now() - window.gameState.startTime) / 1000);
+            }
+            return 0;
+        }
+        
+        // Initialize auth UI when Firebase becomes available
+        function initializeAuthSystem() {
+            console.log('🔧 Initializing auth system...');
+            
+            // Wait for Firebase to be ready
+            const checkFirebaseReady = () => {
+                if (window.GameConfig && window.firebaseManager) {
+                    console.log('🔥 Firebase is ready, updating auth UI...');
+                    updateGlobalAuthUI();
+                    
+                    // Listen for auth state changes
+                    if (window.firebaseManager.auth) {
+                        console.log('👂 Setting up auth state listener...');
+                        // The firebase integration should handle auth state changes
+                    }
+                } else {
+                    console.log('⏳ Waiting for Firebase to load...');
+                    setTimeout(checkFirebaseReady, 500);
+                }
+            };
+            
+            checkFirebaseReady();
+        }
+        
+        // Initialize when DOM and config are ready
+        document.addEventListener('DOMContentLoaded', () => {
+            console.log('📄 DOM loaded, setting up auth system...');
+            initializeAuthSystem();
+        });
+        
+        // Also listen for the config ready event
+        window.addEventListener('configReady', () => {
+            console.log('⚙️ Config ready, setting up auth system...');
+            setTimeout(initializeAuthSystem, 100);
+        });
+        
+        // Hide loading screen when everything is ready
+        window.addEventListener('load', () => {
+            const loadingScreen = document.getElementById('loadingScreen');
+            if (loadingScreen) {
+                setTimeout(() => {
+                    loadingScreen.style.opacity = '0';
+                    setTimeout(() => {
+                        loadingScreen.style.display = 'none';
+                    }, 500);
+                }, 1500);
+            }
+        });
+        
+        // Performance tracking
+        if ('performance' in window) {
+            window.addEventListener('load', () => {
+                const timing = performance.timing;
+                const loadTime = timing.loadEventEnd - timing.navigationStart;
+                console.log(`🚀 Page loaded in ${loadTime}ms`);
+            });
+        }
+        
+        // Analytics helper (COPPA compliant)
+        function trackEvent(eventName, parameters = {}) {
+            if (window.gtag && window.GameConfig?.analytics?.enabled) {
+                gtag('event', eventName, {
+                    ...parameters,
+                    game_version: window.GameConfig?.version || '2.0.0'
+                });
+            }
+        }
+    </script>
+    
+    <!-- Load game scripts in order -->
+    <script src="config.js"></script>
+    <script src="firebase-integration.js"></script>
+    <script src="game.js"></script>
+</body>
+</html>
