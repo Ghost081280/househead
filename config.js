@@ -32,7 +32,7 @@ const GameConfig = {
     firebase: {
         config: {
             // Replace these with your actual Firebase config values
-            apiKey: "your-api-key-here",
+            apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
             authDomain: "house-head-chase.firebaseapp.com",
             projectId: "house-head-chase",
             storageBucket: "house-head-chase.appspot.com",
