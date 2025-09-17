@@ -32,13 +32,13 @@ const GameConfig = {
     firebase: {
         config: {
             // Replace these with your actual Firebase config values
-            apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
-            authDomain: "house-head-chase.firebaseapp.com",
-            projectId: "house-head-chase",
-            storageBucket: "house-head-chase.appspot.com",
-            messagingSenderId: "123456789",
-            appId: "1:123456789:web:abcdef123456",
-            measurementId: "G-XXXXXXXXXX"
+           apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
+  authDomain: "house-head-chase.firebaseapp.com",
+  projectId: "house-head-chase",
+  storageBucket: "house-head-chase.firebasestorage.app",
+  messagingSenderId: "947955836936",
+  appId: "1:947955836936:web:3f146e5a496c9e3f8ac9bd",
+  measurementId: "G-FT0GWN6BLB"
         },
         // Firestore collection names
         collections: {
