@@ -28,17 +28,18 @@ const GameConfig = {
         offlineMode: true
     },
     
-    // Firebase Configuration (placeholder - replace with your Firebase config)
+    // Firebase Configuration - Updated with Realtime Database URL
     firebase: {
         config: {
             // Replace these with your actual Firebase config values
-           apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
-  authDomain: "house-head-chase.firebaseapp.com",
-  projectId: "house-head-chase",
-  storageBucket: "house-head-chase.firebasestorage.app",
-  messagingSenderId: "947955836936",
-  appId: "1:947955836936:web:3f146e5a496c9e3f8ac9bd",
-  measurementId: "G-FT0GWN6BLB"
+            apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
+            authDomain: "house-head-chase.firebaseapp.com",
+            databaseURL: "https://house-head-chase-default-rtdb.firebaseio.com/",
+            projectId: "house-head-chase",
+            storageBucket: "house-head-chase.firebasestorage.app",
+            messagingSenderId: "947955836936",
+            appId: "1:947955836936:web:3f146e5a496c9e3f8ac9bd",
+            measurementId: "G-FT0GWN6BLB"
         },
         // Firestore collection names
         collections: {
