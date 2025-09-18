@@ -13,7 +13,7 @@ const GameConfig = {
     
     // Environment Detection
     isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
-    isProduction: window.location.hostname.includes('firebase') || window.location.hostname.includes('househeadchase'),
+    isProduction: window.location.hostname.includes('firebase') || window.location.hostname.includes('househeadchase') || window.location.hostname.includes('hosted.app'),
     
     // Feature Flags
     features: {
@@ -283,14 +283,14 @@ const GameConfig = {
         }
     },
     
-    // External Links (Kid-Safe)
+    // External Links (PREVIEW URL FOR TESTING)
     links: {
-        website: 'https://www.househeadchase.com',
+        website: 'https://househead--house-head-chase.us-central1.hosted.app',
         support: 'support@househeadchase.com',
         twitter: 'https://x.com/househeadchase',
         github: 'https://github.com/Ghost081280',
-        privacyPolicy: 'https://www.househeadchase.com/privacy',
-        termsOfService: 'https://www.househeadchase.com/terms'
+        privacyPolicy: 'https://househead--house-head-chase.us-central1.hosted.app/privacy',
+        termsOfService: 'https://househead--house-head-chase.us-central1.hosted.app/terms'
     }
 };
 
@@ -377,6 +377,7 @@ const initializeConfig = () => {
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
     console.log('🔥 Configured for Firestore database');
+    console.log('🔗 Using preview URL for testing');
 };
 
 // Initialize when DOM is ready
