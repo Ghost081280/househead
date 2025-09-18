@@ -1,5 +1,5 @@
-// 🏠 House Head Chase - Enhanced Firebase Integration
-// Authentication & Global Leaderboard System with Realtime Database
+// 🏠 House Head Chase - Enhanced Firebase Integration for Firestore
+// Authentication & Global Leaderboard System with Firestore
 
 console.log('🔥 Loading Firebase integration...');
 
@@ -8,7 +8,6 @@ class FirebaseManager {
         this.config = window.GameConfig;
         this.auth = null;
         this.db = null;
-        this.realtimeDB = null;
         this.user = null;
         this.isInitialized = false;
         this.firebaseFunctions = null;
@@ -25,16 +24,13 @@ class FirebaseManager {
             const { initializeApp } = await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js');
             const { getAuth, signInWithPopup, GoogleAuthProvider, signOut, onAuthStateChanged } = 
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
-            const { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where } = 
+            const { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where, serverTimestamp } = 
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
-            const { getDatabase, ref, push, set, orderByChild, limitToLast, get } = 
-                await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
 
             // Initialize Firebase with config
             const app = initializeApp(this.config.firebase.config);
             this.auth = getAuth(app);
             this.db = getFirestore(app);
-            this.realtimeDB = getDatabase(app);
             
             // Store Firebase functions for later use
             this.firebaseFunctions = {
@@ -49,12 +45,7 @@ class FirebaseManager {
                 limit,
                 getDocs,
                 where,
-                ref,
-                push,
-                set,
-                orderByChild,
-                limitToLast,
-                get
+                serverTimestamp
             };
 
             // Listen for auth state changes
@@ -63,7 +54,7 @@ class FirebaseManager {
             });
 
             this.isInitialized = true;
-            console.log('✅ Firebase initialized successfully with Realtime Database');
+            console.log('✅ Firebase initialized successfully with Firestore');
 
             // Show auth container after successful init
             const authContainer = document.getElementById('authContainer');
@@ -171,24 +162,13 @@ class FirebaseManager {
         };
 
         try {
-            // Submit to Realtime Database
-            const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
-            await this.firebaseFunctions.push(scoresRef, scoreData);
+            // Submit to Firestore
+            const docRef = await this.firebaseFunctions.addDoc(
+                this.firebaseFunctions.collection(this.db, 'globalScores'), 
+                scoreData
+            );
 
-            console.log('✅ Score submitted to Realtime Database:', scoreData);
-            
-            // Also submit to Firestore if user is signed in (for backup)
-            if (this.user) {
-                try {
-                    await this.firebaseFunctions.addDoc(
-                        this.firebaseFunctions.collection(this.db, 'globalScores'), 
-                        scoreData
-                    );
-                    console.log('✅ Score also backed up to Firestore');
-                } catch (firestoreError) {
-                    console.warn('⚠️ Firestore backup failed:', firestoreError);
-                }
-            }
+            console.log('✅ Score submitted to Firestore:', docRef.id, scoreData);
             
             if (window.analytics) {
                 window.analytics.trackEvent('score_submitted', {
@@ -232,8 +212,10 @@ class FirebaseManager {
 
             for (const scoreData of pendingScores) {
                 try {
-                    const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
-                    await this.firebaseFunctions.push(scoresRef, scoreData);
+                    await this.firebaseFunctions.addDoc(
+                        this.firebaseFunctions.collection(this.db, 'globalScores'), 
+                        scoreData
+                    );
                     console.log('✅ Synced pending score:', scoreData.playerName);
                 } catch (error) {
                     console.error('❌ Failed to sync score:', error);
@@ -256,36 +238,30 @@ class FirebaseManager {
         }
 
         try {
-            const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
-            const scoresQuery = this.firebaseFunctions.query(
-                scoresRef,
-                this.firebaseFunctions.orderByChild('survivalTime'),
-                this.firebaseFunctions.limitToLast(limitCount)
+            const q = this.firebaseFunctions.query(
+                this.firebaseFunctions.collection(this.db, 'globalScores'),
+                this.firebaseFunctions.orderBy('survivalTime', 'desc'),
+                this.firebaseFunctions.limit(limitCount)
             );
 
-            const snapshot = await this.firebaseFunctions.get(scoresQuery);
+            const querySnapshot = await this.firebaseFunctions.getDocs(q);
             const scores = [];
 
-            if (snapshot.exists()) {
-                snapshot.forEach((childSnapshot) => {
-                    const data = childSnapshot.val();
-                    scores.push({
-                        id: childSnapshot.key,
-                        playerName: this.sanitizePlayerName(data.playerName),
-                        survivalTime: data.survivalTime,
-                        level: data.level,
-                        timestamp: data.timestamp,
-                        dateTime: data.dateTime,
-                        isCurrentUser: this.user && data.userId === this.user.uid,
-                        isVerified: data.isVerified || false
-                    });
+            querySnapshot.forEach((doc) => {
+                const data = doc.data();
+                scores.push({
+                    id: doc.id,
+                    playerName: this.sanitizePlayerName(data.playerName),
+                    survivalTime: data.survivalTime,
+                    level: data.level,
+                    timestamp: data.timestamp,
+                    dateTime: data.dateTime,
+                    isCurrentUser: this.user && data.userId === this.user.uid,
+                    isVerified: data.isVerified || false
                 });
+            });
 
-                // Sort by survival time (descending) since limitToLast gets the highest values
-                scores.sort((a, b) => b.survivalTime - a.survivalTime);
-            }
-
-            console.log(`📊 Loaded ${scores.length} global scores from Realtime Database`);
+            console.log(`📊 Loaded ${scores.length} global scores from Firestore`);
             return scores;
 
         } catch (error) {
@@ -476,7 +452,7 @@ const initializeFirebase = () => {
         // Make available globally
         window.firebaseManager = firebaseManager;
         
-        console.log('✅ Firebase manager initialized with Realtime Database support');
+        console.log('✅ Firebase manager initialized with Firestore support');
     } else {
         console.warn('⚠️ GameConfig not ready, retrying...');
         setTimeout(initializeFirebase, 100);
@@ -493,6 +469,5 @@ if (window.GameConfig) {
 // Export for ES6 modules
 if (typeof module !== 'undefined' && module.exports) {
     module.exports = FirebaseManager;
-}
 
-console.log('✅ Firebase integration loaded with Realtime Database support');
+console.log('✅ Firebase integration loaded with Firestore support');
