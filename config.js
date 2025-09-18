@@ -28,13 +28,12 @@ const GameConfig = {
         offlineMode: true
     },
     
-    // Firebase Configuration - Updated with Realtime Database URL
+    // Firebase Configuration - Updated for Firestore
     firebase: {
         config: {
             // Replace these with your actual Firebase config values
             apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
             authDomain: "house-head-chase.firebaseapp.com",
-            databaseURL: "https://house-head-chase-default-rtdb.firebaseio.com/",
             projectId: "house-head-chase",
             storageBucket: "house-head-chase.firebasestorage.app",
             messagingSenderId: "947955836936",
@@ -377,6 +376,7 @@ const initializeConfig = () => {
     console.log('🎮 Version:', GameConfig.version);
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
+    console.log('🔥 Configured for Firestore database');
 };
 
 // Initialize when DOM is ready
