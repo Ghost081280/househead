@@ -1,5 +1,5 @@
-// 🏠 House Head Chase - Fixed Firebase Integration
-// Authentication & Global Leaderboard System
+// 🏠 House Head Chase - Enhanced Firebase Integration
+// Authentication & Global Leaderboard System with Realtime Database
 
 console.log('🔥 Loading Firebase integration...');
 
@@ -8,6 +8,7 @@ class FirebaseManager {
         this.config = window.GameConfig;
         this.auth = null;
         this.db = null;
+        this.realtimeDB = null;
         this.user = null;
         this.isInitialized = false;
         this.firebaseFunctions = null;
@@ -26,11 +27,14 @@ class FirebaseManager {
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js');
             const { getFirestore, collection, addDoc, query, orderBy, limit, getDocs, where } = 
                 await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js');
+            const { getDatabase, ref, push, set, orderByChild, limitToLast, get } = 
+                await import('https://www.gstatic.com/firebasejs/10.7.1/firebase-database.js');
 
             // Initialize Firebase with config
             const app = initializeApp(this.config.firebase.config);
             this.auth = getAuth(app);
             this.db = getFirestore(app);
+            this.realtimeDB = getDatabase(app);
             
             // Store Firebase functions for later use
             this.firebaseFunctions = {
@@ -44,7 +48,13 @@ class FirebaseManager {
                 orderBy,
                 limit,
                 getDocs,
-                where
+                where,
+                ref,
+                push,
+                set,
+                orderByChild,
+                limitToLast,
+                get
             };
 
             // Listen for auth state changes
@@ -53,7 +63,7 @@ class FirebaseManager {
             });
 
             this.isInitialized = true;
-            console.log('✅ Firebase initialized successfully');
+            console.log('✅ Firebase initialized successfully with Realtime Database');
 
             // Show auth container after successful init
             const authContainer = document.getElementById('authContainer');
@@ -142,38 +152,50 @@ class FirebaseManager {
         }
     }
 
-    async submitScore(score, level, survivalTime) {
-        if (!this.isInitialized || !this.user) {
-            console.log('📊 Score saved locally only');
+    async submitScore(playerName, survivalTime, level) {
+        if (!this.isInitialized) {
+            console.log('📊 Score saved locally only - Firebase not initialized');
             return false;
         }
 
+        const scoreData = {
+            playerName: this.sanitizePlayerName(playerName),
+            survivalTime: survivalTime,
+            level: level,
+            timestamp: Date.now(),
+            dateTime: new Date().toISOString(),
+            gameVersion: this.config.version,
+            platform: 'web',
+            userId: this.user ? this.user.uid : 'anonymous',
+            isVerified: !!this.user
+        };
+
         try {
-            const scoreData = {
-                userId: this.user.uid,
-                playerName: this.user.displayName || this.generatePlayerName(),
-                score: score,
-                level: level,
-                survivalTime: survivalTime,
-                timestamp: new Date(),
-                gameVersion: this.config.version,
-                // Kid-safe metadata
-                isVerified: true,
-                platform: 'web'
-            };
+            // Submit to Realtime Database
+            const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
+            await this.firebaseFunctions.push(scoresRef, scoreData);
 
-            const docRef = await this.firebaseFunctions.addDoc(
-                this.firebaseFunctions.collection(this.db, 'globalScores'), 
-                scoreData
-            );
-
-            console.log('✅ Score submitted to global leaderboard:', docRef.id);
+            console.log('✅ Score submitted to Realtime Database:', scoreData);
+            
+            // Also submit to Firestore if user is signed in (for backup)
+            if (this.user) {
+                try {
+                    await this.firebaseFunctions.addDoc(
+                        this.firebaseFunctions.collection(this.db, 'globalScores'), 
+                        scoreData
+                    );
+                    console.log('✅ Score also backed up to Firestore');
+                } catch (firestoreError) {
+                    console.warn('⚠️ Firestore backup failed:', firestoreError);
+                }
+            }
             
             if (window.analytics) {
                 window.analytics.trackEvent('score_submitted', {
-                    score: score,
+                    score: survivalTime,
                     level: level,
-                    global: true
+                    global: true,
+                    player_name: scoreData.playerName
                 });
             }
 
@@ -181,39 +203,89 @@ class FirebaseManager {
 
         } catch (error) {
             console.error('❌ Score submission failed:', error);
+            
+            // Try to save locally as fallback
+            this.saveScoreLocally(scoreData);
             return false;
         }
     }
 
-    async getGlobalLeaderboard(limit = 10) {
+    saveScoreLocally(scoreData) {
+        try {
+            const localScores = JSON.parse(localStorage.getItem('pendingScores') || '[]');
+            localScores.push(scoreData);
+            localStorage.setItem('pendingScores', JSON.stringify(localScores));
+            console.log('💾 Score saved locally for later sync');
+        } catch (error) {
+            console.error('❌ Failed to save score locally:', error);
+        }
+    }
+
+    async syncPendingScores() {
+        if (!this.isInitialized) return;
+
+        try {
+            const pendingScores = JSON.parse(localStorage.getItem('pendingScores') || '[]');
+            if (pendingScores.length === 0) return;
+
+            console.log(`🔄 Syncing ${pendingScores.length} pending scores...`);
+
+            for (const scoreData of pendingScores) {
+                try {
+                    const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
+                    await this.firebaseFunctions.push(scoresRef, scoreData);
+                    console.log('✅ Synced pending score:', scoreData.playerName);
+                } catch (error) {
+                    console.error('❌ Failed to sync score:', error);
+                    break; // Stop syncing if one fails
+                }
+            }
+
+            // Clear synced scores
+            localStorage.removeItem('pendingScores');
+            console.log('✅ All pending scores synced');
+
+        } catch (error) {
+            console.error('❌ Failed to sync pending scores:', error);
+        }
+    }
+
+    async getGlobalLeaderboard(limitCount = 10) {
         if (!this.isInitialized) {
             return [];
         }
 
         try {
-            const q = this.firebaseFunctions.query(
-                this.firebaseFunctions.collection(this.db, 'globalScores'),
-                this.firebaseFunctions.orderBy('score', 'desc'),
-                this.firebaseFunctions.limit(limit)
+            const scoresRef = this.firebaseFunctions.ref(this.realtimeDB, 'globalScores');
+            const scoresQuery = this.firebaseFunctions.query(
+                scoresRef,
+                this.firebaseFunctions.orderByChild('survivalTime'),
+                this.firebaseFunctions.limitToLast(limitCount)
             );
 
-            const querySnapshot = await this.firebaseFunctions.getDocs(q);
+            const snapshot = await this.firebaseFunctions.get(scoresQuery);
             const scores = [];
 
-            querySnapshot.forEach((doc) => {
-                const data = doc.data();
-                scores.push({
-                    id: doc.id,
-                    playerName: this.sanitizePlayerName(data.playerName),
-                    score: data.score,
-                    level: data.level,
-                    survivalTime: data.survivalTime,
-                    timestamp: data.timestamp.toDate(),
-                    isCurrentUser: this.user && data.userId === this.user.uid
+            if (snapshot.exists()) {
+                snapshot.forEach((childSnapshot) => {
+                    const data = childSnapshot.val();
+                    scores.push({
+                        id: childSnapshot.key,
+                        playerName: this.sanitizePlayerName(data.playerName),
+                        survivalTime: data.survivalTime,
+                        level: data.level,
+                        timestamp: data.timestamp,
+                        dateTime: data.dateTime,
+                        isCurrentUser: this.user && data.userId === this.user.uid,
+                        isVerified: data.isVerified || false
+                    });
                 });
-            });
 
-            console.log(`📊 Loaded ${scores.length} global scores`);
+                // Sort by survival time (descending) since limitToLast gets the highest values
+                scores.sort((a, b) => b.survivalTime - a.survivalTime);
+            }
+
+            console.log(`📊 Loaded ${scores.length} global scores from Realtime Database`);
             return scores;
 
         } catch (error) {
@@ -223,8 +295,8 @@ class FirebaseManager {
     }
 
     generatePlayerName() {
-        const adjectives = ['Brave', 'Quick', 'Smart', 'Swift', 'Clever'];
-        const nouns = ['Runner', 'Player', 'Explorer', 'Hero', 'Champion'];
+        const adjectives = ['Brave', 'Quick', 'Smart', 'Swift', 'Clever', 'Bold', 'Fast', 'Bright'];
+        const nouns = ['Runner', 'Player', 'Explorer', 'Hero', 'Champion', 'Survivor', 'Dodger', 'Escape'];
         return `${adjectives[Math.floor(Math.random() * adjectives.length)]} ${nouns[Math.floor(Math.random() * nouns.length)]}`;
     }
 
@@ -258,6 +330,9 @@ class FirebaseManager {
 
         // Enable global features
         this.enableGlobalFeatures();
+        
+        // Sync any pending scores
+        this.syncPendingScores();
     }
 
     updateUIForSignedOutUser() {
@@ -314,11 +389,12 @@ class FirebaseManager {
                 const rank = index + 1;
                 const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
                 const isCurrentUser = score.isCurrentUser ? ' current-user' : '';
+                const verifiedBadge = score.isVerified ? ' ✓' : '';
                 
                 html += `
                     <div class="global-score-item${isCurrentUser}">
                         <span class="rank">${medal}</span>
-                        <span class="player-name">${score.playerName}</span>
+                        <span class="player-name">${score.playerName}${verifiedBadge}</span>
                         <span class="score">${this.formatTime(score.survivalTime)}</span>
                         <span class="level">Lv.${score.level}</span>
                     </div>
@@ -400,7 +476,7 @@ const initializeFirebase = () => {
         // Make available globally
         window.firebaseManager = firebaseManager;
         
-        console.log('✅ Firebase manager initialized');
+        console.log('✅ Firebase manager initialized with Realtime Database support');
     } else {
         console.warn('⚠️ GameConfig not ready, retrying...');
         setTimeout(initializeFirebase, 100);
@@ -419,4 +495,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = FirebaseManager;
 }
 
-console.log('✅ Firebase integration loaded');
+console.log('✅ Firebase integration loaded with Realtime Database support');
