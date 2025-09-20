@@ -1,5 +1,5 @@
 // 🏠 House Head Chase - Game Configuration
-// Version 2.0.0 - Central configuration for all game systems
+// Version 2.0.0 - Local-only version for GitHub Pages
 
 console.log('⚙️ Loading game configuration...');
 
@@ -13,39 +13,19 @@ const GameConfig = {
     
     // Environment Detection
     isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
-    isProduction: window.location.hostname.includes('firebase') || window.location.hostname.includes('househeadchase') || window.location.hostname.includes('hosted.app'),
+    isProduction: window.location.hostname.includes('github.io') || window.location.hostname.includes('pages.dev') || window.location.hostname.includes('househeadchase'),
     
     // Feature Flags
     features: {
-        globalLeaderboard: true,
-        googleSignIn: true,
+        globalLeaderboard: false,        // Disabled - local only
+        googleSignIn: false,             // Disabled - no authentication
         analytics: true,
         consoleLogging: true,
         performanceMonitoring: true,
-        pushNotifications: false, // Disabled for kid-safe experience
+        pushNotifications: false,
         socialSharing: true,
         pwaSupportEnabled: true,
         offlineMode: true
-    },
-    
-    // Firebase Configuration - Updated for Firestore
-    firebase: {
-        config: {
-            // Replace these with your actual Firebase config values
-            apiKey: "AIzaSyCV3xPzEe8EUv8JUaoVAOHZQvQiW2MxJVA",
-            authDomain: "house-head-chase.firebaseapp.com",
-            projectId: "house-head-chase",
-            storageBucket: "house-head-chase.firebasestorage.app",
-            messagingSenderId: "947955836936",
-            appId: "1:947955836936:web:3f146e5a496c9e3f8ac9bd",
-            measurementId: "G-FT0GWN6BLB"
-        },
-        // Firestore collection names
-        collections: {
-            scores: 'globalScores',
-            users: 'users',
-            feedback: 'feedback'
-        }
     },
     
     // Game Balance Settings (Kid-Friendly with Better Progression)
@@ -136,12 +116,9 @@ const GameConfig = {
         }
     },
     
-    // Analytics Configuration (COPPA Compliant)
+    // Analytics Configuration (COPPA Compliant) - Basic only
     analytics: {
-        enabled: true,
-        googleAnalytics: {
-            measurementId: "G-XXXXXXXXXX" // Replace with your GA4 measurement ID
-        },
+        enabled: false,  // Disabled for local version
         events: {
             gameStart: 'game_start',
             gameOver: 'game_over',
@@ -200,8 +177,8 @@ const GameConfig = {
         minimumAge: 8,
         dataCollection: {
             personalInfo: false,     // No personal info collected
-            analytics: true,         // Anonymous analytics only
-            crashReporting: true,    // For game improvement
+            analytics: false,        // No analytics in local version
+            crashReporting: false,   // No external reporting
             userGeneratedContent: false // No user content allowed
         },
         contentFiltering: {
@@ -218,7 +195,7 @@ const GameConfig = {
         maxPowerups: 6,             // Increased max power-ups (was 5)
         canvasOptimization: true,
         memoryManagement: true,
-        backgroundSync: true
+        backgroundSync: false       // Disabled for local version
     },
     
     // Debug Settings
@@ -270,27 +247,23 @@ const GameConfig = {
     // Error Messages
     messages: {
         errors: {
-            firebaseInit: 'Unable to connect to game services. Playing in offline mode.',
-            authFailed: 'Sign-in failed. Please try again.',
-            networkError: 'Network error. Check your connection.',
             gameLoadFailed: 'Game failed to load. Please refresh the page.',
-            unsupportedBrowser: 'Your browser is not fully supported. Some features may not work.'
+            unsupportedBrowser: 'Your browser is not fully supported. Some features may not work.',
+            storageError: 'Unable to save your progress. Please check your browser settings.'
         },
         success: {
-            authSuccess: 'Successfully signed in!',
-            scoreSubmitted: 'Score submitted to global leaderboard!',
-            gameInstalled: 'Game installed successfully!'
+            gameInstalled: 'Game installed successfully!',
+            scoreSaved: 'Score saved locally!'
         }
     },
     
-    // External Links (PREVIEW URL FOR TESTING)
+    // External Links
     links: {
-        website: 'https://househead--house-head-chase.us-central1.hosted.app',
-        support: 'support@househeadchase.com',
-        twitter: 'https://x.com/househeadchase',
-        github: 'https://github.com/Ghost081280',
-        privacyPolicy: 'https://househead--house-head-chase.us-central1.hosted.app/privacy',
-        termsOfService: 'https://househead--house-head-chase.us-central1.hosted.app/terms'
+        website: 'https://your-github-username.github.io/house-head-chase',  // Update with your GitHub Pages URL
+        support: 'https://github.com/your-github-username/house-head-chase/issues',  // Update with your repo
+        github: 'https://github.com/your-github-username/house-head-chase',  // Update with your repo
+        privacyPolicy: 'https://your-github-username.github.io/house-head-chase/privacy',
+        termsOfService: 'https://your-github-username.github.io/house-head-chase/terms'
     }
 };
 
@@ -298,7 +271,6 @@ const GameConfig = {
 if (GameConfig.isDevelopment) {
     GameConfig.debug.showFPS = true;
     GameConfig.debug.verboseLogging = true;
-    GameConfig.features.analytics = false; // Disable analytics in development
     console.log('🔧 Development mode enabled');
 } else if (GameConfig.isProduction) {
     GameConfig.debug = { ...GameConfig.debug, showFPS: false, verboseLogging: false };
@@ -376,8 +348,7 @@ const initializeConfig = () => {
     console.log('🎮 Version:', GameConfig.version);
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
-    console.log('🔥 Configured for Firestore database');
-    console.log('🔗 Using preview URL for testing');
+    console.log('📱 Local-only version for GitHub Pages');
 };
 
 // Initialize when DOM is ready
@@ -392,4 +363,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = GameConfig;
 }
 
-console.log('✅ Config module loaded');
+console.log('✅ Config module loaded - Local version');
