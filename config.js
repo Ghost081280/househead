@@ -13,19 +13,20 @@ const GameConfig = {
     
     // Environment Detection
     isDevelopment: window.location.hostname === 'localhost' || window.location.hostname === '127.0.0.1',
-    isProduction: window.location.hostname.includes('github.io') || window.location.hostname.includes('pages.dev') || window.location.hostname.includes('househeadchase'),
+    isProduction: window.location.hostname.includes('github.io') || window.location.hostname.includes('pages.dev'),
     
-    // Feature Flags
+    // Feature Flags - All Firebase features disabled
     features: {
         globalLeaderboard: false,        // Disabled - local only
         googleSignIn: false,             // Disabled - no authentication
-        analytics: true,
+        analytics: false,                // Disabled - no tracking
         consoleLogging: true,
         performanceMonitoring: true,
         pushNotifications: false,
         socialSharing: true,
         pwaSupportEnabled: true,
-        offlineMode: true
+        offlineMode: true,
+        localLeaderboard: true           // Enabled - local storage only
     },
     
     // Game Balance Settings (Kid-Friendly with Better Progression)
@@ -38,24 +39,24 @@ const GameConfig = {
         },
         enemies: {
             spawnRate: {
-                base: 5500,           // Much slower initial spawning (was 4000)
-                minimum: 2500,        // Reasonable minimum (was 2000)
-                levelScaling: 0.08    // Even gentler difficulty increase (was 0.1)
+                base: 5500,           // Much slower initial spawning
+                minimum: 2500,        // Reasonable minimum
+                levelScaling: 0.08    // Even gentler difficulty increase
             },
             types: {
                 small: {
                     size: 25,
-                    speed: 0.7,       // Slower small houses (was 0.8)
-                    damage: 10,       // Less damage (was 12)
-                    spawnWeight: 0.8, // More small houses early on (was 0.7)
-                    activationTime: 3000  // Longer activation time (was 2500)
+                    speed: 0.7,       // Slower small houses
+                    damage: 10,       // Less damage
+                    spawnWeight: 0.8, // More small houses early on
+                    activationTime: 3000  // Longer activation time
                 },
                 big: {
                     size: 40,
-                    speed: 0.4,       // Much slower big houses (was 0.5)
-                    damage: 18,       // Less damage (was 20)
-                    spawnWeight: 0.2, // Fewer big houses early on (was 0.3)
-                    activationTime: 4500  // Much longer activation time (was 3500)
+                    speed: 0.4,       // Much slower big houses
+                    damage: 18,       // Less damage
+                    spawnWeight: 0.2, // Fewer big houses early on
+                    activationTime: 4500  // Much longer activation time
                 }
             },
             // Progressive difficulty scaling by level
@@ -71,24 +72,24 @@ const GameConfig = {
             }
         },
         powerups: {
-            spawnRate: 8000,         // More frequent power-ups (was 10000)
-            despawnTime: 18000,      // Longer available time (was 15000)
+            spawnRate: 8000,         // More frequent power-ups
+            despawnTime: 18000,      // Longer available time
             types: {
                 health: { 
-                    value: 40,           // More healing (was 35)
-                    spawnWeight: 0.4,    // Balanced distribution (was 0.5)
+                    value: 40,           // More healing
+                    spawnWeight: 0.4,    // Balanced distribution
                     color: '#44ff44',
                     emoji: '💚'
                 },
                 shield: { 
-                    duration: 7000,      // Longer shield (was 6000)
-                    spawnWeight: 0.3,    // Balanced distribution (same)
+                    duration: 7000,      // Longer shield
+                    spawnWeight: 0.3,    // Balanced distribution
                     color: '#4488ff',
                     emoji: '🛡️'
                 },
                 freeze: { 
-                    duration: 9000,      // Longer freeze (was 8000)
-                    spawnWeight: 0.3,    // Equal distribution (was 0.2)
+                    duration: 9000,      // Longer freeze
+                    spawnWeight: 0.3,    // Equal distribution
                     color: '#88ddff',
                     emoji: '🧊'
                 }
@@ -96,8 +97,8 @@ const GameConfig = {
         },
         scoring: {
             pointsPerSecond: 1,
-            levelUpThreshold: 50,    // Slightly longer levels (was 45)
-            difficultyScaling: 0.08  // Gentler scaling (was 0.1)
+            levelUpThreshold: 50,    // Slightly longer levels
+            difficultyScaling: 0.08  // Gentler scaling
         }
     },
     
@@ -113,27 +114,6 @@ const GameConfig = {
             powerup: { frequency: 660, duration: 0.3 },
             freeze: { frequency: 440, duration: 0.4 },
             bounce: { frequency: 200, duration: 0.1 }
-        }
-    },
-    
-    // Analytics Configuration (COPPA Compliant) - Basic only
-    analytics: {
-        enabled: false,  // Disabled for local version
-        events: {
-            gameStart: 'game_start',
-            gameOver: 'game_over',
-            levelUp: 'level_up',
-            powerupCollected: 'powerup_collected',
-            highScore: 'high_score_achieved',
-            pwaInstall: 'pwa_install',
-            shareScore: 'score_shared',
-            errorOccurred: 'error_occurred'
-        },
-        performance: {
-            thresholds: {
-                fps: 30,              // Minimum acceptable FPS
-                memoryUsage: 100      // MB memory usage warning threshold
-            }
         }
     },
     
@@ -154,7 +134,7 @@ const GameConfig = {
             tablet: 1024,
             desktop: 1200
         },
-        powerupSize: 20             // Larger power-up icons (was 15)
+        powerupSize: 20             // Larger power-up icons
     },
     
     // PWA Configuration
@@ -177,7 +157,7 @@ const GameConfig = {
         minimumAge: 8,
         dataCollection: {
             personalInfo: false,     // No personal info collected
-            analytics: false,        // No analytics in local version
+            analytics: false,        // No analytics
             crashReporting: false,   // No external reporting
             userGeneratedContent: false // No user content allowed
         },
@@ -191,11 +171,19 @@ const GameConfig = {
     // Performance Settings
     performance: {
         targetFPS: 60,
-        maxEnemies: 15,             // Reduced max enemies (was 20)
-        maxPowerups: 6,             // Increased max power-ups (was 5)
+        maxEnemies: 15,             // Reduced max enemies
+        maxPowerups: 6,             // Increased max power-ups
         canvasOptimization: true,
-        memoryManagement: true,
-        backgroundSync: false       // Disabled for local version
+        memoryManagement: true
+    },
+    
+    // Local Storage Configuration
+    localStorage: {
+        enabled: true,
+        keyPrefix: 'houseHeadChase_',
+        maxScores: 10,              // Keep top 10 scores
+        compression: false,         // No compression needed for small data
+        encryption: false           // No encryption needed for game scores
     },
     
     // Debug Settings
@@ -241,6 +229,37 @@ const GameConfig = {
                 speedMultiplier: baseMultiplier,
                 damageMultiplier: baseMultiplier
             };
+        },
+        // Local storage helper functions
+        saveToLocal: (key, data) => {
+            try {
+                const storageKey = GameConfig.utils.getStorageKey(key);
+                localStorage.setItem(storageKey, JSON.stringify(data));
+                return true;
+            } catch (error) {
+                console.error('Failed to save to localStorage:', error);
+                return false;
+            }
+        },
+        loadFromLocal: (key, defaultValue = null) => {
+            try {
+                const storageKey = GameConfig.utils.getStorageKey(key);
+                const data = localStorage.getItem(storageKey);
+                return data ? JSON.parse(data) : defaultValue;
+            } catch (error) {
+                console.error('Failed to load from localStorage:', error);
+                return defaultValue;
+            }
+        },
+        clearLocal: (key) => {
+            try {
+                const storageKey = GameConfig.utils.getStorageKey(key);
+                localStorage.removeItem(storageKey);
+                return true;
+            } catch (error) {
+                console.error('Failed to clear localStorage:', error);
+                return false;
+            }
         }
     },
     
@@ -249,21 +268,22 @@ const GameConfig = {
         errors: {
             gameLoadFailed: 'Game failed to load. Please refresh the page.',
             unsupportedBrowser: 'Your browser is not fully supported. Some features may not work.',
-            storageError: 'Unable to save your progress. Please check your browser settings.'
+            storageError: 'Unable to save your progress. Please check your browser settings.',
+            noLocalStorage: 'Local storage is not available. Scores will not be saved.'
         },
         success: {
             gameInstalled: 'Game installed successfully!',
-            scoreSaved: 'Score saved locally!'
+            scoreSaved: 'Score saved locally!',
+            dataExported: 'Game data exported successfully!'
         }
     },
     
-    // External Links
+    // External Links (Update with your GitHub Pages URL)
     links: {
-        website: 'https://your-github-username.github.io/house-head-chase',  // Update with your GitHub Pages URL
-        support: 'https://github.com/your-github-username/house-head-chase/issues',  // Update with your repo
-        github: 'https://github.com/your-github-username/house-head-chase',  // Update with your repo
-        privacyPolicy: 'https://your-github-username.github.io/house-head-chase/privacy',
-        termsOfService: 'https://your-github-username.github.io/house-head-chase/terms'
+        website: 'https://your-github-username.github.io/house-head-chase',
+        support: 'https://github.com/your-github-username/house-head-chase/issues',
+        github: 'https://github.com/your-github-username/house-head-chase',
+        developerProfile: 'https://github.com/your-github-username'
     }
 };
 
@@ -337,6 +357,18 @@ const initializeConfig = () => {
     
     console.log(`📱 Device: ${GameConfig.isMobile ? 'Mobile' : GameConfig.isTablet ? 'Tablet' : 'Desktop'}`);
     
+    // Test localStorage availability
+    try {
+        const testKey = GameConfig.utils.getStorageKey('test');
+        localStorage.setItem(testKey, 'test');
+        localStorage.removeItem(testKey);
+        GameConfig.localStorage.available = true;
+        console.log('💾 Local storage available');
+    } catch (error) {
+        GameConfig.localStorage.available = false;
+        console.warn('⚠️ Local storage not available:', error);
+    }
+    
     // Make config available globally
     window.GameConfig = GameConfig;
     
@@ -349,6 +381,7 @@ const initializeConfig = () => {
     console.log('🌍 Environment:', GameConfig.isDevelopment ? 'Development' : 'Production');
     console.log('⚖️ Difficulty balanced for better progression');
     console.log('📱 Local-only version for GitHub Pages');
+    console.log('💾 Local storage:', GameConfig.localStorage.available ? 'Available' : 'Not available');
 };
 
 // Initialize when DOM is ready
@@ -363,4 +396,4 @@ if (typeof module !== 'undefined' && module.exports) {
     module.exports = GameConfig;
 }
 
-console.log('✅ Config module loaded - Local version');
+console.log('✅ Config module loaded - Local-only version');
