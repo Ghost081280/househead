@@ -6,25 +6,25 @@
     <title>🏠 House Head Chase - Fun Survival Game for Kids!</title>
     
     <!-- SEO Meta Tags -->
-    <meta name="description" content="House Head Chase - A fun, kid-friendly survival game! Avoid walking House Heads, collect power-ups, and compete on global leaderboards. Free to play, no downloads needed!">
+    <meta name="description" content="House Head Chase - A fun, kid-friendly survival game! Avoid walking House Heads, collect power-ups, and compete locally. Free to play, no downloads needed!">
     <meta name="keywords" content="kids game, survival game, house head chase, family game, browser game, free game, no download, safe for kids">
     <meta name="author" content="House Head Chase">
     <meta name="robots" content="index, follow">
-    <link rel="canonical" href="https://www.househeadchase.com/">
+    <link rel="canonical" href="https://your-github-username.github.io/house-head-chase/">
     
     <!-- Open Graph / Facebook -->
     <meta property="og:type" content="website">
     <meta property="og:title" content="🏠 House Head Chase - Fun Survival Game for Kids!">
-    <meta property="og:description" content="A fun, kid-friendly survival game where you avoid walking House Heads! Free to play with global leaderboards.">
-    <meta property="og:image" content="https://www.househeadchase.com/icons/social-preview.png">
-    <meta property="og:url" content="https://www.househeadchase.com/">
+    <meta property="og:description" content="A fun, kid-friendly survival game where you avoid walking House Heads! Free to play with local leaderboards.">
+    <meta property="og:image" content="https://your-github-username.github.io/house-head-chase/icons/social-preview.png">
+    <meta property="og:url" content="https://your-github-username.github.io/house-head-chase/">
     <meta property="og:site_name" content="House Head Chase">
     
     <!-- Twitter -->
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="🏠 House Head Chase - Fun Game for Kids!">
     <meta name="twitter:description" content="Avoid walking House Heads in this fun survival game! Free to play, kid-friendly, and safe.">
-    <meta property="og:image" content="https://www.househeadchase.com/icons/social-preview.png">
+    <meta property="og:image" content="https://your-github-username.github.io/house-head-chase/icons/social-preview.png">
     <meta name="twitter:site" content="@househeadchase">
     <meta name="twitter:creator" content="@househeadchase">
     
@@ -56,8 +56,8 @@
         "@context": "https://schema.org",
         "@type": "Game",
         "name": "House Head Chase",
-        "description": "A fun, kid-friendly survival game where you avoid walking House Heads! Features power-ups, global leaderboards, and safe gameplay for children.",
-        "url": "https://www.househeadchase.com",
+        "description": "A fun, kid-friendly survival game where you avoid walking House Heads! Features power-ups, local leaderboards, and safe gameplay for children.",
+        "url": "https://your-github-username.github.io/house-head-chase/",
         "genre": "Survival",
         "gamePlatform": ["Web Browser", "Mobile", "PWA"],
         "operatingSystem": "Any",
@@ -76,11 +76,8 @@
         "publisher": {
             "@type": "Organization",
             "name": "House Head Chase",
-            "url": "https://www.househeadchase.com"
-        },
-        "sameAs": [
-            "https://x.com/househeadchase"
-        ]
+            "url": "https://your-github-username.github.io/house-head-chase/"
+        }
     }
     </script>
 </head>
@@ -88,8 +85,6 @@
     <!-- Game Container -->
     <div id="gameContainer">
         <canvas id="gameCanvas" aria-label="House Head Chase Game Canvas" role="application"></canvas>
-        
-        <!-- Desktop auth removed - now handled in High Scores modal -->
         
         <!-- HUD - Game Interface -->
         <div id="hud" class="hidden" role="toolbar" aria-label="Game HUD">
@@ -180,9 +175,6 @@
         <div class="stats" role="group" aria-label="Final game statistics">
             <p>⏰ Survival Time: <strong id="finalTime">0:00</strong></p>
             <p>📊 Level Reached: <strong id="finalLevel">1</strong></p>
-            <div id="globalRankInfo" class="global-rank hidden">
-                <p>🌍 Global Rank: <strong id="globalRank">#-</strong></p>
-            </div>
         </div>
         <div class="button-container">
             <button class="btn primary" id="restartGameBtn" onclick="restartGame()" 
@@ -191,63 +183,6 @@
                     aria-label="Share your score">📤 SHARE SCORE</button>
             <button class="btn secondary" id="showStartScreenBtn" onclick="goToStartScreen()" 
                     aria-label="Return to main menu">🏠 MAIN MENU</button>
-        </div>
-    </div>
-    
-    <!-- Google Sign In Modal -->
-    <div id="signInModal" class="modal-overlay hidden" role="dialog" aria-labelledby="signInTitle">
-        <div class="modal-content sign-in-modal">
-            <div class="modal-header">
-                <h2 id="signInTitle">🌍 JOIN GLOBAL LEADERBOARD</h2>
-                <button class="close-btn" onclick="closeSignInModal()" aria-label="Close sign in modal">×</button>
-            </div>
-            <div class="modal-body">
-                <div class="sign-in-benefits">
-                    <div class="benefit-item">
-                        <span class="benefit-icon">🏆</span>
-                        <div class="benefit-text">
-                            <h4>Compete Globally</h4>
-                            <p>See how you rank against players worldwide!</p>
-                        </div>
-                    </div>
-                    <div class="benefit-item">
-                        <span class="benefit-icon">💾</span>
-                        <div class="benefit-text">
-                            <h4>Save Your Scores</h4>
-                            <p>Never lose your best survival times!</p>
-                        </div>
-                    </div>
-                    <div class="benefit-item">
-                        <span class="benefit-icon">🎯</span>
-                        <div class="benefit-text">
-                            <h4>Track Progress</h4>
-                            <p>Watch your skills improve over time!</p>
-                        </div>
-                    </div>
-                    <div class="benefit-item">
-                        <span class="benefit-icon">👨‍👩‍👧‍👦</span>
-                        <div class="benefit-text">
-                            <h4>Kid-Safe</h4>
-                            <p>COPPA compliant - safe for children!</p>
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="sign-in-action">
-                    <button class="btn primary google-sign-in-btn" onclick="handleGoogleSignIn(); closeSignInModal();" 
-                            aria-label="Sign in with Google">
-                        <span class="google-icon">🌍</span>
-                        <span class="sign-in-text">Sign In with Google</span>
-                    </button>
-                    <p class="privacy-note">
-                        We only collect your name and email to save your scores. 
-                        <br>No personal data is shared or sold.
-                    </p>
-                </div>
-            </div>
-            <div class="modal-footer">
-                <button class="btn secondary" onclick="closeSignInModal()">Maybe Later</button>
-            </div>
         </div>
     </div>
     
@@ -260,52 +195,8 @@
                         aria-label="Close high scores">×</button>
             </div>
             <div class="modal-body">
-                <div class="score-tabs">
-                    <button class="tab-btn active" onclick="showLocalScores()" id="localScoresTab">📱 Local Scores</button>
-                    <button class="tab-btn" onclick="showGlobalScores()" id="globalScoresTab">🌍 Global Scores</button>
-                </div>
-                
-                <!-- Global Authentication Section (Hidden by default) -->
-                <div id="globalAuthSection" class="global-auth-section hidden">
-                    <!-- When not signed in -->
-                    <div id="authPrompt" class="auth-prompt">
-                        <div class="global-auth-title">
-                            🌍 <span>Join Global Competition</span>
-                        </div>
-                        <p class="global-auth-description">
-                            Sign in with Google to compete with players worldwide and save your scores to the cloud!
-                        </p>
-                        <button class="global-sign-in-btn" onclick="handleGoogleSignIn()" 
-                                aria-label="Sign in with Google for global leaderboard">
-                            <span class="google-icon">🌍</span>
-                            <span>Sign In with Google</span>
-                        </button>
-                    </div>
-                    
-                    <!-- When signed in -->
-                    <div id="userSignedIn" class="user-signed-in hidden">
-                        <div class="global-auth-title signed-in-title">
-                            ✅ <span>Global Competition Active</span>
-                        </div>
-                        <div class="user-info">
-                            <span class="user-avatar">👤</span>
-                            <span class="user-name" id="globalUserName">Player</span>
-                        </div>
-                        <p class="global-auth-description">
-                            Your scores are automatically saved to the global leaderboard!
-                        </p>
-                        <button class="sign-out-btn" onclick="handleSignOut()" 
-                                aria-label="Sign out from global leaderboard">
-                            👋 Sign Out
-                        </button>
-                    </div>
-                </div>
-                
                 <div id="highScoresList" role="list" aria-label="High scores list">
                     <p>Loading scores...</p>
-                </div>
-                <div id="globalLeaderboardList" role="list" aria-label="Global leaderboard" style="display: none;">
-                    <p>Loading global scores...</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -347,7 +238,7 @@
                     <div class="copy-text" id="copyPreviewText">
                         🏠 I survived 0:00 and reached level 1 in House Head Chase! Can you beat my score?
 
-                        Play now: https://www.househeadchase.com
+                        Play now: https://your-github-username.github.io/house-head-chase/
                     </div>
                 </div>
             </div>
@@ -378,15 +269,15 @@
                 </div>
                 <div class="help-section">
                     <h3>🏠 ENEMIES</h3>
-                    <p><strong>Small Houses:</strong> Fast but less damage (12 HP)</p>
-                    <p><strong>Big Houses:</strong> Slow but more damage (20 HP)</p>
+                    <p><strong>Small Houses:</strong> Fast but less damage (10 HP)</p>
+                    <p><strong>Big Houses:</strong> Slow but more damage (18 HP)</p>
                     <p>Houses spawn → grow legs → hunt you down!</p>
                 </div>
                 <div class="help-section">
                     <h3>⚡ POWER-UPS</h3>
-                    <p><strong>💚 Health Pack:</strong> Restore 35 health points</p>
-                    <p><strong>🛡️ Shield:</strong> 6 seconds of invincibility</p>
-                    <p><strong>🧊 House Freeze:</strong> Turn houses back to safe mode for 8 seconds</p>
+                    <p><strong>💚 Health Pack:</strong> Restore 40 health points</p>
+                    <p><strong>🛡️ Shield:</strong> 7 seconds of invincibility</p>
+                    <p><strong>🧊 House Freeze:</strong> Turn houses back to safe mode for 9 seconds</p>
                 </div>
                 <div class="help-section">
                     <h3>🔦 FLASHLIGHT STRATEGY</h3>
@@ -402,16 +293,15 @@
                     <p>• Stay away from areas where houses are spawning</p>
                     <p>• Collect power-ups to survive longer</p>
                     <p>• Higher levels = smarter, faster enemies</p>
-                    <p>• Check High Scores → Global Scores for worldwide competition!</p>
                 </div>
                 <div class="help-section support-info">
                     <h3>📞 NEED MORE HELP?</h3>
                     <div class="support-contacts">
                         <p><strong>🐦 X/Twitter:</strong> <a href="https://x.com/househeadchase" target="_blank" rel="noopener">@househeadchase</a></p>
                         <p><strong>📧 Email:</strong> <a href="mailto:support@househeadchase.com">support@househeadchase.com</a></p>
-                        <p><strong>👨‍💻 GitHub:</strong> <a href="https://github.com/Ghost081280" target="_blank" rel="noopener">Developer Profile</a></p>
+                        <p><strong>👨‍💻 GitHub:</strong> <a href="https://github.com/your-github-username" target="_blank" rel="noopener">Developer Profile</a></p>
                     </div>
-                    <p class="help-note">Designed and developed by Ghost081280</p>
+                    <p class="help-note">Local-only version - all scores saved in your browser</p>
                 </div>
             </div>
             <div class="modal-footer">
@@ -436,8 +326,7 @@
     <div id="loadingScreen" class="loading-screen">
         <div class="loading-content">
             <div class="loading-house">
-                <img src="./images/HouseHead.clear.svg" alt="House Head" class="loading-house-image" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div class="loading-house-placeholder" style="display: none;">🏠</div>
+                <div class="loading-house-placeholder">🏠</div>
             </div>
             <h2>Loading House Head Chase...</h2>
             <div class="loading-bar">
@@ -463,139 +352,6 @@
         window.installPWA = window.installPWA || function() { console.log('Installing PWA...'); };
         window.hideInstallPrompt = window.hideInstallPrompt || function() { console.log('Hiding install prompt...'); };
         
-        // Sign In Modal Functions
-        function showSignInModal() {
-            console.log('🔐 Showing sign in modal...');
-            const modal = document.getElementById('signInModal');
-            if (modal) {
-                modal.classList.remove('hidden');
-                modal.style.pointerEvents = 'auto';
-            }
-        }
-        
-        function closeSignInModal() {
-            console.log('🚫 Closing sign in modal...');
-            const modal = document.getElementById('signInModal');
-            if (modal) {
-                modal.classList.add('hidden');
-                modal.style.pointerEvents = 'none';
-            }
-        }
-        
-        // Global authentication handlers
-        async function handleGoogleSignIn() {
-            console.log('🔐 Attempting Google sign-in...');
-            if (window.firebaseManager) {
-                const success = await window.firebaseManager.signInWithGoogle();
-                if (success) {
-                    console.log('✅ Signed in successfully');
-                    updateGlobalAuthUI();
-                    // Auto-refresh the global leaderboard
-                    if (window.firebaseManager.updateGlobalLeaderboard) {
-                        window.firebaseManager.updateGlobalLeaderboard();
-                    }
-                }
-            } else {
-                console.warn('⚠️ Firebase not yet loaded');
-                alert('Authentication system is still loading. Please try again in a moment.');
-            }
-        }
-
-        async function handleSignOut() {
-            console.log('👋 Attempting sign-out...');
-            if (window.firebaseManager) {
-                await window.firebaseManager.signOut();
-                console.log('👋 Signed out successfully');
-                updateGlobalAuthUI();
-            }
-        }
-        
-        function updateGlobalAuthUI() {
-            console.log('🔄 Updating global auth UI...');
-            const isSignedIn = window.firebaseManager && window.firebaseManager.user;
-            const authPrompt = document.getElementById('authPrompt');
-            const userSignedIn = document.getElementById('userSignedIn');
-            const globalUserName = document.getElementById('globalUserName');
-            const globalScoresTab = document.getElementById('globalScoresTab');
-            
-            console.log('🔍 Sign-in status:', isSignedIn);
-            
-            if (isSignedIn) {
-                // Show signed-in state
-                if (authPrompt) authPrompt.classList.add('hidden');
-                if (userSignedIn) userSignedIn.classList.remove('hidden');
-                if (globalUserName && window.firebaseManager.user) {
-                    globalUserName.textContent = window.firebaseManager.user.displayName || 'Player';
-                }
-                // Enable global scores tab
-                if (globalScoresTab) {
-                    globalScoresTab.disabled = false;
-                    globalScoresTab.style.opacity = '1';
-                    globalScoresTab.style.cursor = 'pointer';
-                }
-            } else {
-                // Show sign-in prompt
-                if (authPrompt) authPrompt.classList.remove('hidden');
-                if (userSignedIn) userSignedIn.classList.add('hidden');
-                // Keep global scores tab enabled so users can see the auth prompt
-                if (globalScoresTab) {
-                    globalScoresTab.disabled = false;
-                    globalScoresTab.style.opacity = '1';
-                    globalScoresTab.style.cursor = 'pointer';
-                }
-            }
-        }
-        
-        // Score tab switching functions
-        function showLocalScores() {
-            console.log('📱 Showing local scores...');
-            
-            // Update tab appearance
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('localScoresTab').classList.add('active');
-            
-            // Show/hide content
-            document.getElementById('highScoresList').style.display = 'block';
-            document.getElementById('globalLeaderboardList').style.display = 'none';
-            document.getElementById('globalAuthSection').classList.add('hidden');
-            
-            // Load local scores
-            if (typeof displayHighScores === 'function') {
-                displayHighScores();
-            } else {
-                console.log('⚠️ displayHighScores function not available yet');
-            }
-        }
-        
-        function showGlobalScores() {
-            console.log('🌍 Showing global scores...');
-            
-            // Update tab appearance
-            document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-            document.getElementById('globalScoresTab').classList.add('active');
-            
-            // Show/hide content
-            document.getElementById('highScoresList').style.display = 'none';
-            document.getElementById('globalLeaderboardList').style.display = 'block';
-            document.getElementById('globalAuthSection').classList.remove('hidden');
-            
-            // Update the auth UI to show current state
-            updateGlobalAuthUI();
-            
-            // Load global scores if signed in
-            if (window.firebaseManager && window.firebaseManager.user) {
-                if (window.firebaseManager.updateGlobalLeaderboard) {
-                    window.firebaseManager.updateGlobalLeaderboard();
-                }
-            } else {
-                // Show placeholder for not signed in
-                const globalList = document.getElementById('globalLeaderboardList');
-                if (globalList) {
-                    globalList.innerHTML = '<p style="text-align: center; color: #888; font-style: italic;">Sign in above to view and compete on the global leaderboard!</p>';
-                }
-            }
-        }
-        
         // Enhanced share modal functions
         function showShareModal() {
             console.log('📤 Showing share modal...');
@@ -613,7 +369,7 @@
             
             const copyText = `🏠 I survived ${timeFormatted} and reached level ${level} in House Head Chase! Can you beat my score?
 
-Play now: https://www.househeadchase.com`;
+Play now: https://your-github-username.github.io/house-head-chase/`;
             
             if (copyPreview) copyPreview.textContent = copyText;
             
@@ -641,14 +397,14 @@ Play now: https://www.househeadchase.com`;
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
-            const url = 'https://www.househeadchase.com';
+            const url = 'https://your-github-username.github.io/house-head-chase/';
             const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
             window.open(shareUrl, '_blank', 'width=600,height=400');
         }
         
         function shareToFacebook() {
             console.log('📘 Sharing to Facebook...');
-            const url = 'https://www.househeadchase.com';
+            const url = 'https://your-github-username.github.io/house-head-chase/';
             const survivalTime = getCurrentSurvivalTime();
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
@@ -662,7 +418,7 @@ Play now: https://www.househeadchase.com`;
             const level = window.gameState ? window.gameState.level : 1;
             const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
 
-Play now: https://www.househeadchase.com`;
+Play now: https://your-github-username.github.io/house-head-chase/`;
             
             if (navigator.clipboard && navigator.clipboard.writeText) {
                 navigator.clipboard.writeText(message).then(() => {
@@ -730,42 +486,6 @@ Play now: https://www.househeadchase.com`;
             return 0;
         }
         
-        // Initialize auth UI when Firebase becomes available
-        function initializeAuthSystem() {
-            console.log('🔧 Initializing auth system...');
-            
-            // Wait for Firebase to be ready
-            const checkFirebaseReady = () => {
-                if (window.GameConfig && window.firebaseManager) {
-                    console.log('🔥 Firebase is ready, updating auth UI...');
-                    updateGlobalAuthUI();
-                    
-                    // Listen for auth state changes
-                    if (window.firebaseManager.auth) {
-                        console.log('👂 Setting up auth state listener...');
-                        // The firebase integration should handle auth state changes
-                    }
-                } else {
-                    console.log('⏳ Waiting for Firebase to load...');
-                    setTimeout(checkFirebaseReady, 500);
-                }
-            };
-            
-            checkFirebaseReady();
-        }
-        
-        // Initialize when DOM and config are ready
-        document.addEventListener('DOMContentLoaded', () => {
-            console.log('📄 DOM loaded, setting up auth system...');
-            initializeAuthSystem();
-        });
-        
-        // Also listen for the config ready event
-        window.addEventListener('configReady', () => {
-            console.log('⚙️ Config ready, setting up auth system...');
-            setTimeout(initializeAuthSystem, 100);
-        });
-        
         // Hide loading screen when everything is ready
         window.addEventListener('load', () => {
             const loadingScreen = document.getElementById('loadingScreen');
@@ -787,21 +507,10 @@ Play now: https://www.househeadchase.com`;
                 console.log(`🚀 Page loaded in ${loadTime}ms`);
             });
         }
-        
-        // Analytics helper (COPPA compliant)
-        function trackEvent(eventName, parameters = {}) {
-            if (window.gtag && window.GameConfig?.analytics?.enabled) {
-                gtag('event', eventName, {
-                    ...parameters,
-                    game_version: window.GameConfig?.version || '2.0.0'
-                });
-            }
-        }
     </script>
     
     <!-- Load game scripts in order -->
     <script src="config.js"></script>
-    <script src="firebase-integration.js"></script>
     <script src="game.js"></script>
 </body>
 </html>
