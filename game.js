@@ -1,5 +1,5 @@
-// House Head Chase - ENHANCED VERSION WITH IMPROVED AI AND COLLISION
-console.log('🏠 House Head Chase - Loading ENHANCED VERSION...');
+// House Head Chase - LOCAL-ONLY VERSION
+console.log('🏠 House Head Chase - Loading LOCAL-ONLY VERSION...');
 
 // === SOUND SYSTEM ===
 class SoundSystem {
@@ -94,89 +94,6 @@ class SoundSystem {
 // Initialize sound system
 const soundSystem = new SoundSystem();
 
-// === AUTHENTICATION UI MANAGER ===
-class AuthUIManager {
-    constructor() {
-        this.authContainer = document.getElementById('authContainer');
-        this.isFirebaseReady = false;
-        this.shouldShowAuth = true;
-    }
-
-    initialize() {
-        // Wait for Firebase to be ready
-        this.waitForFirebase();
-        console.log('🔐 Auth UI Manager initialized');
-    }
-
-    waitForFirebase() {
-        const checkFirebase = () => {
-            if (window.GameConfig?.features?.googleSignIn && window.firebaseManager) {
-                this.isFirebaseReady = true;
-                this.updateAuthVisibility();
-                console.log('✅ Firebase ready - Auth UI available');
-            } else {
-                setTimeout(checkFirebase, 200);
-            }
-        };
-        checkFirebase();
-
-        // Listen for config ready event
-        window.addEventListener('configReady', () => {
-            setTimeout(() => {
-                if (window.GameConfig?.features?.googleSignIn) {
-                    setTimeout(checkFirebase, 500);
-                }
-            }, 100);
-        });
-    }
-
-    showAuthContainer() {
-        if (this.isFirebaseReady && this.authContainer && this.shouldShowAuth) {
-            this.authContainer.classList.remove('hidden');
-            console.log('👤 Auth container shown');
-        }
-    }
-
-    hideAuthContainer() {
-        if (this.authContainer) {
-            this.authContainer.classList.add('hidden');
-            console.log('👤 Auth container hidden');
-        }
-    }
-
-    updateAuthVisibility() {
-        if (this.shouldShowAuth) {
-            this.showAuthContainer();
-        } else {
-            this.hideAuthContainer();
-        }
-    }
-
-    // Called when game starts
-    onGameStart() {
-        this.shouldShowAuth = false;
-        this.hideAuthContainer();
-    }
-
-    // Called when game ends
-    onGameEnd() {
-        this.shouldShowAuth = true;
-        // Show after a delay so user sees game over screen first
-        setTimeout(() => {
-            this.showAuthContainer();
-        }, 1500);
-    }
-
-    // Called when returning to start screen
-    onStartScreen() {
-        this.shouldShowAuth = true;
-        this.showAuthContainer();
-    }
-}
-
-// Initialize Auth UI Manager
-const authUIManager = new AuthUIManager();
-
 // === POWER-UP TYPES WITH BALANCED DISTRIBUTION ===
 const PowerupTypes = {
     HEALTH: {
@@ -208,14 +125,14 @@ const PowerupTypes = {
     }
 };
 
-// === POWERUP CLASS WITH BETTER DISTRIBUTION ===
+// === POWERUP CLASS ===
 class Powerup {
     constructor(x, y, type) {
         this.x = x;
         this.y = y;
         this.type = type;
         this.config = PowerupTypes[type];
-        this.size = window.GameConfig?.ui?.powerupSize || 20; // Larger power-ups
+        this.size = window.GameConfig?.ui?.powerupSize || 20;
         this.collected = false;
         this.spawnTime = Date.now();
         this.pulseOffset = Math.random() * Math.PI * 2;
@@ -236,7 +153,7 @@ class Powerup {
         const dy = this.y - gameState.player.y;
         const distance = Math.sqrt(dx * dx + dy * dy);
         
-        if (distance < this.size + gameState.player.size - 3) { // Slightly easier collection
+        if (distance < this.size + gameState.player.size - 3) {
             this.collect();
             return false;
         }
@@ -273,7 +190,6 @@ class Powerup {
                     type: this.type,
                     timeLeft: this.config.duration
                 });
-                // Convert all active enemies back to frozen state
                 gameState.enemies.forEach(enemy => {
                     if (enemy.state === 'active') {
                         enemy.state = 'frozen';
@@ -287,7 +203,6 @@ class Powerup {
                 break;
         }
         
-        // Track power-up collection for balancing
         gameState.powerupStats = gameState.powerupStats || {};
         gameState.powerupStats[this.type] = (gameState.powerupStats[this.type] || 0) + 1;
     }
@@ -344,13 +259,11 @@ class Powerup {
                 ctx.fill();
                 break;
             case 'FREEZE':
-                // Draw ice crystal pattern
                 const iceSize = this.size * 0.4;
                 ctx.fillStyle = '#000';
                 ctx.fillRect(-iceSize, -iceSize * 0.15, iceSize * 2, iceSize * 0.3);
                 ctx.fillRect(-iceSize, -iceSize * 0.15 + iceSize * 0.6, iceSize * 2, iceSize * 0.3);
                 ctx.fillRect(-iceSize, -iceSize * 0.15 + iceSize * 1.2, iceSize * 2, iceSize * 0.3);
-                // Add diagonal ice effects
                 ctx.fillRect(-iceSize * 0.15, -iceSize, iceSize * 0.3, iceSize * 2);
                 ctx.fillRect(-iceSize * 0.7, -iceSize * 0.7, iceSize * 0.4, iceSize * 1.4);
                 ctx.fillRect(iceSize * 0.3, -iceSize * 0.7, iceSize * 0.4, iceSize * 1.4);
@@ -361,7 +274,7 @@ class Powerup {
     }
 }
 
-// === GAME STATE WITH BALANCED SETTINGS ===
+// === GAME STATE ===
 const gameState = {
     running: false,
     paused: false,
@@ -373,7 +286,7 @@ const gameState = {
         size: 18,
         health: 100,
         maxHealth: 100,
-        speed: 3.8,  // Slightly faster player
+        speed: 3.8,
         baseSpeed: 3.8,
         isDragging: false,
         dragOffset: { x: 0, y: 0 },
@@ -397,8 +310,8 @@ const gameState = {
     lastEnemySpawn: 0,
     lastPowerupSpawn: 0,
     lastScoreUpdate: 0,
-    spawnRate: 5500,  // Slower initial spawn rate
-    powerupSpawnRate: 8000,  // More frequent power-ups
+    spawnRate: 5500,
+    powerupSpawnRate: 8000,
     input: {
         lastTap: 0,
         doubleTapDelay: 300
@@ -410,38 +323,38 @@ const gameState = {
     difficulty: 1,
     totalEnemiesSpawned: 0,
     collisionGrid: new Map(),
-    powerupStats: {},  // Track power-up collection for balancing
-    lastPowerupType: null,  // Ensure variety in power-up spawning
-    powerupRotationIndex: 0  // Round-robin power-up spawning
+    powerupStats: {},
+    lastPowerupType: null,
+    powerupRotationIndex: 0
 };
 
-// === ENEMY TYPES WITH BALANCED STATS ===
+// === ENEMY TYPES ===
 const EnemyTypes = {
     SMALL: {
         name: 'Small House',
         size: 25,
-        speed: 0.7,        // Slower
-        damage: 10,        // Less damage
-        spawnWeight: 0.8,  // More common early on
+        speed: 0.7,
+        damage: 10,
+        spawnWeight: 0.8,
         color: '#4a3a2a',
-        activationTime: 3000,  // Longer activation
+        activationTime: 3000,
         wanderRadius: 100,
         huntRadius: 180
     },
     BIG: {
         name: 'Big House',
         size: 40,
-        speed: 0.4,        // Much slower
-        damage: 18,        // Less damage
-        spawnWeight: 0.2,  // Less common early on
+        speed: 0.4,
+        damage: 18,
+        spawnWeight: 0.2,
         color: '#3a2a1a',
-        activationTime: 4500,  // Much longer activation
+        activationTime: 4500,
         wanderRadius: 80,
         huntRadius: 200
     }
 };
 
-// === ENHANCED ENEMY CLASS WITH BALANCED AI ===
+// === ENEMY CLASS ===
 class Enemy {
     constructor(x, y, type) {
         this.x = x;
@@ -450,7 +363,6 @@ class Enemy {
         this.config = EnemyTypes[type];
         this.size = this.config.size;
         
-        // Apply level-based modifiers for balanced progression
         const levelModifiers = window.GameConfig?.utils?.getLevelModifiers(gameState.level) || {
             speedMultiplier: 1,
             damageMultiplier: 1
@@ -463,14 +375,13 @@ class Enemy {
         
         this.state = 'spawning';
         this.spawnTime = Date.now();
-        this.activationTime = this.config.activationTime + (Math.random() * 1500); // More variable activation
+        this.activationTime = this.config.activationTime + (Math.random() * 1500);
         this.legs = [];
         this.windowGlow = 0.5 + Math.random() * 0.5;
         this.lastDamageTime = 0;
         this.isVisible = false;
         this.frozenUntil = 0;
         
-        // Enhanced AI properties with less aggressive behavior
         this.aiState = 'wander';
         this.wanderTarget = { x: this.x, y: this.y };
         this.wanderTime = 0;
@@ -480,17 +391,16 @@ class Enemy {
         this.lastPlayerSeen = 0;
         this.alertRadius = this.config.huntRadius;
         
-        // Collision properties
         this.mass = this.type === 'BIG' ? 2 : 1;
         this.bounceVelocity = { x: 0, y: 0 };
-        this.frictionCoeff = 0.96; // Slightly more friction
+        this.frictionCoeff = 0.96;
         
         for (let i = 0; i < 6; i++) {
             this.legs.push({
                 angle: (i / 6) * Math.PI * 2,
                 length: this.size * 0.8,
                 offset: Math.random() * Math.PI * 2,
-                speed: 0.08 + Math.random() * 0.08  // Slower leg animation
+                speed: 0.08 + Math.random() * 0.08
             });
         }
         
@@ -500,9 +410,8 @@ class Enemy {
     update() {
         const currentTime = Date.now();
         
-        // State transitions with longer dormant period
         if (this.state === 'spawning') {
-            if (currentTime - this.spawnTime > 1200) { // Longer spawn animation
+            if (currentTime - this.spawnTime > 1200) {
                 this.state = 'dormant';
                 soundSystem.play('spawn', 180, 0.3, 0.2);
             }
@@ -512,7 +421,6 @@ class Enemy {
                 console.log(`🦵 ${this.config.name} grew legs! Now hunting...`);
             }
         } else if (this.state === 'frozen') {
-            // Check if freeze time is over
             if (currentTime > this.frozenUntil) {
                 this.state = 'active';
                 console.log(`🔥 ${this.config.name} thawed out! Back to hunting...`);
@@ -539,25 +447,23 @@ class Enemy {
         const dy = playerY - this.y;
         const distanceToPlayer = Math.sqrt(dx * dx + dy * dy);
         
-        // Less aggressive AI - more wander time, less hunting
         if (gameState.flashlight.on && gameState.flashlight.intensity > 0.5) {
-            if (distanceToPlayer < this.alertRadius * 0.8) { // Smaller alert radius
+            if (distanceToPlayer < this.alertRadius * 0.8) {
                 this.aiState = 'hunt';
                 this.lastPlayerSeen = currentTime;
-            } else if (currentTime - this.lastPlayerSeen < 2000) { // Shorter memory
+            } else if (currentTime - this.lastPlayerSeen < 2000) {
                 this.aiState = 'hunt';
             } else {
                 this.aiState = 'wander';
             }
         } else {
-            if (distanceToPlayer < 40) { // Much closer before they notice
+            if (distanceToPlayer < 40) {
                 this.aiState = 'hunt';
             } else {
                 this.aiState = 'wander';
             }
         }
         
-        // Execute AI behavior with less intensity
         switch (this.aiState) {
             case 'hunt':
                 this.huntPlayer();
@@ -577,13 +483,12 @@ class Enemy {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 5) {
-            // Less aggressive hunting with more randomness
-            const huntSpeed = this.baseSpeed * gameState.difficulty * 0.9; // Reduced hunt speed
-            const randomOffset = (Math.random() - 0.5) * 0.5; // More randomness
+            const huntSpeed = this.baseSpeed * gameState.difficulty * 0.9;
+            const randomOffset = (Math.random() - 0.5) * 0.5;
             const moveX = (dx / distance) * huntSpeed + randomOffset;
             const moveY = (dy / distance) * huntSpeed + randomOffset;
             
-            this.velocity.x += moveX * 0.25; // Less direct movement
+            this.velocity.x += moveX * 0.25;
             this.velocity.y += moveY * 0.25;
         }
     }
@@ -591,7 +496,6 @@ class Enemy {
     wanderAI() {
         const currentTime = Date.now();
         
-        // More frequent direction changes for less predictable movement
         if (currentTime - this.lastWanderUpdate > 1500 + Math.random() * 2500) {
             const angle = Math.random() * Math.PI * 2;
             const distance = this.config.wanderRadius * (0.4 + Math.random() * 0.6);
@@ -610,7 +514,7 @@ class Enemy {
         const distance = Math.sqrt(dx * dx + dy * dy);
         
         if (distance > 20) {
-            const wanderSpeed = this.baseSpeed * 0.4; // Slower wandering
+            const wanderSpeed = this.baseSpeed * 0.4;
             this.velocity.x += (dx / distance) * wanderSpeed * 0.15;
             this.velocity.y += (dy / distance) * wanderSpeed * 0.15;
         }
@@ -629,7 +533,7 @@ class Enemy {
             
             if (distance < this.separationRadius && distance > 0) {
                 const force = (this.separationRadius - distance) / this.separationRadius;
-                separationForce.x += (dx / distance) * force * 1.5; // Less separation force
+                separationForce.x += (dx / distance) * force * 1.5;
                 separationForce.y += (dy / distance) * force * 1.5;
                 neighborCount++;
             }
@@ -643,7 +547,7 @@ class Enemy {
 
     applyBoundaryForces() {
         const margin = 100;
-        const forceStrength = 0.4; // Reduced boundary force
+        const forceStrength = 0.4;
         
         if (this.x < margin) {
             this.velocity.x += forceStrength * (margin - this.x) / margin;
@@ -663,7 +567,7 @@ class Enemy {
         this.velocity.x *= this.frictionCoeff;
         this.velocity.y *= this.frictionCoeff;
         
-        const maxVelocity = this.baseSpeed * 1.8; // Reduced max velocity
+        const maxVelocity = this.baseSpeed * 1.8;
         const velocityMag = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
         if (velocityMag > maxVelocity) {
             this.velocity.x = (this.velocity.x / velocityMag) * maxVelocity;
@@ -704,7 +608,7 @@ class Enemy {
                     gameState.player.y += separationY * 0.2;
                 }
                 
-                this.velocity.x -= (dx / distance) * 1.5; // Less bounce
+                this.velocity.x -= (dx / distance) * 1.5;
                 this.velocity.y -= (dy / distance) * 1.5;
                 
                 soundSystem.play('bounce', 150, 0.1, 0.2);
@@ -732,7 +636,7 @@ class Enemy {
                 other.y += separationY;
                 
                 const totalMass = this.mass + other.mass;
-                const velocityExchange = 1.2; // Reduced collision force
+                const velocityExchange = 1.2;
                 
                 const thisVelX = ((this.mass - other.mass) * this.velocity.x + 2 * other.mass * other.velocity.x) / totalMass;
                 const thisVelY = ((this.mass - other.mass) * this.velocity.y + 2 * other.mass * other.velocity.y) / totalMass;
@@ -749,7 +653,7 @@ class Enemy {
 
     updateLegs() {
         const speed = Math.sqrt(this.velocity.x * this.velocity.x + this.velocity.y * this.velocity.y);
-        const legSpeed = 0.08 + speed * 0.015; // Slower leg movement
+        const legSpeed = 0.08 + speed * 0.015;
         
         this.legs.forEach(leg => {
             leg.offset += legSpeed;
@@ -772,10 +676,10 @@ class Enemy {
 
     damagePlayer() {
         const currentTime = Date.now();
-        if (currentTime - this.lastDamageTime > 1800) { // Longer damage cooldown
+        if (currentTime - this.lastDamageTime > 1800) {
             gameState.player.health -= this.damage;
             this.lastDamageTime = currentTime;
-            gameState.camera.shake = 8; // Less screen shake
+            gameState.camera.shake = 8;
             gameState.camera.intensity = 6;
             soundSystem.play('damage');
             console.log(`💔 Player took ${this.damage} damage from ${this.config.name}`);
@@ -807,7 +711,7 @@ class Enemy {
 
     drawSpawning() {
         const ctx = gameState.ctx;
-        const progress = Math.min((Date.now() - this.spawnTime) / 1200, 1); // Longer spawn animation
+        const progress = Math.min((Date.now() - this.spawnTime) / 1200, 1);
         const currentSize = this.size * progress;
         
         ctx.fillStyle = this.color;
@@ -820,13 +724,11 @@ class Enemy {
         const ctx = gameState.ctx;
         const size = this.size;
         
-        // Draw the house similar to normal but with ice effects
         ctx.fillStyle = 'rgba(0, 0, 0, 0.3)';
         ctx.fillRect(-size/2 + 2, -size/2 + 2, size, size * 0.8);
         
-        // Frozen house has blue tint
         const gradient = ctx.createLinearGradient(-size/2, -size/2, size/2, size/2);
-        gradient.addColorStop(0, '#6699cc'); // Blue tinted
+        gradient.addColorStop(0, '#6699cc');
         gradient.addColorStop(0.5, '#4488bb');
         gradient.addColorStop(1, '#2266aa');
         ctx.fillStyle = gradient;
@@ -836,7 +738,6 @@ class Enemy {
         ctx.lineWidth = 2;
         ctx.strokeRect(-size/2, -size/2, size, size * 0.8);
         
-        // Frozen roof
         const roofGradient = ctx.createLinearGradient(0, -size, 0, -size/2);
         roofGradient.addColorStop(0, '#4488bb');
         roofGradient.addColorStop(1, '#2266aa');
@@ -849,12 +750,11 @@ class Enemy {
         ctx.fill();
         ctx.stroke();
         
-        // Dim windows (house is "asleep")
         const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
         
         ctx.shadowColor = '#88ddff';
         ctx.shadowBlur = 4;
-        ctx.fillStyle = 'rgba(136, 221, 255, 0.3)'; // Very dim
+        ctx.fillStyle = 'rgba(136, 221, 255, 0.3)';
         
         ctx.fillRect(-size/3, -size/4, eyeSize, eyeSize);
         ctx.fillRect(size/6, -size/4, eyeSize, eyeSize);
@@ -866,7 +766,6 @@ class Enemy {
         ctx.strokeRect(-size/3, -size/4, eyeSize, eyeSize);
         ctx.strokeRect(size/6, -size/4, eyeSize, eyeSize);
         
-        // Frozen door
         ctx.fillStyle = '#4488bb';
         const doorWidth = this.type === 'BIG' ? size/3 : size/4;
         const doorHeight = size/4;
@@ -879,11 +778,9 @@ class Enemy {
         ctx.arc(doorWidth/3, size/6 + doorHeight/2, 2, 0, Math.PI * 2);
         ctx.fill();
         
-        // Add ice crystal effects
         ctx.fillStyle = '#ffffff';
         ctx.globalAlpha = 0.7;
         
-        // Ice crystals on the house
         const crystalTime = Date.now() * 0.002;
         for (let i = 0; i < 6; i++) {
             const angle = (i / 6) * Math.PI * 2 + crystalTime;
@@ -930,7 +827,7 @@ class Enemy {
         const eyeSize = size / (this.type === 'BIG' ? 6 : 8);
         
         const glowColor = this.aiState === 'hunt' ? '#ffaa88' : '#ffff88';
-        const glowMultiplier = this.aiState === 'hunt' ? 1.1 : 1.0; // Less intense glow
+        const glowMultiplier = this.aiState === 'hunt' ? 1.1 : 1.0;
         
         ctx.shadowColor = glowColor;
         ctx.shadowBlur = 6 * glowMultiplier;
@@ -1008,12 +905,10 @@ function getCurrentSurvivalTime() {
 function showShareModal() {
     console.log('📤 Showing share modal...');
     
-    // Get current game stats
     const survivalTime = getCurrentSurvivalTime();
     const level = gameState ? gameState.level : 1;
     const timeFormatted = formatTime(survivalTime);
     
-    // Update modal content
     const shareTimeEl = document.getElementById('shareTimeValue');
     const shareLevelEl = document.getElementById('shareLevelValue');
     const copyPreview = document.getElementById('copyPreviewText');
@@ -1023,11 +918,10 @@ function showShareModal() {
     
     const copyText = `🏠 I survived ${timeFormatted} and reached level ${level} in House Head Chase! Can you beat my score?
 
-Play now: https://www.househeadchase.com`;
+Play now: https://your-github-username.github.io/house-head-chase/`;
     
     if (copyPreview) copyPreview.textContent = copyText;
     
-    // Show the modal
     const modal = document.getElementById('shareModal');
     if (modal) {
         modal.classList.remove('hidden');
@@ -1052,14 +946,14 @@ function shareToX() {
     const survivalTime = getCurrentSurvivalTime();
     const level = gameState ? gameState.level : 1;
     const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
-    const url = 'https://www.househeadchase.com';
+    const url = 'https://your-github-username.github.io/house-head-chase/';
     const shareUrl = `https://twitter.com/intent/tweet?text=${encodeURIComponent(message)}&url=${encodeURIComponent(url)}`;
     window.open(shareUrl, '_blank', 'width=600,height=400');
 }
 
 function shareToFacebook() {
     console.log('📘 Sharing to Facebook...');
-    const url = 'https://www.househeadchase.com';
+    const url = 'https://your-github-username.github.io/house-head-chase/';
     const survivalTime = getCurrentSurvivalTime();
     const level = gameState ? gameState.level : 1;
     const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?`;
@@ -1073,7 +967,7 @@ function copyScoreToClipboard() {
     const level = gameState ? gameState.level : 1;
     const message = `🏠 I survived ${formatTime(survivalTime)} and reached level ${level} in House Head Chase! Can you beat my score?
 
-Play now: https://www.househeadchase.com`;
+Play now: https://your-github-username.github.io/house-head-chase/`;
     
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard.writeText(message).then(() => {
@@ -1235,28 +1129,24 @@ function drawBackground() {
     ctx.fillRect(0, canvas.height - 80, canvas.width, 80);
 }
 
-// === BALANCED GAME SYSTEMS ===
+// === GAME SYSTEMS ===
 function spawnEnemy() {
     const currentTime = Date.now();
     const config = window.GameConfig?.gameBalance?.enemies;
     
     if (!config) return;
     
-    // Apply level-based spawn rate modifiers
     const levelModifiers = window.GameConfig.utils.getLevelModifiers(gameState.level);
     const adjustedSpawnRate = gameState.spawnRate * levelModifiers.spawnRateMultiplier;
     
     if (currentTime - gameState.lastEnemySpawn < adjustedSpawnRate) return;
     
-    // Limit max enemies based on performance settings
     const maxEnemies = window.GameConfig.performance.maxEnemies || 15;
     if (gameState.enemies.length >= maxEnemies) return;
     
-    // Dynamic enemy type selection based on level
     const rand = Math.random();
-    let bigHouseChance = Math.min(0.15 + (gameState.level - 1) * 0.03, 0.35); // Slower increase, lower cap
+    let bigHouseChance = Math.min(0.15 + (gameState.level - 1) * 0.03, 0.35);
     
-    // Reduce big houses on mobile for performance
     if (window.GameConfig.isMobile) {
         bigHouseChance *= 0.7;
     }
@@ -1268,7 +1158,7 @@ function spawnEnemy() {
     let validPosition = false;
     
     do {
-        const spawnMargin = 140; // Larger margin for easier gameplay
+        const spawnMargin = 140;
         const centerAvoidanceRadius = Math.min(250, Math.max(gameState.canvas.width, gameState.canvas.height) * 0.3);
         
         const angle = Math.random() * Math.PI * 2;
@@ -1287,7 +1177,7 @@ function spawnEnemy() {
         );
         
         let tooCloseToOthers = false;
-        const minEnemyDistance = 120; // Larger minimum distance
+        const minEnemyDistance = 120;
         
         for (const enemy of gameState.enemies) {
             const enemyDistance = Math.sqrt(
@@ -1299,7 +1189,7 @@ function spawnEnemy() {
             }
         }
         
-        validPosition = playerDistance > 220 && !tooCloseToOthers; // Safer spawn distance
+        validPosition = playerDistance > 220 && !tooCloseToOthers;
         attempts++;
     } while (!validPosition && attempts < 30);
     
@@ -1308,10 +1198,9 @@ function spawnEnemy() {
     gameState.totalEnemiesSpawned++;
     gameState.lastEnemySpawn = currentTime;
     
-    // Update spawn rate with level modifiers
     const baseSpawnRate = config.spawnRate.base;
     gameState.spawnRate = Math.max(config.spawnRate.minimum, 
-        baseSpawnRate - (gameState.level - 1) * 200); // Gentler progression
+        baseSpawnRate - (gameState.level - 1) * 200);
     
     console.log(`👻 Enemy spawned: ${enemyType}. Total: ${gameState.enemies.length}, Level: ${gameState.level}`);
 }
@@ -1324,35 +1213,27 @@ function spawnPowerup() {
     
     if (currentTime - gameState.lastPowerupSpawn < gameState.powerupSpawnRate) return;
     
-    // Limit max power-ups
     const maxPowerups = window.GameConfig.performance.maxPowerups || 6;
     if (gameState.powerups.length >= maxPowerups) return;
     
-    // BALANCED POWER-UP DISTRIBUTION
-    // Use round-robin system to ensure equal distribution
     const powerupKeys = Object.keys(PowerupTypes);
     let powerupType;
     
-    // First, check if we need to balance distribution
     const stats = gameState.powerupStats || {};
     const totalCollected = Object.values(stats).reduce((sum, count) => sum + count, 0);
     
     if (totalCollected < 6) {
-        // Early game: use round-robin for guaranteed variety
         powerupType = powerupKeys[gameState.powerupRotationIndex % powerupKeys.length];
         gameState.powerupRotationIndex++;
     } else {
-        // Later game: still prefer balanced distribution but allow some randomness
         const healthCount = stats.HEALTH || 0;
         const shieldCount = stats.SHIELD || 0;
         const freezeCount = stats.FREEZE || 0;
         
-        // Find which power-up is least collected
         const counts = { HEALTH: healthCount, SHIELD: shieldCount, FREEZE: freezeCount };
         const minCount = Math.min(...Object.values(counts));
         const leastCollected = Object.keys(counts).filter(key => counts[key] === minCount);
         
-        // 70% chance to spawn least collected, 30% random
         if (Math.random() < 0.7) {
             powerupType = leastCollected[Math.floor(Math.random() * leastCollected.length)];
         } else {
@@ -1366,7 +1247,7 @@ function spawnPowerup() {
     let tooCloseToEnemy = false;
     
     do {
-        const margin = 120; // Good margin from edges
+        const margin = 120;
         x = margin + Math.random() * (gameState.canvas.width - margin * 2);
         y = margin + Math.random() * (gameState.canvas.height - margin * 2);
         
@@ -1379,7 +1260,7 @@ function spawnPowerup() {
             const enemyDistance = Math.sqrt(
                 Math.pow(x - enemy.x, 2) + Math.pow(y - enemy.y, 2)
             );
-            if (enemyDistance < 100) { // Safe distance from enemies
+            if (enemyDistance < 100) {
                 tooCloseToEnemy = true;
                 break;
             }
@@ -1393,7 +1274,6 @@ function spawnPowerup() {
     gameState.powerups.push(powerup);
     gameState.lastPowerupSpawn = currentTime;
     
-    // More frequent power-ups as game progresses
     gameState.powerupSpawnRate = Math.max(6000, config.spawnRate - (gameState.level - 1) * 150);
     
     console.log(`⚡ Powerup spawned: ${powerupType}. Total: ${gameState.powerups.length}. Stats:`, gameState.powerupStats);
@@ -1441,7 +1321,6 @@ function updateGame() {
         gameState.lastScoreUpdate = currentTime;
     }
     
-    // Balanced level progression
     const config = window.GameConfig?.gameBalance?.scoring;
     const levelThreshold = config?.levelUpThreshold || 50;
     const newLevel = Math.floor(gameState.score / levelThreshold) + 1;
@@ -1452,7 +1331,6 @@ function updateGame() {
         soundSystem.play('levelup');
         showLevelUpEffect();
         
-        // Apply level modifiers
         const levelModifiers = window.GameConfig.utils.getLevelModifiers(gameState.level);
         console.log(`🎊 Level up! Now level ${gameState.level} (Difficulty: ${gameState.difficulty.toFixed(2)}, Modifiers:`, levelModifiers, ')');
     }
@@ -1531,7 +1409,7 @@ function handleTouchStart(e) {
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance < gameState.player.size + 25) { // Slightly larger touch area
+    if (distance < gameState.player.size + 25) {
         gameState.player.isDragging = true;
         gameState.player.dragOffset = { x: dx, y: dy };
     }
@@ -1572,7 +1450,7 @@ function handleMouseDown(e) {
     const dy = y - gameState.player.y;
     const distance = Math.sqrt(dx * dx + dy * dy);
     
-    if (distance < gameState.player.size + 25) { // Slightly larger click area
+    if (distance < gameState.player.size + 25) {
         gameState.player.isDragging = true;
         gameState.player.dragOffset = { x: dx, y: dy };
     }
@@ -1634,7 +1512,6 @@ function updateUI() {
     if (healthFillEl) healthFillEl.style.width = (health / gameState.player.maxHealth * 100) + '%';
     if (levelEl) levelEl.textContent = gameState.level;
     
-    // Update timer display
     const survivalTime = getCurrentSurvivalTime();
     const survivalTimeEl = document.getElementById('survivalTime');
     if (survivalTimeEl) {
@@ -1823,48 +1700,46 @@ function showScreen(screenId) {
     }
 }
 
-// === HIGH SCORES SYSTEM ===
+// === LOCAL HIGH SCORES SYSTEM ===
 function saveHighScore(survivalTime, level) {
     console.log(`💾 Saving high score: ${survivalTime}s, level ${level}`);
     
+    if (!window.GameConfig?.localStorage?.available) {
+        console.warn('⚠️ Local storage not available');
+        return false;
+    }
+    
     let highScores = [];
     try {
-        const stored = localStorage.getItem('houseHeadChaseHighScores');
+        const stored = window.GameConfig.utils.loadFromLocal('highScores', []);
         if (stored) {
-            highScores = JSON.parse(stored);
+            highScores = stored;
         }
     } catch (e) {
         console.error('Error loading high scores:', e);
     }
     
-    // Generate player name for local storage
-    let playerName;
-    if (window.firebaseManager && window.firebaseManager.user) {
-        playerName = window.firebaseManager.user.displayName || 'Signed-in Player';
-    } else {
-        playerName = window.GameConfig?.utils?.generatePlayerName() || 'Anonymous Player';
-    }
+    const playerName = window.GameConfig?.utils?.generatePlayerName() || 'Anonymous Player';
     
     const newScore = {
         playerName: playerName,
-        score: survivalTime, // For backwards compatibility, keep 'score' field
-        survivalTime: survivalTime, // New field for clarity
+        survivalTime: survivalTime,
         level: level,
         date: new Date().toISOString(),
-        dateTime: new Date().toISOString(), // Match Firebase format
-        timestamp: Date.now(),
-        isSignedIn: !!(window.firebaseManager && window.firebaseManager.user)
+        timestamp: Date.now()
     };
     
     highScores.push(newScore);
-    highScores.sort((a, b) => (b.survivalTime || b.score) - (a.survivalTime || a.score)); // Sort by survival time descending
-    highScores = highScores.slice(0, 10); // Keep only top 10
+    highScores.sort((a, b) => b.survivalTime - a.survivalTime);
+    highScores = highScores.slice(0, 10);
     
     try {
-        localStorage.setItem('houseHeadChaseHighScores', JSON.stringify(highScores));
+        window.GameConfig.utils.saveToLocal('highScores', highScores);
         console.log('✅ High score saved locally');
+        return true;
     } catch (e) {
         console.error('Error saving high scores:', e);
+        return false;
     }
 }
 
@@ -1879,10 +1754,7 @@ function displayHighScores() {
     
     let highScores = [];
     try {
-        const stored = localStorage.getItem('houseHeadChaseHighScores');
-        if (stored) {
-            highScores = JSON.parse(stored);
-        }
+        highScores = window.GameConfig?.utils?.loadFromLocal('highScores', []) || [];
     } catch (e) {
         console.error('Error loading high scores:', e);
     }
@@ -1898,8 +1770,7 @@ function displayHighScores() {
         const dateStr = date.toLocaleDateString();
         const medal = index === 0 ? '🥇' : index === 1 ? '🥈' : index === 2 ? '🥉' : `#${index + 1}`;
         const playerName = score.playerName || 'Anonymous Player';
-        const survivalTime = score.survivalTime || score.score || 0; // Handle both old and new format
-        const signedInBadge = score.isSignedIn ? ' ✓' : '';
+        const survivalTime = score.survivalTime || 0;
         
         html += `
             <div style="display: flex; justify-content: space-between; align-items: center; 
@@ -1909,7 +1780,7 @@ function displayHighScores() {
                     <span style="font-size: 20px; min-width: 30px;">${medal}</span>
                     <div>
                         <div style="font-weight: bold; color: #ff4444;">
-                            ${playerName}${signedInBadge}
+                            ${playerName}
                         </div>
                         <div style="font-size: 12px; color: #888;">
                             Time: ${formatTime(survivalTime)} • Level ${score.level} • ${dateStr}
@@ -2032,17 +1903,11 @@ function goToStartScreen() {
     document.getElementById('controlsHint').classList.add('hidden');
     
     showScreen('startScreen');
-    
-    // Show auth UI when returning to start screen
-    authUIManager.onStartScreen();
 }
 
 function closeModalReturnToStart() {
     console.log('🏠 Closing modal and returning to start...');
     showScreen('startScreen');
-    
-    // Show auth UI when returning to start screen
-    authUIManager.onStartScreen();
 }
 
 // === MAIN GAME FUNCTIONS ===
@@ -2075,7 +1940,6 @@ function startGame() {
     gameState.startTime = Date.now();
     gameState.lastScoreUpdate = Date.now();
     
-    // Reset game state with balanced settings
     const config = window.GameConfig?.gameBalance;
     gameState.player = {
         x: gameState.canvas.width / 2,
@@ -2109,7 +1973,6 @@ function startGame() {
     gameState.powerupStats = {};
     gameState.powerupRotationIndex = 0;
     
-    // Set balanced spawn rates
     gameState.spawnRate = config?.enemies?.spawnRate?.base || 5500;
     gameState.powerupSpawnRate = config?.powerups?.spawnRate || 8000;
     
@@ -2127,9 +1990,6 @@ function startGame() {
     setupInputHandlers();
     gameLoop();
     
-    // Hide auth UI when game starts
-    authUIManager.onGameStart();
-    
     console.log(`🎮 Game started! Canvas: ${gameState.canvas.width}x${gameState.canvas.height}`);
 }
 
@@ -2144,108 +2004,20 @@ function endGame() {
     const survivalTime = Math.floor((Date.now() - gameState.startTime) / 1000);
     const level = gameState.level;
     
-    // Generate player name
-    let playerName;
-    if (window.firebaseManager && window.firebaseManager.user) {
-        // Use signed-in user's name
-        playerName = window.firebaseManager.user.displayName || window.GameConfig?.utils?.generatePlayerName() || 'Anonymous Player';
-    } else {
-        // Generate a random player name for anonymous players
-        playerName = window.GameConfig?.utils?.generatePlayerName() || 'Anonymous Player';
-    }
-    
-    // Save high score locally
     saveHighScore(survivalTime, level);
     
-    // Submit to Firebase (both signed-in and anonymous players)
-    if (window.firebaseManager) {
-        console.log(`📤 Submitting score to Firebase: ${playerName}, ${survivalTime}s, Level ${level}`);
-        
-        window.firebaseManager.submitScore(playerName, survivalTime, level)
-            .then(success => {
-                if (success) {
-                    console.log('✅ Score successfully submitted to global leaderboard');
-                    // Show success message
-                    if (typeof showPowerupMessage === 'function') {
-                        showPowerupMessage('📤 Score submitted to global leaderboard!');
-                    }
-                    
-                    // Update the global leaderboard display if visible
-                    setTimeout(() => {
-                        if (window.firebaseManager.updateGlobalLeaderboard) {
-                            window.firebaseManager.updateGlobalLeaderboard();
-                        }
-                    }, 1000);
-                } else {
-                    console.log('⚠️ Score saved locally - will sync when online');
-                    if (typeof showPowerupMessage === 'function') {
-                        showPowerupMessage('💾 Score saved locally - will sync when online');
-                    }
-                }
-            })
-            .catch(error => {
-                console.error('❌ Error submitting score:', error);
-                if (typeof showPowerupMessage === 'function') {
-                    showPowerupMessage('⚠️ Score saved locally only');
-                }
-            });
-    } else {
-        console.log('⚠️ Firebase not available - score saved locally only');
-    }
-    
-    // Update UI with game results
     document.getElementById('finalTime').textContent = formatTime(survivalTime);
     document.getElementById('finalLevel').textContent = level;
     
-    // Show global rank if available and user is signed in
-    if (window.firebaseManager && window.firebaseManager.user) {
-        // Try to get updated rank information
-        setTimeout(async () => {
-            try {
-                const scores = await window.firebaseManager.getGlobalLeaderboard(100); // Get more scores to calculate rank
-                const userScores = scores.filter(score => score.isCurrentUser);
-                if (userScores.length > 0) {
-                    const userBestScore = Math.max(...userScores.map(score => score.survivalTime));
-                    const rank = scores.filter(score => score.survivalTime > userBestScore).length + 1;
-                    
-                    const globalRankInfo = document.getElementById('globalRankInfo');
-                    const globalRank = document.getElementById('globalRank');
-                    if (globalRankInfo && globalRank) {
-                        globalRank.textContent = `#${rank}`;
-                        globalRankInfo.classList.remove('hidden');
-                    }
-                }
-            } catch (error) {
-                console.error('❌ Failed to get rank information:', error);
-            }
-        }, 2000);
-    }
-    
-    // Hide game UI elements
     document.getElementById('hud').classList.add('hidden');
     document.getElementById('powerupIndicators').classList.add('hidden');
     document.getElementById('flashlightIndicator').classList.add('hidden');
     document.getElementById('controlsHint').classList.add('hidden');
     
-    // Show game over screen
     showScreen('gameOver');
     
-    // Show auth UI after game ends (with delay)
-    authUIManager.onGameEnd();
-    
-    console.log(`🎮 Game Over! Player: ${playerName}, Survival time: ${formatTime(survivalTime)}, Level: ${level}`);
+    console.log(`🎮 Game Over! Survival time: ${formatTime(survivalTime)}, Level: ${level}`);
     console.log('📊 Power-up distribution:', gameState.powerupStats);
-    
-    // Track game over event for analytics
-    if (window.analytics) {
-        window.analytics.trackEvent('game_over', {
-            player_name: playerName,
-            survival_time: survivalTime,
-            final_level: level,
-            enemies_spawned: gameState.totalEnemiesSpawned,
-            powerups_collected: Object.values(gameState.powerupStats || {}).reduce((sum, count) => sum + count, 0)
-        });
-    }
 }
 
 function restartGame() {
@@ -2369,9 +2141,6 @@ document.addEventListener('DOMContentLoaded', () => {
     
     setupPWAInstall();
     
-    // Initialize Auth UI Manager
-    authUIManager.initialize();
-    
     if ('serviceWorker' in navigator) {
         navigator.serviceWorker.register('/sw.js')
             .then(registration => console.log('✅ Service Worker registered'))
@@ -2382,6 +2151,7 @@ document.addEventListener('DOMContentLoaded', () => {
     
     console.log('✅ Navigation system initialized successfully!');
     console.log('⚖️ Game difficulty balanced for better progression!');
+    console.log('📱 LOCAL-ONLY version ready for GitHub Pages!');
 });
 
-console.log('✅ BALANCED Game script loaded with improved difficulty progression!');
+console.log('✅ LOCAL-ONLY Game script loaded successfully!');
